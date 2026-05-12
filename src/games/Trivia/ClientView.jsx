@@ -1,193 +1,132 @@
+// Vista Client (giocatore) — telefono.
+// Fase question: timer + bottoni risposta
+// Fase reveal: risultato personale + bottone "Pronto"
+// Fase final: classifica + bottone "Pronto"
+
 import { motion, AnimatePresence } from 'framer-motion'
 import PlayerAvatar from '../../components/PlayerAvatar'
+import ReadyButton from '../../components/ReadyButton'
 
 const ANSWER_COLORS = ['#7C3AED', '#0891B2', '#D97706', '#DC2626']
 
 const ClientView = ({
+  currentPhase,
   currentQuestion,
-  gameState,
   players,
-  myAnswer,
-  hasAnswered,
-  answeredCount,
-  totalCount,
-  submitAnswer,
+  roundResults,
+  timeLeft,
+  isExpired,
   questionNumber,
   totalQuestions,
   localPlayerId,
+  localAnswer,
+  submitting,
+  myIsReady,
+  myRoundResult,
+  readyCounts,
+  submitAnswer,
+  toggleReady,
 }) => {
-  const { phase, answers = {}, revealed, roundScores = {} } = gameState
-  const answeredIds = new Set(Object.keys(answers))
-  const myScore = roundScores[localPlayerId] ?? null
+  const hasAnswered = localAnswer !== null
 
-  const isInPlayers = players.some((p) => p.id === localPlayerId)
-
-  if (phase === 'waiting' || !phase) {
+  // --- QUESTION PHASE ---
+  if (currentPhase === 'question') {
     return (
       <div style={S.container}>
-        <p style={S.progress}>
-          Domanda {questionNumber} di {totalQuestions}
-        </p>
-        <h2 style={S.question}>{currentQuestion?.question}</h2>
-        <div style={S.grid}>
-          {currentQuestion?.answers.map((ans, i) => (
-            <div key={i} style={{ ...S.answerBtn, background: ANSWER_COLORS[i], opacity: 0.4 }}>
-              {ans}
-            </div>
-          ))}
+        <div style={S.topBar}>
+          <p style={S.progress}>
+            Domanda {questionNumber} di {totalQuestions}
+          </p>
+          <TimerDisplay timeLeft={timeLeft} />
         </div>
-        <div style={S.footerInfo}>
-          <p style={S.muted}>In attesa della prossima domanda...</p>
-          <div className="flex" style={{ gap: 6, justifyContent: 'center', flexWrap: 'wrap' }}>
-            {players.map((p) => (
-              <PlayerAvatar key={p.id} player={p} showScore size="sm" />
-            ))}
-          </div>
-        </div>
-      </div>
-    )
-  }
 
-  if (!isInPlayers) {
-    return (
-      <div style={S.container}>
-        <p style={S.progress}>
-          Domanda {questionNumber} di {totalQuestions}
-        </p>
         <h2 style={S.question}>{currentQuestion?.question}</h2>
-        <div style={S.grid}>
-          {currentQuestion?.answers.map((ans, i) => (
-            <div key={i} style={{ ...S.answerBtn, background: ANSWER_COLORS[i], opacity: 0.4 }}>
-              {ans}
-            </div>
-          ))}
-        </div>
-        <div style={S.footerInfo}>
-          <p style={S.muted}>Sei entrato a partita in corso — parteciperai dalla prossima domanda</p>
-        </div>
-      </div>
-    )
-  }
 
-  if (phase === 'answering' && !revealed && !hasAnswered) {
-    return (
-      <div style={S.container}>
-        <p style={S.progress}>
-          Domanda {questionNumber} di {totalQuestions}
-        </p>
-        <h2 style={S.question}>{currentQuestion?.question}</h2>
-        <div style={S.grid}>
-          {currentQuestion?.answers.map((ans, i) => (
-            <motion.button
-              key={i}
-              whileTap={{ scale: 0.96 }}
-              onClick={() => submitAnswer(i)}
-              style={{
-                ...S.answerBtn,
-                background: ANSWER_COLORS[i],
-                cursor: 'pointer',
-              }}
-            >
-              {ans}
-            </motion.button>
-          ))}
-        </div>
-        <div style={S.footerInfo}>
-          <p style={S.muted}>Scegli la tua risposta</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (phase === 'answering' && !revealed && hasAnswered) {
-    return (
-      <div style={S.container}>
-        <p style={S.progress}>
-          Domanda {questionNumber} di {totalQuestions}
-        </p>
-        <h2 style={S.question}>{currentQuestion?.question}</h2>
         <div style={S.grid}>
           {currentQuestion?.answers.map((ans, i) => {
-            const isMine = i === myAnswer
+            const isMine = i === localAnswer
+            const canClick = !hasAnswered && !isExpired && !submitting
+
             return (
-              <div
+              <motion.button
                 key={i}
+                whileTap={canClick ? { scale: 0.96 } : undefined}
+                onClick={canClick ? () => submitAnswer(i) : undefined}
                 style={{
                   ...S.answerBtn,
                   background: ANSWER_COLORS[i],
-                  opacity: isMine ? 1 : 0.5,
-                  border: isMine ? '3px solid var(--accent)' : '3px solid transparent',
+                  cursor: canClick ? 'pointer' : 'default',
+                  opacity: hasAnswered ? (isMine ? 1 : 0.5) : 1,
+                  border: isMine
+                    ? '3px solid var(--accent)'
+                    : '3px solid transparent',
+                  pointerEvents: canClick ? 'auto' : 'none',
                 }}
               >
                 {ans}
-              </div>
+              </motion.button>
             )
           })}
         </div>
+
         <div style={S.footerInfo}>
-          <p style={{ ...S.muted, color: 'var(--success)' }}>Risposta inviata ✓</p>
-          <p style={S.muted}>
-            {answeredCount}/{totalCount} hanno risposto
-          </p>
-          <div className="flex" style={{ gap: 6, justifyContent: 'center', flexWrap: 'wrap' }}>
-            {players.map((p) => (
-              <PlayerAvatar
-                key={p.id}
-                player={p}
-                showScore={false}
-                size="sm"
-                dimmed={!answeredIds.has(p.id)}
-              />
-            ))}
-          </div>
+          {hasAnswered ? (
+            <p style={{ ...S.muted, color: 'var(--success)' }}>Risposta inviata ✓</p>
+          ) : isExpired ? (
+            <p style={{ ...S.muted, color: 'var(--danger)' }}>Tempo scaduto!</p>
+          ) : (
+            <p style={S.muted}>Scegli la tua risposta</p>
+          )}
         </div>
       </div>
     )
   }
 
-  // REVEALED
-  const isCorrect = myAnswer === currentQuestion?.correct
+  // --- REVEAL PHASE ---
+  if (currentPhase === 'reveal') {
+    const myResult = myRoundResult
+    const myChosen = myResult?.chosen ?? localAnswer
+    const myPoints = myResult?.points ?? 0
+    const isCorrect = myResult?.correct ?? false
+    const correctIdx = currentQuestion?.correct
 
-  return (
-    <div style={S.container}>
-      <p style={S.progress}>
-        Domanda {questionNumber} di {totalQuestions}
-      </p>
-      <h2 style={S.question}>{currentQuestion?.question}</h2>
-      <div style={S.grid}>
-        {currentQuestion?.answers.map((ans, i) => {
-          const isCorrectAns = i === currentQuestion.correct
-          const isMine = i === myAnswer
-          let bg = isCorrectAns ? 'var(--success)' : 'var(--danger)'
-          let opacity = isCorrectAns || isMine ? 1 : 0.3
-          let border = 'none'
+    return (
+      <div style={S.container}>
+        <p style={S.progress}>
+          Domanda {questionNumber} di {totalQuestions}
+        </p>
 
-          if (isMine && isCorrectAns) {
-            border = '3px solid var(--success)'
-          } else if (isMine && !isCorrectAns) {
-            border = '3px solid var(--danger)'
-          }
+        <h2 style={S.question}>{currentQuestion?.question}</h2>
 
-          return (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0.5 }}
-              animate={{ opacity, scale: isMine && isCorrectAns ? 1.03 : 1 }}
-              transition={{ delay: i * 0.1, duration: 0.3 }}
-              style={{
-                ...S.answerBtn,
-                background: bg,
-                border,
-              }}
-            >
-              {ans}
-            </motion.div>
-          )
-        })}
-      </div>
+        <div style={S.grid}>
+          {currentQuestion?.answers.map((ans, i) => {
+            const isCorrectAns = i === correctIdx
+            const isMine = i === myChosen
+            const bg = isCorrectAns ? 'var(--success)' : 'var(--danger)'
+            const opacity = isCorrectAns || isMine ? 1 : 0.3
 
-      <AnimatePresence>
-        {myScore !== null && (
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0.5 }}
+                animate={{ opacity, scale: isMine && isCorrectAns ? 1.03 : 1 }}
+                transition={{ delay: i * 0.1, duration: 0.3 }}
+                style={{
+                  ...S.answerBtn,
+                  background: bg,
+                  border:
+                    isMine
+                      ? `3px solid ${isCorrectAns ? 'var(--success)' : 'var(--danger)'}`
+                      : '3px solid transparent',
+                }}
+              >
+                {ans}
+              </motion.div>
+            )
+          })}
+        </div>
+
+        <AnimatePresence>
           <motion.div
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -196,22 +135,137 @@ const ClientView = ({
           >
             <span
               style={{
-                color: myScore > 0 ? 'var(--success)' : 'var(--danger)',
+                color:
+                  myPoints > 0
+                    ? 'var(--success)'
+                    : myPoints < 0
+                      ? 'var(--danger)'
+                      : 'var(--muted)',
                 fontSize: 'clamp(28px, 5dvh, 40px)',
                 fontWeight: 700,
               }}
             >
-              {myScore > 0 ? `+${myScore}` : '0'}
+              {myPoints > 0 ? `+${myPoints}` : myPoints === 0 ? '0' : myPoints}
             </span>
             <span style={S.muted}>
-              {myScore > 0 ? 'punti guadagnati' : 'Nessun punto'}
+              {myChosen == null
+                ? 'Non hai risposto'
+                : isCorrect
+                  ? 'Risposta corretta!'
+                  : 'Risposta sbagliata'}
             </span>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>
+
+        <div style={S.footer}>
+          <ReadyButton
+            isReady={myIsReady}
+            onToggle={toggleReady}
+            label="Pronto"
+          />
+          <p style={S.muted}>
+            {readyCounts.ready}/{readyCounts.total} pronti
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // --- FINAL PHASE ---
+  if (currentPhase === 'final') {
+    const sorted = [...players]
+      .filter((p) => !p.is_host)
+      .sort((a, b) => b.score - a.score)
+
+    const myRank = sorted.findIndex((p) => p.id === localPlayerId) + 1
+    const myScore = sorted.find((p) => p.id === localPlayerId)?.score ?? 0
+
+    return (
+      <div style={S.container}>
+        <h2 style={{ ...S.question, fontSize: 'clamp(22px, 3.5dvh, 32px)' }}>
+          Classifica Finale
+        </h2>
+
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          style={S.myRankArea}
+        >
+          <span style={{ fontSize: 'clamp(36px, 6dvh, 52px)', fontWeight: 800, color: 'var(--accent)' }}>
+            #{myRank}
+          </span>
+          <span style={S.muted}>{myScore} punti</span>
+        </motion.div>
+
+        <div style={S.leaderboard}>
+          {sorted.map((p, i) => (
+            <motion.div
+              key={p.id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.08 }}
+              style={{
+                ...S.leaderRow,
+                border: p.id === localPlayerId ? '2px solid var(--accent)' : '2px solid transparent',
+              }}
+            >
+              <span style={S.rank}>#{i + 1}</span>
+              <PlayerAvatar player={p} showScore={false} size="sm" />
+              <span style={{ flex: 1, fontWeight: 600, fontSize: 'clamp(13px, 1.8dvh, 16px)' }}>
+                {p.name}
+              </span>
+              <span style={{ fontWeight: 800, color: 'var(--accent)', fontSize: 'clamp(16px, 2dvh, 20px)' }}>
+                {p.score}
+              </span>
+            </motion.div>
+          ))}
+        </div>
+
+        <div style={S.footer}>
+          <ReadyButton
+            isReady={myIsReady}
+            onToggle={toggleReady}
+            label="Nuova partita"
+          />
+          <p style={S.muted}>
+            {readyCounts.ready}/{readyCounts.total} pronti
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Fallback
+  return (
+    <div style={S.container}>
+      <p style={S.muted}>In attesa...</p>
     </div>
   )
 }
+
+// --- Sub-components ---
+
+const TimerDisplay = ({ timeLeft }) => {
+  const urgent = timeLeft <= 5
+  return (
+    <motion.div
+      animate={{
+        scale: urgent ? [1, 1.1, 1] : 1,
+        color: urgent ? 'var(--danger)' : 'var(--muted)',
+      }}
+      transition={urgent ? { repeat: Infinity, duration: 1 } : {}}
+      style={{
+        fontSize: 'clamp(20px, 3dvh, 28px)',
+        fontWeight: 800,
+        fontVariantNumeric: 'tabular-nums',
+      }}
+    >
+      {timeLeft}s
+    </motion.div>
+  )
+}
+
+// --- Styles ---
 
 const S = {
   container: {
@@ -221,6 +275,12 @@ const S = {
     padding: 'clamp(12px, 2.5dvh, 24px) clamp(16px, 4vw, 28px)',
     gap: 'clamp(8px, 1.5dvh, 16px)',
     overflow: 'hidden',
+  },
+  topBar: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexShrink: 0,
   },
   progress: {
     color: 'var(--muted)',
@@ -276,6 +336,42 @@ const S = {
     alignItems: 'center',
     flexShrink: 0,
     gap: 4,
+  },
+  footer: {
+    flexShrink: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 8,
+  },
+  myRankArea: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 4,
+    flexShrink: 0,
+  },
+  leaderboard: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'clamp(6px, 1dvh, 10px)',
+    flex: 1,
+    overflow: 'auto',
+  },
+  leaderRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'clamp(6px, 1.5vw, 12px)',
+    padding: 'clamp(6px, 1dvh, 10px) clamp(8px, 2vw, 14px)',
+    background: 'var(--surface)',
+    borderRadius: 'var(--radius-sm)',
+  },
+  rank: {
+    fontSize: 'clamp(14px, 2dvh, 18px)',
+    fontWeight: 800,
+    color: 'var(--accent)',
+    minWidth: 30,
+    textAlign: 'center',
   },
 }
 

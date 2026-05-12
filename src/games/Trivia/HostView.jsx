@@ -1,202 +1,204 @@
-import { motion } from 'framer-motion'
-import Button from '../../components/ui/Button'
+// Vista Host (spettatore) — TV / schermo grande.
+// Mostra: domanda, griglia risposte, timer, avatar giocatori, risultati.
+// NESSUN pulsante di controllo: il ritmo lo governano i giocatori via "Pronto".
+
+import { motion, AnimatePresence } from 'framer-motion'
 import PlayerAvatar from '../../components/PlayerAvatar'
-import TurnBanner from '../../components/TurnBanner'
-import { useSession } from '../../stores/useSession'
 
 const ANSWER_COLORS = ['#7C3AED', '#0891B2', '#D97706', '#DC2626']
 
 const HostView = ({
+  currentPhase,
   currentQuestion,
-  gameState,
   players,
-  myAnswer,
-  hasAnswered,
-  answeredCount,
-  totalCount,
-  allAnswered,
-  canWrite,
-  submitAnswer,
-  startQuestion,
-  revealAnswers,
-  nextQuestion,
-  hasMoreQuestions,
+  roundResults,
+  timeLeft,
   questionNumber,
   totalQuestions,
-  isOnline,
-  localPlayerId,
+  readyCounts,
+  gameState,
 }) => {
-  const { phase, answers = {}, revealed, roundScores = {} } = gameState
-  const answeredIds = new Set(Object.keys(answers))
+  // --- QUESTION PHASE ---
+  if (currentPhase === 'question') {
+    return (
+      <div style={S.container}>
+        <div style={S.topBar}>
+          <p style={S.progress}>
+            Domanda {questionNumber} di {totalQuestions}
+          </p>
+          <TimerDisplay timeLeft={timeLeft} />
+        </div>
 
-  // Local mode: pass-the-phone — trova il prossimo giocatore che non ha risposto
-  const localCurrentPlayer =
-    !isOnline && phase === 'answering' && !revealed
-      ? players.find((p) => !answeredIds.has(p.id))
-      : null
+        <h2 style={S.question}>{currentQuestion?.question}</h2>
 
-  const setGameState = useSession((s) => s.setGameState)
+        <div style={S.grid}>
+          {currentQuestion?.answers.map((ans, i) => (
+            <div key={i} style={{ ...S.answerBtn, background: ANSWER_COLORS[i] }}>
+              <span>{ans}</span>
+            </div>
+          ))}
+        </div>
 
-  // Local mode: submit per il giocatore corrente
-  const handleLocalSubmit = (idx) => {
-    if (!localCurrentPlayer) return
-    setGameState({
-      answers: { ...answers, [localCurrentPlayer.id]: idx },
-    })
+        <div style={S.playerRow}>
+          {players
+            .filter((p) => !p.is_host)
+            .map((p) => (
+              <PlayerAvatar key={p.id} player={p} showScore size="sm" />
+            ))}
+        </div>
+      </div>
+    )
   }
 
-  // Online mode: l'host risponde come un normale giocatore tramite submitAnswer
-  const handleOnlineSubmit = (idx) => {
-    if (hasAnswered || revealed) return
-    submitAnswer(idx)
+  // --- REVEAL PHASE ---
+  if (currentPhase === 'reveal') {
+    const getPlayersByAnswer = (ansIdx) => {
+      if (!roundResults) return []
+      return players.filter((p) => {
+        const r = roundResults[p.id]
+        return r && r.chosen === ansIdx
+      })
+    }
+
+    return (
+      <div style={S.container}>
+        <p style={S.progress}>
+          Domanda {questionNumber} di {totalQuestions}
+        </p>
+
+        <h2 style={S.question}>{currentQuestion?.question}</h2>
+
+        <div style={S.grid}>
+          {currentQuestion?.answers.map((ans, i) => {
+            const isCorrect = i === currentQuestion.correct
+            const bg = isCorrect ? 'var(--success)' : 'var(--danger)'
+            const opacity = isCorrect ? 1 : 0.45
+            const votePlayers = getPlayersByAnswer(i)
+
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0.5 }}
+                animate={{ opacity, scale: 1 }}
+                transition={{ delay: i * 0.1, duration: 0.3 }}
+                style={{ ...S.answerBtn, background: bg }}
+              >
+                <span>{ans}</span>
+                {votePlayers.length > 0 && (
+                  <div style={S.voterRow}>
+                    {votePlayers.map((p) => {
+                      const pts = roundResults[p.id]?.points ?? 0
+                      return (
+                        <div key={p.id} style={{ position: 'relative' }}>
+                          <PlayerAvatar player={p} showScore={false} size="sm" />
+                          <motion.span
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            style={{
+                              ...S.scoreBadge,
+                              background: pts > 0 ? 'var(--success)' : 'var(--danger)',
+                            }}
+                          >
+                            {pts > 0 ? `+${pts}` : pts}
+                          </motion.span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </motion.div>
+            )
+          })}
+        </div>
+
+        <ReadyIndicator players={players} readyCounts={readyCounts} />
+      </div>
+    )
   }
 
-  const getPlayersByAnswer = (ansIdx) =>
-    players.filter((p) => answers[p.id] === ansIdx)
+  // --- FINAL PHASE ---
+  if (currentPhase === 'final') {
+    const sorted = [...players]
+      .filter((p) => !p.is_host)
+      .sort((a, b) => b.score - a.score)
 
-  // Online: host can click to answer if not yet answered and not revealed
-  const onlineCanAnswer = isOnline && phase === 'answering' && !revealed && !hasAnswered
-  // Local: pass-the-phone
-  const localCanAnswer = !isOnline && phase === 'answering' && !revealed && !!localCurrentPlayer
+    return (
+      <div style={S.container}>
+        <h2 style={{ ...S.question, fontSize: 'clamp(22px, 3.5dvh, 32px)' }}>
+          Classifica Finale
+        </h2>
 
-  const clickable = onlineCanAnswer || localCanAnswer
+        <div style={S.leaderboard}>
+          {sorted.map((p, i) => (
+            <motion.div
+              key={p.id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.1 }}
+              style={S.leaderRow}
+            >
+              <span style={S.rank}>#{i + 1}</span>
+              <PlayerAvatar player={p} showScore={false} size="md" />
+              <span style={S.playerName}>{p.name}</span>
+              <span style={S.playerScore}>{p.score}</span>
+            </motion.div>
+          ))}
+        </div>
 
+        <ReadyIndicator players={players} readyCounts={readyCounts} />
+      </div>
+    )
+  }
+
+  // Fallback
   return (
     <div style={S.container}>
-      <p style={S.progress}>
-        Domanda {questionNumber} di {totalQuestions}
+      <p style={S.progress}>In attesa...</p>
+    </div>
+  )
+}
+
+// --- Sub-components ---
+
+const TimerDisplay = ({ timeLeft }) => {
+  const urgent = timeLeft <= 5
+  return (
+    <motion.div
+      animate={{
+        scale: urgent ? [1, 1.1, 1] : 1,
+        color: urgent ? 'var(--danger)' : 'var(--muted)',
+      }}
+      transition={urgent ? { repeat: Infinity, duration: 1 } : {}}
+      style={S.timer}
+    >
+      {timeLeft}s
+    </motion.div>
+  )
+}
+
+const ReadyIndicator = ({ players, readyCounts }) => {
+  const nonHost = players.filter((p) => !p.is_host)
+  return (
+    <div style={S.readyArea}>
+      <p style={S.counter}>
+        {readyCounts.ready}/{readyCounts.total} pronti
       </p>
-
-      {!isOnline && phase === 'answering' && !revealed && localCurrentPlayer && (
-        <TurnBanner player={localCurrentPlayer} message="Tocca a" />
-      )}
-
-      <h2 style={S.question}>{currentQuestion?.question}</h2>
-
-      <div style={S.grid}>
-        {currentQuestion?.answers.map((ans, i) => {
-          const isCorrect = i === currentQuestion.correct
-          let bg = ANSWER_COLORS[i]
-          let opacity = phase === 'waiting' ? 0.4 : 1
-
-          // In online mode, dim non-selected after host answered
-          if (isOnline && hasAnswered && !revealed) {
-            const isMine = i === myAnswer
-            opacity = isMine ? 1 : 0.5
-          }
-
-          if (revealed) {
-            bg = isCorrect ? 'var(--success)' : 'var(--danger)'
-            opacity = isCorrect ? 1 : 0.45
-          }
-
-          const votePlayers = revealed ? getPlayersByAnswer(i) : []
-
-          return (
-            <motion.button
-              key={i}
-              initial={false}
-              animate={{ opacity, scale: 1 }}
-              transition={{ delay: revealed ? i * 0.1 : 0, duration: 0.3 }}
-              whileTap={clickable ? { scale: 0.96 } : undefined}
-              onClick={
-                clickable
-                  ? () => (isOnline ? handleOnlineSubmit(i) : handleLocalSubmit(i))
-                  : undefined
-              }
-              style={{
-                ...S.answerBtn,
-                background: bg,
-                cursor: clickable ? 'pointer' : 'default',
-                pointerEvents: clickable || revealed ? 'auto' : 'none',
-                border:
-                  isOnline && hasAnswered && !revealed && i === myAnswer
-                    ? '3px solid var(--accent)'
-                    : '3px solid transparent',
-              }}
-            >
-              <span>{ans}</span>
-              {revealed && votePlayers.length > 0 && (
-                <div style={S.voterRow}>
-                  {votePlayers.map((p) => (
-                    <div key={p.id} style={{ position: 'relative' }}>
-                      <PlayerAvatar player={p} showScore={false} size="sm" />
-                      {roundScores[p.id] > 0 && (
-                        <motion.span
-                          initial={{ opacity: 0, y: 6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          style={S.scoreBadge}
-                        >
-                          +{roundScores[p.id]}
-                        </motion.span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </motion.button>
-          )
-        })}
-      </div>
-
-      {isOnline && phase === 'answering' && !revealed && (
-        <div style={S.counterArea}>
-          {hasAnswered && (
-            <p style={{ ...S.counter, color: 'var(--success)' }}>Risposta inviata ✓</p>
-          )}
-          <p style={S.counter}>
-            {answeredCount}/{totalCount} hanno risposto
-          </p>
-          <div className="flex" style={{ gap: 6, justifyContent: 'center', flexWrap: 'wrap' }}>
-            {players.map((p) => (
-              <PlayerAvatar
-                key={p.id}
-                player={p}
-                showScore={false}
-                size="sm"
-                dimmed={!answeredIds.has(p.id)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {!isOnline && phase === 'answering' && !revealed && !localCurrentPlayer && (
-        <p style={S.counter}>Tutti hanno risposto!</p>
-      )}
-
-      <div style={S.footer}>
-        {phase === 'waiting' && (
-          <Button variant="primary" width="full" onClick={startQuestion}>
-            Inizia domanda
-          </Button>
-        )}
-        {phase === 'answering' && !revealed && (
-          <Button
-            variant={allAnswered ? 'primary' : 'secondary'}
-            width="full"
-            onClick={revealAnswers}
-          >
-            Rivela risposte
-          </Button>
-        )}
-        {revealed && (
-          <div className="flex w-full" style={{ gap: 12 }}>
-            {hasMoreQuestions ? (
-              <Button variant="primary" width="full" onClick={nextQuestion}>
-                Prossima domanda
-              </Button>
-            ) : (
-              <Button variant="danger" width="full" onClick={() => nextQuestion()}>
-                Fine gioco
-              </Button>
-            )}
-          </div>
-        )}
+      <div className="flex" style={{ gap: 6, justifyContent: 'center', flexWrap: 'wrap' }}>
+        {nonHost.map((p) => (
+          <PlayerAvatar
+            key={p.id}
+            player={p}
+            showScore={false}
+            size="sm"
+            dimmed={!p.is_ready}
+          />
+        ))}
       </div>
     </div>
   )
 }
+
+// --- Styles ---
 
 const S = {
   container: {
@@ -207,11 +209,22 @@ const S = {
     gap: 'clamp(8px, 1.5dvh, 14px)',
     overflow: 'hidden',
   },
+  topBar: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexShrink: 0,
+  },
   progress: {
     color: 'var(--muted)',
     fontSize: 'clamp(12px, 1.5dvh, 14px)',
     textAlign: 'center',
     flexShrink: 0,
+  },
+  timer: {
+    fontSize: 'clamp(20px, 3dvh, 28px)',
+    fontWeight: 800,
+    fontVariantNumeric: 'tabular-nums',
   },
   question: {
     fontWeight: 700,
@@ -255,7 +268,6 @@ const S = {
     position: 'absolute',
     top: -8,
     right: -8,
-    background: 'var(--success)',
     color: 'white',
     borderRadius: 8,
     padding: '1px 5px',
@@ -263,7 +275,14 @@ const S = {
     fontWeight: 700,
     whiteSpace: 'nowrap',
   },
-  counterArea: {
+  playerRow: {
+    display: 'flex',
+    gap: 8,
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    flexShrink: 0,
+  },
+  readyArea: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -277,10 +296,37 @@ const S = {
     fontWeight: 600,
     flexShrink: 0,
   },
-  footer: {
-    flexShrink: 0,
+  leaderboard: {
     display: 'flex',
-    gap: 12,
+    flexDirection: 'column',
+    gap: 'clamp(8px, 1.5dvh, 14px)',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  leaderRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'clamp(8px, 2vw, 16px)',
+    padding: 'clamp(8px, 1.5dvh, 14px)',
+    background: 'var(--surface)',
+    borderRadius: 'var(--radius-sm)',
+  },
+  rank: {
+    fontSize: 'clamp(18px, 2.5dvh, 24px)',
+    fontWeight: 800,
+    color: 'var(--accent)',
+    minWidth: 40,
+    textAlign: 'center',
+  },
+  playerName: {
+    flex: 1,
+    fontSize: 'clamp(14px, 2dvh, 18px)',
+    fontWeight: 600,
+  },
+  playerScore: {
+    fontSize: 'clamp(18px, 2.5dvh, 24px)',
+    fontWeight: 800,
+    color: 'var(--accent)',
   },
 }
 

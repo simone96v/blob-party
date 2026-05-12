@@ -41,7 +41,7 @@ const JoinScreen = () => {
       return
     }
     setOnlineMode(code, false, playerId)
-    navigate('/waiting')
+    navigate('/lobby')
   }
 
   const inputStyle = {

@@ -1,169 +1,182 @@
-import { useMemo, useEffect, useState, useCallback } from 'react'
+// Hook principale del gioco Trivia — modello "pronto democratico".
+//
+// Flusso: lobby → question (15s) → reveal → (Pronto) → question → ... → final → (Pronto) → lobby
+//
+// Il server è la fonte di verità per:
+//   - timer (question_started_at)
+//   - scoring (+10 correct, -10 wrong, -5 timeout)
+//   - transizioni di fase (via RPCs atomiche)
+//
+// L'host è spettatore: non ha pulsanti di controllo.
+// I giocatori governano il ritmo via "Pronto" (toggle_ready).
+
+import { useMemo, useEffect, useState, useCallback, useRef } from 'react'
 import { useSession } from '../../stores/useSession'
 import { useSettings } from '../../stores/useSettings'
-import { useGameState } from '../../hooks/useGameState'
-import { pushVote } from '../../lib/room'
+import { useServerTimer } from '../../hooks/useServerTimer'
+import {
+  rpcSubmitAnswer,
+  rpcTimeoutReveal,
+  rpcToggleReady,
+  rpcStartGame,
+} from '../../lib/room'
 import { shuffle } from '../../utils/deck'
 import questionsAll from '../../data/questions/trivia.json'
 
-const POINTS_CORRECT = 10
-const POINTS_FIRST_BONUS = 3
+const NUM_QUESTIONS = 10
 
-export const useTrivia = ({ onEnd, localPlayerId }) => {
+export const useTrivia = () => {
   const players = useSession((s) => s.players)
-  const addScore = useSession((s) => s.addScore)
-  const roomCode = useSession((s) => s.roomCode)
   const mode = useSession((s) => s.mode)
+  const roomCode = useSession((s) => s.roomCode)
+  const isHost = useSession((s) => s.isHost)
+  const localPlayerId = useSession((s) => s.localPlayerId)
+  const currentPhase = useSession((s) => s.currentPhase)
+  const gameState = useSession((s) => s.gameState)
+  const questionStartedAt = useSession((s) => s.questionStartedAt)
   const category = useSettings((s) => s.category)
 
-  const { gameState, updateGameState, canWrite } = useGameState({
-    phase: 'waiting',
-    questionIndex: 0,
-    deckOrder: [],
-    answers: {},
-    revealed: false,
-    roundScores: {},
-  })
+  const isOnline = mode === 'online'
 
-  const [localAnswer, setLocalAnswer] = useState(null)
-
-  const questions = useMemo(() => {
-    const filtered = questionsAll.filter((q) => q.category === category)
-    return filtered.length >= 5 ? filtered : questionsAll
-  }, [category])
-
-  useEffect(() => {
-    if (!canWrite) return
-    if (gameState.deckOrder && gameState.deckOrder.length > 0) return
-    const order = shuffle(questions.map((_, i) => i))
-    updateGameState({
-      phase: 'waiting',
-      questionIndex: 0,
-      deckOrder: order,
-      answers: {},
-      revealed: false,
-      roundScores: {},
-    })
-  }, [canWrite])
-
-  // Reset local answer when question changes or phase resets
-  useEffect(() => {
-    setLocalAnswer(null)
-  }, [gameState.questionIndex, gameState.phase === 'waiting'])
-
-  const currentQuestion = useMemo(() => {
-    if (!gameState.deckOrder || gameState.deckOrder.length === 0) return null
-    const idx = gameState.deckOrder[gameState.questionIndex ?? 0]
-    return questions[idx] ?? null
-  }, [gameState.deckOrder, gameState.questionIndex, questions])
-
-  const myAnswer = gameState.answers?.[localPlayerId] ?? null
-  const answeredCount = Object.keys(gameState.answers ?? {}).length
-  const totalCount = players.length
-  const allAnswered = answeredCount >= totalCount
-  const hasAnswered = localAnswer !== null || myAnswer !== null
-
-  const submitAnswer = useCallback(
-    async (answerIndex) => {
-      if (localAnswer !== null || myAnswer !== null) return
-      if (gameState.phase !== 'answering') return
-
-      setLocalAnswer(answerIndex)
-
-      if (mode === 'online') {
-        const { error } = await pushVote(roomCode, localPlayerId, answerIndex)
-        if (error) {
-          setLocalAnswer(null)
-          useSession.getState().showError('generic')
-        }
-      } else {
-        updateGameState({
-          answers: { ...gameState.answers, [localPlayerId]: answerIndex },
-        })
-      }
-    },
-    [localAnswer, myAnswer, gameState.phase, gameState.answers, mode, roomCode, localPlayerId, updateGameState],
+  // Server-derived timer
+  const { timeLeft, isExpired } = useServerTimer(
+    currentPhase === 'question' ? questionStartedAt : null,
   )
 
-  const startQuestion = useCallback(() => {
-    if (!canWrite) return
-    updateGameState({
-      phase: 'answering',
-      answers: {},
-      revealed: false,
-      roundScores: {},
-    })
-  }, [canWrite, updateGameState])
+  // Track local answer optimistically (before server confirms)
+  const [localAnswer, setLocalAnswer] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
 
-  const revealAnswers = useCallback(() => {
-    if (!canWrite) return
-    if (!currentQuestion) return
+  // Reset local answer when round changes or phase goes back to question
+  const currentRound = gameState?.current_round ?? 0
+  useEffect(() => {
+    setLocalAnswer(null)
+    setSubmitting(false)
+  }, [currentRound])
 
-    const scores = {}
-    let firstCorrect = null
-    const entries = Object.entries(gameState.answers ?? {})
+  // Current question from server state
+  const currentQuestion = gameState?.current_question ?? null
+  const roundResults = gameState?.round_results ?? null
+  const totalQuestions = gameState?.deck?.length ?? 0
+  const questionNumber = currentRound + 1
 
-    entries.forEach(([pid, ans]) => {
-      if (ans === currentQuestion.correct) {
-        scores[pid] = POINTS_CORRECT
-        if (firstCorrect === null) firstCorrect = pid
-      } else {
-        scores[pid] = 0
+  // My player object
+  const myPlayer = useMemo(
+    () => players.find((p) => p.id === localPlayerId),
+    [players, localPlayerId],
+  )
+  const myIsReady = myPlayer?.is_ready ?? false
+
+  // Count answered players (from round_results after reveal)
+  const answeredPlayerIds = useMemo(() => {
+    if (!roundResults) return new Set()
+    return new Set(Object.keys(roundResults))
+  }, [roundResults])
+
+  // My result for this round
+  const myRoundResult = roundResults?.[localPlayerId] ?? null
+
+  // Submit answer to server
+  const submitAnswer = useCallback(
+    async (chosenIndex) => {
+      if (localAnswer !== null || submitting) return
+      if (currentPhase !== 'question') return
+      if (!isOnline) return
+
+      setLocalAnswer(chosenIndex)
+      setSubmitting(true)
+
+      const { error } = await rpcSubmitAnswer(roomCode, localPlayerId, currentRound, chosenIndex)
+      if (error) {
+        console.error('[useTrivia] submitAnswer error:', error)
+        setLocalAnswer(null)
+        useSession.getState().showError('generic')
       }
-    })
+      setSubmitting(false)
+    },
+    [localAnswer, submitting, currentPhase, isOnline, roomCode, localPlayerId, currentRound],
+  )
 
-    if (firstCorrect) scores[firstCorrect] += POINTS_FIRST_BONUS
-
-    // Batch: aggiorna i punteggi nello store senza triggerare push individuali,
-    // poi fai un unico updateGameState che triggera il push debounced.
-    const store = useSession.getState()
-    const updatedPlayers = store.players.map((p) => {
-      const pts = scores[p.id]
-      return pts > 0 ? { ...p, score: p.score + pts } : p
-    })
-    useSession.setState({ players: updatedPlayers })
-
-    // Questo singolo push contiene sia i punteggi aggiornati che il reveal
-    updateGameState({ revealed: true, roundScores: scores })
-  }, [canWrite, currentQuestion, gameState.answers, updateGameState])
-
-  const nextQuestion = useCallback(() => {
-    if (!canWrite) return
-    const nextIdx = (gameState.questionIndex ?? 0) + 1
-    if (nextIdx >= (gameState.deckOrder?.length ?? 0)) {
-      onEnd({ scores: players.map((p) => ({ id: p.id, score: p.score })) })
+  // Auto-reveal on timeout: any client can fire this (idempotent)
+  const timeoutFiredRef = useRef(false)
+  useEffect(() => {
+    if (currentPhase !== 'question') {
+      timeoutFiredRef.current = false
       return
     }
-    updateGameState({
-      phase: 'waiting',
-      questionIndex: nextIdx,
-      answers: {},
-      revealed: false,
-      roundScores: {},
-    })
-  }, [canWrite, gameState.questionIndex, gameState.deckOrder, onEnd, players, updateGameState])
+    if (!isExpired || timeoutFiredRef.current) return
+    timeoutFiredRef.current = true
+    // Fire and forget — idempotent, safe to call from multiple clients
+    rpcTimeoutReveal(roomCode, currentRound).catch((err) =>
+      console.error('[useTrivia] timeoutReveal error:', err),
+    )
+  }, [isExpired, currentPhase, roomCode, currentRound])
 
-  const hasMoreQuestions =
-    (gameState.questionIndex ?? 0) + 1 < (gameState.deckOrder?.length ?? 0)
+  // Toggle ready
+  const toggleReady = useCallback(async () => {
+    if (!isOnline || isHost) return
+    const { data, error } = await rpcToggleReady(roomCode, localPlayerId)
+    if (error) {
+      console.error('[useTrivia] toggleReady error:', error)
+      useSession.getState().showError('generic')
+      return
+    }
+    // If all_ready in lobby → generate deck and start game
+    if (data?.action === 'start_game') {
+      const filtered = questionsAll.filter((q) => q.category === category)
+      const pool = filtered.length >= NUM_QUESTIONS ? filtered : questionsAll
+      const shuffled = shuffle([...pool])
+      const deck = shuffled.slice(0, NUM_QUESTIONS).map((q) => ({
+        question: q.question,
+        answers: q.answers,
+        correct: q.correct,
+      }))
+      const { error: startErr } = await rpcStartGame(roomCode, deck)
+      if (startErr) {
+        console.error('[useTrivia] startGame error:', startErr)
+      }
+    }
+  }, [isOnline, isHost, roomCode, localPlayerId, category])
 
-  const effectiveAnswer = localAnswer ?? myAnswer
+  // Ready counts for display
+  const readyCounts = useMemo(() => {
+    const nonHostPlayers = players.filter((p) => !p.is_host)
+    const readyPlayers = nonHostPlayers.filter((p) => p.is_ready)
+    return { ready: readyPlayers.length, total: nonHostPlayers.length }
+  }, [players])
+
+  // Has more questions?
+  const hasMoreQuestions = questionNumber < totalQuestions
 
   return {
+    // State
+    currentPhase,
     currentQuestion,
-    gameState,
-    myAnswer: effectiveAnswer,
-    hasAnswered,
-    answeredCount,
-    totalCount,
-    allAnswered,
-    canWrite,
-    players,
-    submitAnswer,
-    startQuestion,
-    revealAnswers,
-    nextQuestion,
+    currentRound,
+    questionNumber,
+    totalQuestions,
     hasMoreQuestions,
-    questionNumber: (gameState.questionIndex ?? 0) + 1,
-    totalQuestions: gameState.deckOrder?.length ?? 0,
+    players,
+    roundResults,
+    gameState,
+    isOnline,
+    isHost,
+    localPlayerId,
+    myPlayer,
+    myIsReady,
+    myRoundResult,
+    localAnswer,
+    submitting,
+
+    // Timer
+    timeLeft,
+    isExpired,
+
+    // Ready
+    readyCounts,
+    toggleReady,
+
+    // Actions
+    submitAnswer,
   }
 }

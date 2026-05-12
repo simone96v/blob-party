@@ -26,11 +26,6 @@ const ModeScreen = () => {
     setCreating(true)
     const initialState = {
       players: [],
-      currentIdx: 0,
-      round: 0,
-      activeGame: null,
-      settings: useSettings.getState(),
-      gameState: {},
     }
     const { code, error } = await createRoom(initialState)
     if (error || !code) {

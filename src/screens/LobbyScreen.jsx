@@ -1,14 +1,25 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+// Lobby — modello "pronto democratico".
+// Host: aggiunge il proprio nome, vede QR code, vede giocatori + indicatori "pronto".
+// Client: vede giocatori + bottone "Pronto".
+// Quando tutti i non-host sono pronti (min 1), parte il gioco automaticamente.
+// L'ultimo a premere Pronto genera il deck e chiama start_game.
+
+import { useState, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
 import AppHeader from '../components/AppHeader'
 import ErrorBanner from '../components/ErrorBanner'
 import Button from '../components/ui/Button'
 import PlayerAvatar from '../components/PlayerAvatar'
+import ReadyButton from '../components/ReadyButton'
 import { useSession } from '../stores/useSession'
 import { useSettings } from '../stores/useSettings'
+import { addPlayerToRoom, rpcToggleReady, rpcStartGame } from '../lib/room'
+import { shuffle } from '../utils/deck'
 import { getCopy } from '../data/copy'
+import questionsAll from '../data/questions/trivia.json'
+
+const NUM_QUESTIONS = 10
 
 const containerVariants = {
   hidden: {},
@@ -21,7 +32,6 @@ const itemVariants = {
 }
 
 const LobbyScreen = () => {
-  const navigate = useNavigate()
   const [name, setName] = useState('')
 
   const mode = useSession((s) => s.mode)
@@ -31,22 +41,60 @@ const LobbyScreen = () => {
   const localPlayerId = useSession((s) => s.localPlayerId)
   const addPlayer = useSession((s) => s.addPlayer)
   const removePlayer = useSession((s) => s.removePlayer)
-  const setPhase = useSession((s) => s.setPhase)
   const setOnlineMode = useSession((s) => s.setOnlineMode)
+  const showError = useSession((s) => s.showError)
 
   const category = useSettings((s) => s.category)
   const copy = getCopy(category)
 
   const isOnline = mode === 'online'
-  const canStart = players.length >= 2
-  const showNameInput = players.length < 8 && (!isOnline || isHost)
 
-  const handleAdd = () => {
+  // L'host deve aggiungere il proprio nome prima di poter fare altro
+  const hostHasJoined = !isHost || (isHost && !!localPlayerId)
+  const showNameInput = isHost && !localPlayerId && players.length < 8
+
+  // Ready counts
+  const readyCounts = useMemo(() => {
+    const nonHost = players.filter((p) => !p.is_host)
+    const ready = nonHost.filter((p) => p.is_ready)
+    return { ready: ready.length, total: nonHost.length }
+  }, [players])
+
+  // My player
+  const myPlayer = useMemo(
+    () => players.find((p) => p.id === localPlayerId),
+    [players, localPlayerId],
+  )
+  const myIsReady = myPlayer?.is_ready ?? false
+
+  const [adding, setAdding] = useState(false)
+
+  const handleAdd = async () => {
     const trimmed = name.trim()
-    if (!trimmed || players.length >= 8) return
-    const player = addPlayer(trimmed)
-    if (player && isOnline && isHost && !localPlayerId) {
-      setOnlineMode(roomCode, true, player.id)
+    if (!trimmed || players.length >= 8 || adding) return
+
+    if (isOnline) {
+      // Online: usa la RPC per aggiungere il giocatore server-side
+      setAdding(true)
+      const playerId =
+        crypto.randomUUID?.() ??
+        `p_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
+      const { error } = await addPlayerToRoom(roomCode, {
+        id: playerId,
+        name: trimmed,
+        isHost: isHost && !localPlayerId,
+      })
+      setAdding(false)
+      if (error) {
+        showError('generic')
+        return
+      }
+      if (isHost && !localPlayerId) {
+        setOnlineMode(roomCode, true, playerId)
+      }
+    } else {
+      // Local: aggiungi allo store locale
+      addPlayer(trimmed)
     }
     setName('')
   }
@@ -56,10 +104,31 @@ const LobbyScreen = () => {
     removePlayer(id)
   }
 
-  const handleStart = () => {
-    setPhase('hub')
-    navigate('/hub')
-  }
+  // Toggle ready (client only)
+  const handleToggleReady = useCallback(async () => {
+    if (!isOnline || isHost) return
+    const { data, error } = await rpcToggleReady(roomCode, localPlayerId)
+    if (error) {
+      console.error('[Lobby] toggleReady error:', error)
+      showError('generic')
+      return
+    }
+    // Se tutti pronti → genera deck e avvia gioco
+    if (data?.action === 'start_game') {
+      const filtered = questionsAll.filter((q) => q.category === category)
+      const pool = filtered.length >= NUM_QUESTIONS ? filtered : questionsAll
+      const shuffled = shuffle([...pool])
+      const deck = shuffled.slice(0, NUM_QUESTIONS).map((q) => ({
+        question: q.question,
+        answers: q.answers,
+        correct: q.correct,
+      }))
+      const { error: startErr } = await rpcStartGame(roomCode, deck)
+      if (startErr) {
+        console.error('[Lobby] startGame error:', startErr)
+      }
+    }
+  }, [isOnline, isHost, roomCode, localPlayerId, category, showError])
 
   const joinUrl = isOnline
     ? `${window.location.origin}/join?code=${roomCode}`
@@ -110,16 +179,20 @@ const LobbyScreen = () => {
             >
               {roomCode}
             </div>
-            <QRCodeSVG
-              value={joinUrl}
-              size={120}
-              bgColor="transparent"
-              fgColor="#F1F5F9"
-              level="L"
-            />
-            <p style={{ color: 'var(--muted)', fontSize: 'clamp(12px, 1.5dvh, 14px)' }}>
-              Scansiona o condividi il codice
-            </p>
+            {isHost && (
+              <>
+                <QRCodeSVG
+                  value={joinUrl}
+                  size={120}
+                  bgColor="transparent"
+                  fgColor="#F1F5F9"
+                  level="L"
+                />
+                <p style={{ color: 'var(--muted)', fontSize: 'clamp(12px, 1.5dvh, 14px)' }}>
+                  Scansiona o condividi il codice
+                </p>
+              </>
+            )}
           </div>
         )}
 
@@ -129,7 +202,7 @@ const LobbyScreen = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-              placeholder={isOnline ? 'Il tuo nome' : 'Nome giocatore'}
+              placeholder="Il tuo nome (host)"
               style={inputStyle}
               maxLength={20}
             />
@@ -155,10 +228,15 @@ const LobbyScreen = () => {
             <motion.div
               key={p.id}
               variants={itemVariants}
-              onClick={() => handleRemove(p.id)}
-              style={{ cursor: !isOnline || isHost ? 'pointer' : 'default' }}
+              onClick={() => isHost ? handleRemove(p.id) : undefined}
+              style={{ cursor: isHost ? 'pointer' : 'default', position: 'relative' }}
             >
-              <PlayerAvatar player={p} showScore={false} size="lg" />
+              <PlayerAvatar
+                player={p}
+                showScore={false}
+                size="lg"
+                dimmed={!p.is_host && !p.is_ready}
+              />
               <div
                 className="text-center font-medium"
                 style={{
@@ -173,14 +251,71 @@ const LobbyScreen = () => {
               >
                 {p.name}
               </div>
+              {!p.is_host && p.is_ready && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: -4,
+                    right: -4,
+                    width: 16,
+                    height: 16,
+                    borderRadius: '50%',
+                    background: 'var(--success)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 10,
+                    color: 'white',
+                    fontWeight: 700,
+                  }}
+                >
+                  ✓
+                </div>
+              )}
+              {p.is_host && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: -4,
+                    right: -4,
+                    background: 'var(--accent)',
+                    borderRadius: 6,
+                    padding: '1px 5px',
+                    fontSize: 9,
+                    color: 'white',
+                    fontWeight: 700,
+                  }}
+                >
+                  HOST
+                </div>
+              )}
             </motion.div>
           ))}
         </motion.div>
+
+        {isOnline && readyCounts.total > 0 && (
+          <p style={{ color: 'var(--muted)', fontSize: 'clamp(12px, 1.5dvh, 14px)', textAlign: 'center' }}>
+            {readyCounts.ready}/{readyCounts.total} pronti
+          </p>
+        )}
       </div>
+
       <div className="screen-footer">
-        <Button variant="primary" width="full" onClick={handleStart} disabled={!canStart}>
-          {copy.startCTA}
-        </Button>
+        {/* Client: bottone Pronto */}
+        {isOnline && !isHost && (
+          <ReadyButton
+            isReady={myIsReady}
+            onToggle={handleToggleReady}
+            label="Pronto"
+          />
+        )}
+
+        {/* Host: messaggio informativo */}
+        {isOnline && isHost && hostHasJoined && (
+          <p style={{ color: 'var(--muted)', fontSize: 'clamp(13px, 1.8dvh, 16px)', textAlign: 'center' }}>
+            La partita inizia quando tutti i giocatori sono pronti
+          </p>
+        )}
       </div>
     </motion.div>
   )

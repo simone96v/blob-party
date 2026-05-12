@@ -55,7 +55,7 @@ export const createRoom = async (initialState) => {
 export const getRoom = async (code) => {
   const { data, error } = await supabase
     .from('rooms')
-    .select('code, host_id, phase, state, updated_at')
+    .select('code, host_id, phase, state, question_started_at, updated_at')
     .eq('code', code)
     .maybeSingle()
   if (error) return { room: null, error }
@@ -73,6 +73,7 @@ export const pushRoom = async (code, phase, state) => {
 }
 
 // Subscribe ai cambi via Realtime. Ritorna oggetto con .unsubscribe().
+// Passa anche question_started_at per il timer server-derived.
 export const subscribeToRoom = (code, onUpdate) => {
   const channel = supabase
     .channel(`room:${code}`)
@@ -80,7 +81,12 @@ export const subscribeToRoom = (code, onUpdate) => {
       'postgres_changes',
       { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `code=eq.${code}` },
       (payload) => {
-        onUpdate({ phase: payload.new.phase, state: payload.new.state, error: null })
+        onUpdate({
+          phase: payload.new.phase,
+          state: payload.new.state,
+          questionStartedAt: payload.new.question_started_at ?? null,
+          error: null,
+        })
       },
     )
     .on('system', { event: '*' }, (payload) => {
@@ -100,7 +106,8 @@ export const subscribeToRoom = (code, onUpdate) => {
 
 // Aggiunge un giocatore alla stanza tramite RPC atomico (FOR UPDATE).
 // Elimina la race-condition fra join simultanei.
-export const addPlayerToRoom = async (code, { id, name }) => {
+// `isHost` marca il giocatore come host (solo per il creatore della stanza).
+export const addPlayerToRoom = async (code, { id, name, isHost = false }) => {
   // Leggi prima per avere il conteggio corrente (serve per il colore)
   const { room, error: getErr } = await getRoom(code)
   if (getErr || !room) return { player: null, error: getErr ?? new Error('room_not_found') }
@@ -116,6 +123,7 @@ export const addPlayerToRoom = async (code, { id, name }) => {
     p_id: id,
     p_name: name,
     p_color: color,
+    p_is_host: !!isHost,
   })
 
   if (error) {
@@ -125,12 +133,57 @@ export const addPlayerToRoom = async (code, { id, name }) => {
     return { player: null, error }
   }
 
-  const player = { id, name, color, score: 0, skip: false }
+  const player = { id, name, color, score: 0, is_host: !!isHost, is_ready: false }
   return { player, error: null }
 }
 
-// UNICA scrittura permessa ai client: il proprio voto a una domanda Trivia.
-// Usa una RPC atomica per evitare race condition tra dispositivi.
+// --- RPC per il modello "pronto democratico" ---
+
+// Toggle ready per un giocatore. Ritorna { ok, action, all_ready, ready_count, total_count }.
+// Se all_ready=true in lobby, il client deve generare il deck e chiamare rpcStartGame.
+export const rpcToggleReady = async (roomCode, playerId) => {
+  const { data, error } = await supabase.rpc('toggle_ready', {
+    p_code: roomCode,
+    p_player_id: playerId,
+  })
+  if (error) return { data: null, error }
+  return { data, error: null }
+}
+
+// Invia risposta del giocatore. Il server calcola correttezza e punteggio.
+// Auto-reveal quando tutti hanno risposto.
+export const rpcSubmitAnswer = async (roomCode, playerId, round, chosenIndex) => {
+  const { data, error } = await supabase.rpc('submit_answer', {
+    p_code: roomCode,
+    p_player_id: playerId,
+    p_round: round,
+    p_chosen_index: chosenIndex,
+  })
+  if (error) return { data: null, error }
+  return { data, error: null }
+}
+
+// Reveal idempotente allo scadere del timer.
+export const rpcTimeoutReveal = async (roomCode, round) => {
+  const { data, error } = await supabase.rpc('timeout_reveal', {
+    p_code: roomCode,
+    p_round: round,
+  })
+  if (error) return { data: null, error }
+  return { data, error: null }
+}
+
+// Avvia il gioco con il deck generato dal client. Idempotente (solo da lobby).
+export const rpcStartGame = async (roomCode, deck) => {
+  const { data, error } = await supabase.rpc('start_game', {
+    p_code: roomCode,
+    p_deck: deck,
+  })
+  if (error) return { data: null, error }
+  return { data, error: null }
+}
+
+// LEGACY: vecchio pushVote — mantenuto per compatibilità ma preferire rpcSubmitAnswer.
 export const pushVote = async (roomCode, playerId, answerIndex) => {
   const { error } = await supabase.rpc('submit_vote', {
     p_code: roomCode,

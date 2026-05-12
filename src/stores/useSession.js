@@ -24,6 +24,7 @@ const DEFAULTS = {
   activeGame: null,
   currentPhase: 'lobby',
   gameState: {},
+  questionStartedAt: null,
 
   error: null,
 }
@@ -169,30 +170,33 @@ export const useSession = create(
         set({ mode: 'online', roomCode: code, isHost: !!isHost, localPlayerId })
       },
 
-      syncFromRemote: (remote, phase) => {
+      syncFromRemote: (remote, phase, questionStartedAt) => {
         if (!remote) return
         set((s) => {
-          // Per gameState, l'host fa MERGE e il client fa REPLACE.
-          // Motivo: il Realtime rimanda l'eco delle push dell'host. Se l'host
-          // ha appena pushato gameState:{} (startGame) e nel frattempo il gioco
-          // ha generato il deck localmente, l'eco sovrascrive il deck ⇒ spinner infinito.
-          // Con il merge, l'eco di {} è un no-op perché non ha campi da sovrascrivere.
-          // Per il client serve il replace perché deve sempre ricevere lo stato completo dall'host.
+          // Estrai players dal remote state; il resto va in gameState.
+          const { players: remotePlayers, ...restState } = remote
+
+          // Nel modello server-authoritative, tutti fanno REPLACE:
+          // il server è l'unica fonte di verità, non c'è stato locale da preservare.
+          // Manteniamo il merge per l'host solo per il campo gameState
+          // (evita che l'eco di un push sovrascriva stato generato localmente).
           let nextGameState = s.gameState
-          if (remote.gameState != null) {
+          if (Object.keys(restState).length > 0) {
             nextGameState = s.isHost
-              ? { ...s.gameState, ...remote.gameState }
-              : remote.gameState
+              ? { ...s.gameState, ...restState }
+              : restState
           }
 
           return {
-            players:      remote.players    ?? s.players,
+            players:      remotePlayers ?? s.players,
             currentIdx:   remote.currentIdx ?? s.currentIdx,
             round:        remote.round      ?? s.round,
             activeGame:   remote.activeGame ?? s.activeGame,
             gameState:    nextGameState,
-            // Sync currentPhase solo per i client — l'host è la fonte di verità.
-            ...(phase != null && !s.isHost ? { currentPhase: phase } : {}),
+            // Sync currentPhase per tutti (server è fonte di verità).
+            ...(phase != null ? { currentPhase: phase } : {}),
+            // Sync questionStartedAt per il timer server-derived.
+            ...(questionStartedAt !== undefined ? { questionStartedAt } : {}),
           }
         })
       },

@@ -14,12 +14,18 @@ import { useSession } from '../stores/useSession'
 const MAX_RECONNECT_ATTEMPTS = 5
 const RECONNECT_DELAY_MS = 3000
 
-// Mappa phase Supabase → path React Router. Per 'game' serve l'activeGame.
-const phaseToPath = (phase, state) => {
+// Mappa phase Supabase → path React Router.
+// Nel modello "pronto democratico", le fasi di gioco (question, reveal, final)
+// sono tutte gestite dal componente Trivia a /game/trivia.
+const phaseToPath = (phase) => {
   switch (phase) {
-    case 'lobby':      return '/waiting'
+    case 'lobby':      return '/lobby'
+    case 'question':   return '/game/trivia'
+    case 'reveal':     return '/game/trivia'
+    case 'final':      return '/game/trivia'
+    // Legacy
     case 'hub':        return '/hub'
-    case 'game':       return state?.activeGame ? `/game/${state.activeGame}` : null
+    case 'game':       return '/game/trivia'
     case 'round_end':  return '/round-end'
     case 'scoreboard': return '/scoreboard'
     default:           return null
@@ -55,20 +61,21 @@ export const useRoomSync = () => {
 
     let cancelled = false
 
-    const navigateToPhase = (phase, state) => {
-      const target = phaseToPath(phase, state)
+    const navigateToPhase = (phase) => {
+      const target = phaseToPath(phase)
       if (target && window.location.pathname !== target) navigate(target)
     }
 
-    const handler = ({ phase, state, error }) => {
+    const handler = ({ phase, state, questionStartedAt, error }) => {
       if (cancelled) return
       if (error) {
         setStatus('disconnected')
         scheduleReconnect()
         return
       }
-      syncFromRemote(state, phase)
-      if (!isHostRef.current) navigateToPhase(phase, state)
+      syncFromRemote(state, phase, questionStartedAt)
+      // Nel modello democratico, TUTTI (host e client) navigano in base alla phase.
+      navigateToPhase(phase)
     }
 
     const scheduleReconnect = () => {
@@ -94,8 +101,8 @@ export const useRoomSync = () => {
         return
       }
       // Snapshot immediato: risolve il join mid-game (il client si vede subito al posto giusto).
-      syncFromRemote(room.state, room.phase)
-      if (!isHostRef.current) navigateToPhase(room.phase, room.state)
+      syncFromRemote(room.state, room.phase, room.question_started_at)
+      navigateToPhase(room.phase)
 
       // Subscribe (rimpiazza eventuale precedente).
       subRef.current?.unsubscribe()
