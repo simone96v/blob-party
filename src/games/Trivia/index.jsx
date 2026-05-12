@@ -1,14 +1,24 @@
-// Entry point del gioco Trivia — modello "pronto democratico".
-// Tutti i giocatori (host incluso) vedono la stessa interfaccia.
+// Entry point del gioco Trivia — modello host-controlled.
+// Fasi: countdown → question → reveal → ... → final
 
 import { useTrivia } from './useTrivia'
 import ClientView from './ClientView'
+import CountdownOverlay from '../../components/CountdownOverlay'
 import Spinner from '../../components/ui/Spinner'
 
 const Trivia = () => {
   const trivia = useTrivia()
 
-  // Mostra spinner se non c'è ancora una domanda (in attesa del sync iniziale)
+  // Countdown phase: 3-2-1-VIA!
+  if (trivia.currentPhase === 'countdown') {
+    return (
+      <CountdownOverlay
+        questionStartedAt={trivia.questionStartedAt}
+      />
+    )
+  }
+
+  // Waiting for initial sync
   if (!trivia.currentQuestion && trivia.currentPhase !== 'final') {
     return (
       <div className="flex items-center justify-center" style={{ flex: 1 }}>

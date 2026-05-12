@@ -20,6 +20,7 @@ const RECONNECT_DELAY_MS = 3000
 const phaseToPath = (phase) => {
   switch (phase) {
     case 'lobby':      return '/lobby'
+    case 'countdown':  return '/game/trivia'
     case 'question':   return '/game/trivia'
     case 'reveal':     return '/game/trivia'
     case 'final':      return '/game/trivia'

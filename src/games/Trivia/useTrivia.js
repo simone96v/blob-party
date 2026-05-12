@@ -1,13 +1,11 @@
-// Hook principale del gioco Trivia — modello "pronto democratico".
+// Hook principale del gioco Trivia — modello host-controlled.
 //
-// Flusso: lobby → question (15s) → reveal → (Pronto) → question → ... → final → (Pronto) → lobby
+// Flusso: lobby → countdown (3-2-1) → question (Ns) → reveal → question → ... → final → lobby
 //
-// Il server è la fonte di verità per:
-//   - timer (question_started_at)
-//   - scoring (+10 correct, -10 wrong, -5 timeout)
-//   - transizioni di fase (via RPCs atomiche)
+// L'host controlla il ritmo: "Prossima domanda" in reveal, "Nuova partita" in final.
+// Tutti i giocatori (host incluso) rispondono alle domande.
 //
-// Tutti (host incluso) sono giocatori: rispondono e premono "Pronto".
+// Il server è la fonte di verità per timer, scoring, transizioni di fase.
 
 import { useMemo, useEffect, useState, useCallback, useRef } from 'react'
 import { useSession } from '../../stores/useSession'
@@ -16,13 +14,9 @@ import { useServerTimer } from '../../hooks/useServerTimer'
 import {
   rpcSubmitAnswer,
   rpcTimeoutReveal,
-  rpcToggleReady,
-  rpcStartGame,
+  rpcBeginRound,
+  rpcHostAdvance,
 } from '../../lib/room'
-import { shuffle } from '../../utils/deck'
-import questionsAll from '../../data/questions/trivia.json'
-
-const NUM_QUESTIONS = 10
 
 export const useTrivia = () => {
   const players = useSession((s) => s.players)
@@ -34,29 +28,39 @@ export const useTrivia = () => {
   const gameState = useSession((s) => s.gameState)
   const questionStartedAt = useSession((s) => s.questionStartedAt)
   const category = useSettings((s) => s.category)
+  const numQuestions = useSettings((s) => s.numQuestions)
+  const timerDuration = useSettings((s) => s.timerDuration)
 
   const isOnline = mode === 'online'
 
-  // Server-derived timer
+  // Server-derived timer (only active during question phase)
   const { timeLeft, isExpired } = useServerTimer(
     currentPhase === 'question' ? questionStartedAt : null,
+    timerDuration,
   )
 
-  // Track local answer optimistically (before server confirms)
+  // Track local answer optimistically
   const [localAnswer, setLocalAnswer] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [advancing, setAdvancing] = useState(false)
 
-  // Reset local answer when round changes or phase goes back to question
+  // Reset local answer when round changes
   const currentRound = gameState?.current_round ?? 0
   useEffect(() => {
     setLocalAnswer(null)
     setSubmitting(false)
+    setAdvancing(false)
   }, [currentRound])
+
+  // Also reset advancing when phase changes
+  useEffect(() => {
+    setAdvancing(false)
+  }, [currentPhase])
 
   // Current question from server state
   const currentQuestion = gameState?.current_question ?? null
   const roundResults = gameState?.round_results ?? null
-  const totalQuestions = gameState?.deck?.length ?? 0
+  const totalQuestions = gameState?.deck?.length ?? numQuestions
   const questionNumber = currentRound + 1
 
   // My player object
@@ -64,13 +68,6 @@ export const useTrivia = () => {
     () => players.find((p) => p.id === localPlayerId),
     [players, localPlayerId],
   )
-  const myIsReady = myPlayer?.is_ready ?? false
-
-  // Count answered players (from round_results after reveal)
-  const answeredPlayerIds = useMemo(() => {
-    if (!roundResults) return new Set()
-    return new Set(Object.keys(roundResults))
-  }, [roundResults])
 
   // My result for this round
   const myRoundResult = roundResults?.[localPlayerId] ?? null
@@ -96,7 +93,7 @@ export const useTrivia = () => {
     [localAnswer, submitting, currentPhase, isOnline, roomCode, localPlayerId, currentRound],
   )
 
-  // Auto-reveal on timeout: any client can fire this (idempotent)
+  // Auto-reveal on timeout (idempotent, any client can fire)
   const timeoutFiredRef = useRef(false)
   useEffect(() => {
     if (currentPhase !== 'question') {
@@ -105,43 +102,46 @@ export const useTrivia = () => {
     }
     if (!isExpired || timeoutFiredRef.current) return
     timeoutFiredRef.current = true
-    // Fire and forget — idempotent, safe to call from multiple clients
     rpcTimeoutReveal(roomCode, currentRound).catch((err) =>
       console.error('[useTrivia] timeoutReveal error:', err),
     )
   }, [isExpired, currentPhase, roomCode, currentRound])
 
-  // Toggle ready (host incluso — tutti sono giocatori)
-  const toggleReady = useCallback(async () => {
-    if (!isOnline) return
-    const { data, error } = await rpcToggleReady(roomCode, localPlayerId)
-    if (error) {
-      console.error('[useTrivia] toggleReady error:', error)
-      useSession.getState().showError('generic')
+  // Auto-transition: countdown → question (host fires after 4s)
+  const countdownFiredRef = useRef(false)
+  useEffect(() => {
+    if (currentPhase !== 'countdown') {
+      countdownFiredRef.current = false
       return
     }
-    // If all_ready in lobby → generate deck and start game
-    if (data?.action === 'start_game') {
-      const filtered = questionsAll.filter((q) => q.category === category)
-      const pool = filtered.length >= NUM_QUESTIONS ? filtered : questionsAll
-      const shuffled = shuffle([...pool])
-      const deck = shuffled.slice(0, NUM_QUESTIONS).map((q) => ({
-        question: q.question,
-        answers: q.answers,
-        correct: q.correct,
-      }))
-      const { error: startErr } = await rpcStartGame(roomCode, deck)
-      if (startErr) {
-        console.error('[useTrivia] startGame error:', startErr)
-      }
-    }
-  }, [isOnline, roomCode, localPlayerId, category])
+    if (!isHost || countdownFiredRef.current) return
 
-  // Ready counts for display (tutti i giocatori, host incluso)
-  const readyCounts = useMemo(() => {
-    const readyPlayers = players.filter((p) => p.is_ready)
-    return { ready: readyPlayers.length, total: players.length }
-  }, [players])
+    const startMs = questionStartedAt ? new Date(questionStartedAt).getTime() : Date.now()
+    const elapsed = (Date.now() - startMs) / 1000
+    const delay = Math.max(0, 4 - elapsed) * 1000
+
+    const timer = setTimeout(() => {
+      if (countdownFiredRef.current) return
+      countdownFiredRef.current = true
+      rpcBeginRound(roomCode).catch((err) =>
+        console.error('[useTrivia] beginRound error:', err),
+      )
+    }, delay)
+
+    return () => clearTimeout(timer)
+  }, [currentPhase, isHost, roomCode, questionStartedAt])
+
+  // Host advance: next question or new game
+  const hostAdvance = useCallback(async () => {
+    if (!isOnline || !isHost || advancing) return
+    setAdvancing(true)
+    const { error } = await rpcHostAdvance(roomCode, localPlayerId)
+    if (error) {
+      console.error('[useTrivia] hostAdvance error:', error)
+      useSession.getState().showError('generic')
+    }
+    setAdvancing(false)
+  }, [isOnline, isHost, advancing, roomCode, localPlayerId])
 
   // Has more questions?
   const hasMoreQuestions = questionNumber < totalQuestions
@@ -161,20 +161,21 @@ export const useTrivia = () => {
     isHost,
     localPlayerId,
     myPlayer,
-    myIsReady,
     myRoundResult,
     localAnswer,
     submitting,
+    advancing,
 
     // Timer
     timeLeft,
     isExpired,
+    timerDuration,
 
-    // Ready
-    readyCounts,
-    toggleReady,
+    // Countdown
+    questionStartedAt,
 
     // Actions
     submitAnswer,
+    hostAdvance,
   }
 }

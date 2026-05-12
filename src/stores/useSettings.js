@@ -14,9 +14,13 @@ export const useSettings = create(
       intensity: 'medium',
       activeGames: ['trivia'],
       ageConfirmed: false,
+      numQuestions: 10,
+      timerDuration: 15,
 
       setCategory: (category) => set({ category }),
       setIntensity: (intensity) => set({ intensity }),
+      setNumQuestions: (n) => set({ numQuestions: n }),
+      setTimerDuration: (d) => set({ timerDuration: d }),
 
       toggleGame: (gameId) => {
         const list = get().activeGames

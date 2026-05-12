@@ -7,7 +7,6 @@ import Button from '../components/ui/Button'
 import Spinner from '../components/ui/Spinner'
 import { createRoom } from '../lib/room'
 import { useSession } from '../stores/useSession'
-import { useSettings } from '../stores/useSettings'
 
 const ModeScreen = () => {
   const navigate = useNavigate()
@@ -24,9 +23,7 @@ const ModeScreen = () => {
   const handleCreate = async () => {
     if (creating) return
     setCreating(true)
-    const initialState = {
-      players: [],
-    }
+    const initialState = { players: [] }
     const { code, error } = await createRoom(initialState)
     if (error || !code) {
       showError('generic')
@@ -43,23 +40,37 @@ const ModeScreen = () => {
       className="screen"
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.2 }}
     >
       <AppHeader />
       <ErrorBanner />
       <div
         className="screen-body"
-        style={{ justifyContent: 'center', alignItems: 'center' }}
+        style={{ justifyContent: 'center', alignItems: 'center', gap: 'clamp(10px, 1.8dvh, 16px)' }}
       >
-        <Button variant="primary" width="full" onClick={handleLocal}>
-          Gioca qui
-        </Button>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          style={{ color: 'var(--muted)', fontSize: 'clamp(14px, 2dvh, 17px)', marginBottom: 8, textAlign: 'center' }}
+        >
+          Come vuoi giocare?
+        </motion.p>
+
         <Button variant="primary" width="full" onClick={handleCreate} disabled={creating}>
-          {creating ? <Spinner size="sm" /> : 'Crea stanza'}
+          {creating ? <Spinner size="sm" /> : 'Crea stanza online'}
         </Button>
         <Button variant="secondary" width="full" onClick={() => navigate('/join')}>
-          Hai un codice?
+          Unisciti con codice
+        </Button>
+
+        <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, margin: '4px 0' }}>
+          <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+          <span style={{ color: 'var(--muted)', fontSize: 12, fontWeight: 600 }}>oppure</span>
+          <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+        </div>
+
+        <Button variant="secondary" width="full" onClick={handleLocal}>
+          Gioca sullo stesso dispositivo
         </Button>
       </div>
       <div className="screen-footer" style={{ justifyContent: 'center' }}>

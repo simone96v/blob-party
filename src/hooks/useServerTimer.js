@@ -1,18 +1,19 @@
 // Countdown derivato da question_started_at (timestamp server).
 // NON usa setInterval: ricalcola ogni frame via requestAnimationFrame.
 // Restituisce timeLeft in secondi (intero) e isExpired.
+// `duration` è configurabile (default 15s).
 
 import { useState, useEffect, useRef } from 'react'
 
-const QUESTION_DURATION = 15 // secondi
+const DEFAULT_DURATION = 15
 
-export const useServerTimer = (questionStartedAt) => {
-  const [timeLeft, setTimeLeft] = useState(QUESTION_DURATION)
+export const useServerTimer = (questionStartedAt, duration = DEFAULT_DURATION) => {
+  const [timeLeft, setTimeLeft] = useState(duration)
   const rafRef = useRef(null)
 
   useEffect(() => {
     if (!questionStartedAt) {
-      setTimeLeft(QUESTION_DURATION)
+      setTimeLeft(duration)
       return
     }
 
@@ -20,7 +21,7 @@ export const useServerTimer = (questionStartedAt) => {
 
     const tick = () => {
       const elapsed = (Date.now() - startMs) / 1000
-      const remaining = Math.max(0, QUESTION_DURATION - elapsed)
+      const remaining = Math.max(0, duration - elapsed)
       setTimeLeft(Math.ceil(remaining))
 
       if (remaining > 0) {
@@ -33,11 +34,11 @@ export const useServerTimer = (questionStartedAt) => {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
     }
-  }, [questionStartedAt])
+  }, [questionStartedAt, duration])
 
   return {
     timeLeft,
     isExpired: timeLeft <= 0,
-    total: QUESTION_DURATION,
+    total: duration,
   }
 }

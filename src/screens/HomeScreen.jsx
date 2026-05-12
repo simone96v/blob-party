@@ -10,11 +10,11 @@ import { useSettings } from '../stores/useSettings'
 
 const containerVariants = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.04 } },
+  show: { transition: { staggerChildren: 0.06 } },
 }
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 12 },
+  hidden: { opacity: 0, y: 14 },
   show: { opacity: 1, y: 0 },
 }
 
@@ -53,18 +53,32 @@ const HomeScreen = () => {
     >
       <AppHeader />
       <ErrorBanner />
+
+      {/* Hero */}
+      <div style={heroStyle}>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.15 }}
+          style={subtitleStyle}
+        >
+          Scegli la modalita
+        </motion.p>
+      </div>
+
       <motion.div
         className="screen-body scrollable-list"
         variants={containerVariants}
         initial="hidden"
         animate="show"
+        style={{ paddingTop: 0 }}
       >
         {CATEGORIES.map((cat) => (
           <motion.div key={cat.id} variants={itemVariants}>
             <Card onClick={() => handleSelect(cat)}>
               <div className="flex items-center" style={{ gap: 'clamp(10px, 2vw, 16px)' }}>
                 <span style={{ fontSize: 'clamp(28px, 5dvh, 40px)' }}>{cat.emoji}</span>
-                <div>
+                <div style={{ flex: 1 }}>
                   <div
                     className="font-bold"
                     style={{ fontSize: 'clamp(16px, 2.5dvh, 22px)', color: cat.color }}
@@ -75,12 +89,19 @@ const HomeScreen = () => {
                     {cat.tagline}
                   </div>
                 </div>
+                <span style={{ color: 'var(--muted)', fontSize: 18, opacity: 0.4 }}>&#8250;</span>
               </div>
             </Card>
           </motion.div>
         ))}
       </motion.div>
-      <div className="screen-footer" />
+
+      <div className="screen-footer" style={{ justifyContent: 'center' }}>
+        <p style={{ color: 'var(--muted)', fontSize: 'clamp(11px, 1.3dvh, 13px)', opacity: 0.5 }}>
+          GameNight v1.0
+        </p>
+      </div>
+
       <AgeModal
         open={!!pendingCategory}
         onConfirm={handleAgeConfirm}
@@ -88,6 +109,19 @@ const HomeScreen = () => {
       />
     </motion.div>
   )
+}
+
+const heroStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  padding: '0 clamp(16px, 4vw, 28px) clamp(8px, 1.5dvh, 16px)',
+}
+
+const subtitleStyle = {
+  color: 'var(--muted)',
+  fontSize: 'clamp(13px, 1.8dvh, 16px)',
+  letterSpacing: '0.02em',
 }
 
 export default HomeScreen

@@ -137,18 +137,7 @@ export const addPlayerToRoom = async (code, { id, name, isHost = false }) => {
   return { player, error: null }
 }
 
-// --- RPC per il modello "pronto democratico" ---
-
-// Toggle ready per un giocatore. Ritorna { ok, action, all_ready, ready_count, total_count }.
-// Se all_ready=true in lobby, il client deve generare il deck e chiamare rpcStartGame.
-export const rpcToggleReady = async (roomCode, playerId) => {
-  const { data, error } = await supabase.rpc('toggle_ready', {
-    p_code: roomCode,
-    p_player_id: playerId,
-  })
-  if (error) return { data: null, error }
-  return { data, error: null }
-}
+// --- RPC per il flusso host-controlled ---
 
 // Invia risposta del giocatore. Il server calcola correttezza e punteggio.
 // Auto-reveal quando tutti hanno risposto.
@@ -173,11 +162,30 @@ export const rpcTimeoutReveal = async (roomCode, round) => {
   return { data, error: null }
 }
 
-// Avvia il gioco con il deck generato dal client. Idempotente (solo da lobby).
+// Avvia il gioco: genera countdown → poi begin_round avvia la prima domanda.
 export const rpcStartGame = async (roomCode, deck) => {
   const { data, error } = await supabase.rpc('start_game', {
     p_code: roomCode,
     p_deck: deck,
+  })
+  if (error) return { data: null, error }
+  return { data, error: null }
+}
+
+// Transizione countdown → question (idempotente).
+export const rpcBeginRound = async (roomCode) => {
+  const { data, error } = await supabase.rpc('begin_round', {
+    p_code: roomCode,
+  })
+  if (error) return { data: null, error }
+  return { data, error: null }
+}
+
+// Host avanza il gioco: reveal → prossima domanda (o final), final → lobby.
+export const rpcHostAdvance = async (roomCode, playerId) => {
+  const { data, error } = await supabase.rpc('host_advance', {
+    p_code: roomCode,
+    p_player_id: playerId,
   })
   if (error) return { data: null, error }
   return { data, error: null }

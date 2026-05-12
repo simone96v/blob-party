@@ -1,11 +1,10 @@
 // Schermata che monta il componente gioco.
-// Nel modello "pronto democratico", il gioco gestisce internamente
-// le sue fasi (question, reveal, final). Non c'è un "endGame" che naviga altrove.
+// Il gioco gestisce internamente le sue fasi (countdown, question, reveal, final).
+// Nessun header esterno — il gioco ha il proprio HUD.
 
 import { Suspense, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import AppHeader from '../components/AppHeader'
 import ErrorBanner from '../components/ErrorBanner'
 import Spinner from '../components/ui/Spinner'
 import { getGame } from '../data/games'
@@ -26,12 +25,10 @@ const GameScreen = () => {
   return (
     <motion.div
       className="screen"
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.2 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.15 }}
     >
-      <AppHeader />
       <ErrorBanner />
       <div className="screen-body" style={{ padding: 0 }}>
         <Suspense

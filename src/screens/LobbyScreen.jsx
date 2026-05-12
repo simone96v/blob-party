@@ -1,25 +1,24 @@
-// Lobby — modello "pronto democratico".
-// Host: aggiunge il proprio nome, vede QR code, vede giocatori + indicatori "pronto".
-// Client: vede giocatori + bottone "Pronto".
-// Quando tutti i non-host sono pronti (min 1), parte il gioco automaticamente.
-// L'ultimo a premere Pronto genera il deck e chiama start_game.
+// Lobby — modello host-controlled.
+// Host: aggiunge il proprio nome, vede QR, vede giocatori, impostazioni, bottone "Inizia".
+// Client: vede giocatori, messaggio "In attesa dell'host..."
+// L'host avvia il gioco con il bottone "Inizia la sfida".
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
 import AppHeader from '../components/AppHeader'
 import ErrorBanner from '../components/ErrorBanner'
 import Button from '../components/ui/Button'
 import PlayerAvatar from '../components/PlayerAvatar'
-import ReadyButton from '../components/ReadyButton'
 import { useSession } from '../stores/useSession'
 import { useSettings } from '../stores/useSettings'
-import { addPlayerToRoom, rpcToggleReady, rpcStartGame } from '../lib/room'
+import { addPlayerToRoom, rpcStartGame } from '../lib/room'
 import { shuffle } from '../utils/deck'
 import { getCopy } from '../data/copy'
 import questionsAll from '../data/questions/trivia.json'
 
-const NUM_QUESTIONS = 10
+const NUM_QUESTIONS_OPTIONS = [5, 10, 15, 20]
+const TIMER_OPTIONS = [10, 15, 20, 30]
 
 const containerVariants = {
   hidden: {},
@@ -33,6 +32,9 @@ const itemVariants = {
 
 const LobbyScreen = () => {
   const [name, setName] = useState('')
+  const [starting, setStarting] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const [showInstructions, setShowInstructions] = useState(false)
 
   const mode = useSession((s) => s.mode)
   const isHost = useSession((s) => s.isHost)
@@ -45,26 +47,16 @@ const LobbyScreen = () => {
   const showError = useSession((s) => s.showError)
 
   const category = useSettings((s) => s.category)
+  const numQuestions = useSettings((s) => s.numQuestions)
+  const timerDuration = useSettings((s) => s.timerDuration)
+  const setNumQuestions = useSettings((s) => s.setNumQuestions)
+  const setTimerDuration = useSettings((s) => s.setTimerDuration)
   const copy = getCopy(category)
 
   const isOnline = mode === 'online'
-
-  // L'host deve aggiungere il proprio nome prima di poter fare altro
   const hostHasJoined = !isHost || (isHost && !!localPlayerId)
   const showNameInput = isHost && !localPlayerId && players.length < 8
-
-  // Ready counts (tutti i giocatori, host incluso)
-  const readyCounts = useMemo(() => {
-    const ready = players.filter((p) => p.is_ready)
-    return { ready: ready.length, total: players.length }
-  }, [players])
-
-  // My player
-  const myPlayer = useMemo(
-    () => players.find((p) => p.id === localPlayerId),
-    [players, localPlayerId],
-  )
-  const myIsReady = myPlayer?.is_ready ?? false
+  const canStart = isHost && hostHasJoined && players.length >= 2
 
   const [adding, setAdding] = useState(false)
 
@@ -73,7 +65,6 @@ const LobbyScreen = () => {
     if (!trimmed || players.length >= 8 || adding) return
 
     if (isOnline) {
-      // Online: usa la RPC per aggiungere il giocatore server-side
       setAdding(true)
       const playerId =
         crypto.randomUUID?.() ??
@@ -92,7 +83,6 @@ const LobbyScreen = () => {
         setOnlineMode(roomCode, true, playerId)
       }
     } else {
-      // Local: aggiungi allo store locale
       addPlayer(trimmed)
     }
     setName('')
@@ -103,59 +93,42 @@ const LobbyScreen = () => {
     removePlayer(id)
   }
 
-  // Toggle ready (tutti, host incluso)
-  const handleToggleReady = useCallback(async () => {
-    if (!isOnline) return
-    const { data, error } = await rpcToggleReady(roomCode, localPlayerId)
+  // Host starts the game: generate deck → call start_game RPC (→ countdown phase)
+  const handleStartGame = useCallback(async () => {
+    if (!canStart || starting) return
+    setStarting(true)
+
+    const filtered = questionsAll.filter((q) => q.category === category)
+    const pool = filtered.length >= numQuestions ? filtered : questionsAll
+    const shuffled = shuffle([...pool])
+    const deck = shuffled.slice(0, numQuestions).map((q) => ({
+      question: q.question,
+      answers: q.answers,
+      correct: q.correct,
+    }))
+
+    const { error } = await rpcStartGame(roomCode, deck)
     if (error) {
-      console.error('[Lobby] toggleReady error:', error)
+      console.error('[Lobby] startGame error:', error)
       showError('generic')
-      return
     }
-    // Se tutti pronti → genera deck e avvia gioco
-    if (data?.action === 'start_game') {
-      const filtered = questionsAll.filter((q) => q.category === category)
-      const pool = filtered.length >= NUM_QUESTIONS ? filtered : questionsAll
-      const shuffled = shuffle([...pool])
-      const deck = shuffled.slice(0, NUM_QUESTIONS).map((q) => ({
-        question: q.question,
-        answers: q.answers,
-        correct: q.correct,
-      }))
-      const { error: startErr } = await rpcStartGame(roomCode, deck)
-      if (startErr) {
-        console.error('[Lobby] startGame error:', startErr)
-      }
-    }
-  }, [isOnline, isHost, roomCode, localPlayerId, category, showError])
+    setStarting(false)
+  }, [canStart, starting, category, numQuestions, roomCode, showError])
 
   const joinUrl = isOnline
     ? `${window.location.origin}/join?code=${roomCode}`
     : null
-
-  const inputStyle = {
-    flex: 1,
-    height: 'clamp(44px, 6dvh, 56px)',
-    background: 'var(--surface)',
-    border: '1.5px solid var(--border)',
-    borderRadius: 'var(--radius-sm)',
-    color: 'var(--text)',
-    fontSize: 'clamp(14px, 2dvh, 18px)',
-    padding: '0 clamp(12px, 2vw, 16px)',
-    outline: 'none',
-  }
 
   return (
     <motion.div
       className="screen"
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.2 }}
     >
       <AppHeader />
       <ErrorBanner />
-      <div className="screen-body">
+      <div className="screen-body" style={{ gap: 'clamp(10px, 1.8dvh, 18px)' }}>
         <h2
           className="font-bold text-center"
           style={{ fontSize: 'clamp(18px, 3dvh, 26px)', letterSpacing: '-0.01em' }}
@@ -163,15 +136,13 @@ const LobbyScreen = () => {
           {copy.lobbyTitle}
         </h2>
 
+        {/* Room code + QR */}
         {isOnline && roomCode && (
-          <div
-            className="flex flex-col items-center"
-            style={{ gap: 'clamp(8px, 1.5dvh, 16px)' }}
-          >
+          <div className="flex flex-col items-center" style={{ gap: 'clamp(6px, 1dvh, 12px)' }}>
             <div
               className="font-bold"
               style={{
-                fontSize: 'clamp(32px, 6dvh, 48px)',
+                fontSize: 'clamp(28px, 5dvh, 42px)',
                 letterSpacing: '0.15em',
                 color: 'var(--accent)',
               }}
@@ -182,12 +153,12 @@ const LobbyScreen = () => {
               <>
                 <QRCodeSVG
                   value={joinUrl}
-                  size={120}
+                  size={100}
                   bgColor="transparent"
                   fgColor="#F1F5F9"
                   level="L"
                 />
-                <p style={{ color: 'var(--muted)', fontSize: 'clamp(12px, 1.5dvh, 14px)' }}>
+                <p style={{ color: 'var(--muted)', fontSize: 'clamp(11px, 1.3dvh, 13px)' }}>
                   Scansiona o condividi il codice
                 </p>
               </>
@@ -195,15 +166,17 @@ const LobbyScreen = () => {
           </div>
         )}
 
+        {/* Host name input */}
         {showNameInput && (
           <div className="flex" style={{ gap: 8 }}>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-              placeholder="Il tuo nome (host)"
+              placeholder="Il tuo nome"
               style={inputStyle}
               maxLength={20}
+              autoFocus
             />
             <Button
               variant="secondary"
@@ -216,6 +189,7 @@ const LobbyScreen = () => {
           </div>
         )}
 
+        {/* Players grid */}
         <motion.div
           className="flex flex-wrap justify-center"
           style={{ gap: 'clamp(10px, 2vw, 18px)' }}
@@ -227,19 +201,14 @@ const LobbyScreen = () => {
             <motion.div
               key={p.id}
               variants={itemVariants}
-              onClick={() => isHost ? handleRemove(p.id) : undefined}
+              onClick={() => (isHost ? handleRemove(p.id) : undefined)}
               style={{ cursor: isHost ? 'pointer' : 'default', position: 'relative' }}
             >
-              <PlayerAvatar
-                player={p}
-                showScore={false}
-                size="lg"
-                dimmed={!p.is_ready}
-              />
+              <PlayerAvatar player={p} showScore={false} size="lg" />
               <div
                 className="text-center font-medium"
                 style={{
-                  fontSize: 'clamp(11px, 1.5dvh, 14px)',
+                  fontSize: 'clamp(11px, 1.4dvh, 14px)',
                   color: 'var(--muted)',
                   marginTop: 2,
                   maxWidth: 'clamp(56px, 9vw, 80px)',
@@ -250,56 +219,216 @@ const LobbyScreen = () => {
               >
                 {p.name}
               </div>
-              {p.is_ready && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: -4,
-                    right: -4,
-                    width: 16,
-                    height: 16,
-                    borderRadius: '50%',
-                    background: 'var(--success)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 10,
-                    color: 'white',
-                    fontWeight: 700,
-                  }}
-                >
-                  ✓
-                </div>
+              {p.is_host && (
+                <div style={hostBadgeStyle}>HOST</div>
               )}
             </motion.div>
           ))}
         </motion.div>
 
-        {isOnline && readyCounts.total > 0 && (
-          <p style={{ color: 'var(--muted)', fontSize: 'clamp(12px, 1.5dvh, 14px)', textAlign: 'center' }}>
-            {readyCounts.ready}/{readyCounts.total} pronti
-          </p>
+        {/* Settings (host only) */}
+        {isHost && hostHasJoined && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <button
+              onClick={() => setShowSettings((v) => !v)}
+              style={linkBtnStyle}
+            >
+              {showSettings ? 'Nascondi impostazioni' : 'Impostazioni'}
+            </button>
+
+            {showSettings && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                style={settingsBoxStyle}
+              >
+                <div style={settingRowStyle}>
+                  <span style={settingLabelStyle}>Domande</span>
+                  <div style={chipGroupStyle}>
+                    {NUM_QUESTIONS_OPTIONS.map((n) => (
+                      <button
+                        key={n}
+                        onClick={() => setNumQuestions(n)}
+                        style={{
+                          ...chipStyle,
+                          ...(numQuestions === n ? chipActiveStyle : {}),
+                        }}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div style={settingRowStyle}>
+                  <span style={settingLabelStyle}>Timer (sec)</span>
+                  <div style={chipGroupStyle}>
+                    {TIMER_OPTIONS.map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => setTimerDuration(t)}
+                        style={{
+                          ...chipStyle,
+                          ...(timerDuration === t ? chipActiveStyle : {}),
+                        }}
+                      >
+                        {t}s
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        )}
+
+        {/* Instructions */}
+        <button
+          onClick={() => setShowInstructions((v) => !v)}
+          style={linkBtnStyle}
+        >
+          {showInstructions ? 'Chiudi' : 'Come si gioca?'}
+        </button>
+
+        {showInstructions && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            style={instructionsBoxStyle}
+          >
+            <p>Rispondi alle domande entro il tempo limite.</p>
+            <p><strong>+10</strong> risposta corretta | <strong>-10</strong> sbagliata | <strong>-5</strong> tempo scaduto</p>
+            <p>L'host controlla il ritmo: avanza alle domande successive.</p>
+            <p>Alla fine, vince chi ha il punteggio piu alto!</p>
+          </motion.div>
         )}
       </div>
 
-      <div className="screen-footer">
-        {/* Bottone Pronto per tutti (host incluso) — visibile solo dopo aver aggiunto il nome */}
-        {isOnline && hostHasJoined && (
-          <ReadyButton
-            isReady={myIsReady}
-            onToggle={handleToggleReady}
-            label="Pronto"
-            disabled={players.length < 2}
-          />
+      {/* Footer */}
+      <div className="screen-footer" style={{ flexDirection: 'column', justifyContent: 'center', gap: 4 }}>
+        {isOnline && isHost && hostHasJoined && (
+          <Button
+            variant="primary"
+            width="full"
+            onClick={handleStartGame}
+            disabled={!canStart || starting}
+          >
+            {starting ? '...' : copy.startCTA}
+          </Button>
         )}
-        {isOnline && players.length < 2 && hostHasJoined && (
-          <p style={{ color: 'var(--muted)', fontSize: 'clamp(12px, 1.5dvh, 14px)', textAlign: 'center' }}>
-            Servono almeno 2 giocatori
-          </p>
+
+        {isOnline && !isHost && (
+          <p style={waitingStyle}>In attesa dell'host...</p>
+        )}
+
+        {isOnline && isHost && players.length < 2 && hostHasJoined && (
+          <p style={waitingStyle}>Servono almeno 2 giocatori</p>
         )}
       </div>
     </motion.div>
   )
+}
+
+// --- Styles ---
+
+const inputStyle = {
+  flex: 1,
+  height: 'clamp(44px, 6dvh, 56px)',
+  background: 'var(--surface)',
+  border: '1.5px solid var(--border)',
+  borderRadius: 'var(--radius-sm)',
+  color: 'var(--text)',
+  fontSize: 'clamp(14px, 2dvh, 18px)',
+  padding: '0 clamp(12px, 2vw, 16px)',
+  outline: 'none',
+}
+
+const hostBadgeStyle = {
+  position: 'absolute',
+  top: -4,
+  right: -4,
+  background: 'var(--accent)',
+  borderRadius: 6,
+  padding: '1px 5px',
+  fontSize: 9,
+  color: 'white',
+  fontWeight: 700,
+}
+
+const linkBtnStyle = {
+  color: 'var(--muted)',
+  fontSize: 'clamp(12px, 1.4dvh, 14px)',
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  textAlign: 'center',
+  textDecoration: 'underline',
+  textDecorationColor: 'rgba(148,163,184,0.3)',
+}
+
+const settingsBoxStyle = {
+  background: 'var(--surface)',
+  borderRadius: 'var(--radius-sm)',
+  padding: 'clamp(10px, 1.5dvh, 16px)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 12,
+  overflow: 'hidden',
+}
+
+const settingRowStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 8,
+}
+
+const settingLabelStyle = {
+  fontSize: 'clamp(12px, 1.4dvh, 14px)',
+  color: 'var(--muted)',
+  fontWeight: 600,
+  flexShrink: 0,
+}
+
+const chipGroupStyle = {
+  display: 'flex',
+  gap: 6,
+}
+
+const chipStyle = {
+  padding: '4px 12px',
+  borderRadius: 20,
+  border: '1.5px solid var(--border)',
+  background: 'transparent',
+  color: 'var(--muted)',
+  fontSize: 'clamp(12px, 1.4dvh, 14px)',
+  fontWeight: 600,
+  cursor: 'pointer',
+  transition: 'all 0.15s',
+}
+
+const chipActiveStyle = {
+  background: 'var(--accent)',
+  borderColor: 'var(--accent)',
+  color: 'white',
+}
+
+const instructionsBoxStyle = {
+  background: 'var(--surface)',
+  borderRadius: 'var(--radius-sm)',
+  padding: 'clamp(10px, 1.5dvh, 16px)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 6,
+  fontSize: 'clamp(12px, 1.4dvh, 14px)',
+  color: 'var(--muted)',
+  lineHeight: 1.5,
+  overflow: 'hidden',
+}
+
+const waitingStyle = {
+  color: 'var(--muted)',
+  fontSize: 'clamp(12px, 1.5dvh, 14px)',
+  textAlign: 'center',
 }
 
 export default LobbyScreen
