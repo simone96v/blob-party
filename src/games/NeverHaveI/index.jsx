@@ -11,6 +11,7 @@ import GameFinalScreen from '../../components/GameFinalScreen'
 import { useSession } from '../../stores/useSession'
 import { rpcUpdateGameState } from '../../lib/room'
 import CARDS from '../../data/questions/never-have-i.json'
+import { haptic } from '../../utils/haptic'
 
 const REPLAY_PATCH = {
   nhi_card: null,
@@ -36,6 +37,7 @@ const NeverHaveI = () => {
 
   const handleDraw = async () => {
     if (!isHost) return
+    haptic.medium()
     const pool = CARDS.cards
     const available = pool.filter((c) => !used.includes(c))
     const fromPool = available.length > 0 ? available : pool

@@ -161,6 +161,15 @@ export const useSession = create(
         pushIfHostNow(get)
       },
 
+      setPhaseWithTimer: (phase) => {
+        const now = new Date().toISOString()
+        set({ currentPhase: phase, questionStartedAt: now })
+        const s = get()
+        if (s.mode !== 'online' || !s.isHost || !s.roomCode) return
+        clearTimeout(_pushTimer)
+        pushRoom(s.roomCode, phase, buildState(s), now)
+      },
+
       startGame: (gameId) => {
         set({ activeGame: gameId, gameState: {}, currentPhase: 'game' })
         pushIfHostNow(get)

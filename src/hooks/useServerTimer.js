@@ -18,6 +18,10 @@ export const useServerTimer = (questionStartedAt, duration = DEFAULT_DURATION) =
     }
 
     const startMs = new Date(questionStartedAt).getTime()
+    if (isNaN(startMs)) {
+      setTimeLeft(0)
+      return
+    }
 
     const tick = () => {
       const elapsed = (Date.now() - startMs) / 1000

@@ -5,6 +5,8 @@
 //   1. al mount, se mode==='online' fa lo snapshot iniziale (getRoom) e si iscrive (subscribeToRoom)
 //   2. su ogni update, sincronizza lo store e — se non è host — naviga alla phase corrente
 //   3. gestisce reconnect con backoff fino a MAX_RECONNECT_ATTEMPTS
+//   4. se la phase diventa 'closed' (host ha chiuso), mostra errore e riporta alla home
+//   5. se il reconnect fallisce dopo tutti i tentativi, riporta alla home
 
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -13,28 +15,25 @@ import { useSession } from '../stores/useSession'
 
 const MAX_RECONNECT_ATTEMPTS = 5
 const RECONNECT_DELAY_MS = 3000
+const REDIRECT_DELAY_MS = 2500
 
-// Mappa phase Supabase → path React Router.
-// Nel modello "pronto democratico", le fasi di gioco (question, reveal, final)
-// sono tutte gestite dal componente Trivia a /game/trivia.
 const phaseToPath = (phase) => {
   switch (phase) {
     case 'lobby':       return '/lobby'
     case 'game_voting': return '/games'
-    // Trivia session lobby (settings + wheel)
     case 'trivia_lobby': return '/trivia-lobby'
-    // Trivia phases (gameplay)
     case 'countdown':   return '/game/trivia'
     case 'question':    return '/game/trivia'
     case 'reveal':      return '/game/trivia'
     case 'final':       return '/game/trivia'
-    // Giochi offline (host gioca, tutti seguono): la phase porta direttamente
-    // alla schermata del gioco. Ogni client mantiene state locale.
+    case 'mappa_countdown':   return '/game/mappa'
+    case 'mappa_question':    return '/game/mappa'
+    case 'mappa_reveal':      return '/game/mappa'
+    case 'mappa_final':       return '/game/mappa'
     case 'play_bottle':       return '/game/bottle'
     case 'play_spinwheel':    return '/game/spinwheel'
     case 'play_truthordare':  return '/game/truthordare'
     case 'play_neverhave':    return '/game/neverhave'
-    // Legacy
     case 'hub':        return '/hub'
     case 'game':       return '/game/trivia'
     case 'round_end':  return '/round-end'
@@ -53,18 +52,17 @@ export const useRoomSync = () => {
   const awaitingGameChange = useSession((s) => s.awaitingGameChange)
   const syncFromRemote = useSession((s) => s.syncFromRemote)
   const showError     = useSession((s) => s.showError)
+  const resetSession  = useSession((s) => s.resetSession)
 
   const subRef = useRef(null)
   const reconnectTimerRef = useRef(null)
+  const redirectTimerRef = useRef(null)
   const attemptsRef = useRef(0)
-  // Tieni `isHost` aggiornato in ref per usarlo dentro callback async senza
-  // riavviare la sub ogni volta che host cambia (le deps dell'effect sono solo [mode, roomCode]).
   const isHostRef = useRef(isHost)
   useEffect(() => {
     isHostRef.current = isHost
   }, [isHost])
 
-  // awaitingGameChange in ref per leggerlo dentro l'handler senza riavviare la sub.
   const awaitingRef = useRef(awaitingGameChange)
   useEffect(() => {
     awaitingRef.current = awaitingGameChange
@@ -72,7 +70,6 @@ export const useRoomSync = () => {
 
   useEffect(() => {
     if (mode !== 'online' || !roomCode) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStatus('idle')
       return
     }
@@ -80,11 +77,22 @@ export const useRoomSync = () => {
     let cancelled = false
 
     const navigateToPhase = (phase) => {
-      // L'host sta scegliendo un nuovo gioco dalla home: non rinavigare automaticamente
-      // alla phase precedente. Il flag viene resettato quando avvia il nuovo gioco.
       if (awaitingRef.current) return
       const target = phaseToPath(phase)
       if (target && window.location.pathname !== target) navigate(target)
+    }
+
+    const kickToHome = (errorType) => {
+      if (cancelled) return
+      showError(errorType)
+      subRef.current?.unsubscribe()
+      subRef.current = null
+      clearTimeout(redirectTimerRef.current)
+      redirectTimerRef.current = setTimeout(() => {
+        if (cancelled) return
+        resetSession()
+        navigate('/', { replace: true })
+      }, REDIRECT_DELAY_MS)
     }
 
     const handler = ({ phase, state, questionStartedAt, error }) => {
@@ -94,18 +102,31 @@ export const useRoomSync = () => {
         scheduleReconnect()
         return
       }
+
+      // Host ha chiuso il party
+      if (phase === 'closed') {
+        if (!isHostRef.current) {
+          kickToHome('host_left')
+        }
+        return
+      }
+
       syncFromRemote(state, phase, questionStartedAt)
-      // Nel modello democratico, TUTTI (host e client) navigano in base alla phase.
       navigateToPhase(phase)
     }
 
     const scheduleReconnect = () => {
       if (attemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
-        showError('connection')
+        if (!isHostRef.current) {
+          kickToHome('connection_lost')
+        } else {
+          showError('connection')
+        }
         setStatus('disconnected')
         return
       }
       attemptsRef.current += 1
+      showError('connection')
       clearTimeout(reconnectTimerRef.current)
       reconnectTimerRef.current = setTimeout(() => {
         if (!cancelled) connect()
@@ -117,15 +138,26 @@ export const useRoomSync = () => {
       const { room, error } = await getRoom(roomCode)
       if (cancelled) return
       if (error || !room) {
-        showError('room_not_found')
+        if (!isHostRef.current) {
+          kickToHome('room_not_found')
+        } else {
+          showError('room_not_found')
+        }
         setStatus('disconnected')
         return
       }
-      // Snapshot immediato: risolve il join mid-game (il client si vede subito al posto giusto).
+
+      // Room was closed while we were reconnecting
+      if (room.phase === 'closed') {
+        if (!isHostRef.current) {
+          kickToHome('host_left')
+        }
+        return
+      }
+
       syncFromRemote(room.state, room.phase, room.question_started_at)
       navigateToPhase(room.phase)
 
-      // Subscribe (rimpiazza eventuale precedente).
       subRef.current?.unsubscribe()
       subRef.current = subscribeToRoom(roomCode, handler)
       attemptsRef.current = 0
@@ -137,6 +169,7 @@ export const useRoomSync = () => {
     return () => {
       cancelled = true
       clearTimeout(reconnectTimerRef.current)
+      clearTimeout(redirectTimerRef.current)
       subRef.current?.unsubscribe()
       subRef.current = null
     }

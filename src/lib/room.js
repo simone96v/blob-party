@@ -64,10 +64,12 @@ export const getRoom = async (code) => {
 }
 
 // Scrive lo stato corrente sulla stanza. Solo host.
-export const pushRoom = async (code, phase, state) => {
+export const pushRoom = async (code, phase, state, questionStartedAt) => {
+  const payload = { phase, state, updated_at: new Date().toISOString() }
+  if (questionStartedAt !== undefined) payload.question_started_at = questionStartedAt
   const { error } = await supabase
     .from('rooms')
-    .update({ phase, state, updated_at: new Date().toISOString() })
+    .update(payload)
     .eq('code', code)
   return { error }
 }
@@ -254,6 +256,15 @@ export const rpcCastVote = async (roomCode, field, playerId, value) => {
     p_player_id: playerId,
     p_value: value,
   })
+  return { error }
+}
+
+// Chiude la stanza: setta phase='closed' così tutti i client vengono notificati.
+export const closeRoom = async (code) => {
+  const { error } = await supabase
+    .from('rooms')
+    .update({ phase: 'closed', updated_at: new Date().toISOString() })
+    .eq('code', code)
   return { error }
 }
 

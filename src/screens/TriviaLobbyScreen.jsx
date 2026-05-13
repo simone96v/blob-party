@@ -52,8 +52,19 @@ const TriviaLobbyScreen = () => {
   const spinTarget = session?.spinTarget ?? null
 
   const [launching, setLaunching] = useState(false)
-  // Promise della generazione AI — avviata al click Spin, pronta quando l'animazione finisce.
+  // Promise della generazione AI — avviata dall'host quando spinTarget appare.
   const deckPromiseRef = useRef(null)
+
+  // Spinner determinato da roomCode + roundIdx — tutti i client lo calcolano uguale.
+  const currentSpinner = useMemo(() => {
+    if (players.length === 0) return null
+    const seed = (roomCode || '').split('').reduce((acc, c) => acc * 31 + c.charCodeAt(0), 0)
+    const idx = Math.abs(seed + roundIdx * 7919) % players.length
+    return players[idx]?.id ?? null
+  }, [roomCode, roundIdx, players])
+
+  const isSpinner = localPlayerId === currentSpinner
+  const spinnerPlayer = players.find((p) => p.id === currentSpinner)
 
   // Categorie ancora "spinnabili" (escluse quelle già giocate).
   const availableCategories = useMemo(
@@ -90,6 +101,16 @@ const TriviaLobbyScreen = () => {
     if (roundIdx === 0) clearAiCache()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHost])
+
+  // Host: avvia generazione AI appena spinTarget appare (in parallelo con animazione).
+  useEffect(() => {
+    if (!isHost || !spinTarget) return
+    if (deckPromiseRef.current) return // already generating
+    const cat = availableCategories.find((c) => c.id === spinTarget)
+    if (!cat) return
+    deckPromiseRef.current = generateDeck(cat.id, questionsPerRound)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isHost, spinTarget])
 
   // Update settings on session.
   const updateSessionSetting = (patch) => {
@@ -133,17 +154,14 @@ const TriviaLobbyScreen = () => {
     setAwaitingGC(false)
   }
 
-  // Host clicca Spin → sceglie vincitore → pusha spinTarget su DB.
-  // Avvia SUBITO la generazione AI in parallelo con l'animazione (6.4s).
+  // Spinner clicca Spin → sceglie vincitore → pusha spinTarget su DB.
+  // L'host avvierà la generazione AI in parallelo (vedi useEffect sopra).
   const handleRequestSpin = useCallback(() => {
-    if (!isHost || launching) return
+    if (!isSpinner || launching) return
     if (availableCategories.length === 0) return
 
     const winIdx = Math.floor(Math.random() * availableCategories.length)
     const winner = availableCategories[winIdx]
-
-    // Genera domande IN PARALLELO con l'animazione — 0 lag percepito
-    deckPromiseRef.current = generateDeck(winner.id, questionsPerRound)
 
     // Push spinTarget su DB → Realtime lo propaga a tutti
     const s = useSession.getState()
@@ -162,7 +180,7 @@ const TriviaLobbyScreen = () => {
         ...newGameState,
       })
     }
-  }, [isHost, launching, availableCategories, questionsPerRound])
+  }, [isSpinner, launching, availableCategories])
 
   // Animazione completata — le domande sono GIA' in generazione dal click Spin.
   const handleSpinEnd = useCallback(async (category) => {
@@ -288,7 +306,8 @@ const TriviaLobbyScreen = () => {
             onRequestSpin={handleRequestSpin}
             onSpinEnd={handleSpinEnd}
             disabled={launching}
-            isHost={isHost}
+            canSpin={isSpinner}
+            spinnerName={spinnerPlayer?.name ?? ''}
           />
         </motion.div>
       </div>

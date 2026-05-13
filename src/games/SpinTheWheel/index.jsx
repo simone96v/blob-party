@@ -11,6 +11,7 @@ import GameFinalScreen from '../../components/GameFinalScreen'
 import { useSession } from '../../stores/useSession'
 import { rpcUpdateGameState } from '../../lib/room'
 import WHEEL from '../../data/questions/spinwheel.json'
+import { haptic } from '../../utils/haptic'
 
 const SPIN_DURATION_MS = 3200
 
@@ -44,6 +45,7 @@ const SpinTheWheel = () => {
 
   const completeRef = useRef(-1)
   const handleSpinComplete = async () => {
+    if (spunCount > 0) haptic.land()
     if (!isHost) return
     if (completeRef.current === spunCount) return
     completeRef.current = spunCount
@@ -60,6 +62,7 @@ const SpinTheWheel = () => {
   const handleSpin = async () => {
     if (!isHost) return
     if (phase === 'spinning') return
+    haptic.medium()
     const target = Math.floor(Math.random() * N)
     const fullSpins = 5 + Math.floor(Math.random() * 3)
     const sliceCenter = (target + 0.5) * sliceDeg

@@ -9,6 +9,7 @@ import GameFinalScreen from '../../components/GameFinalScreen'
 import { useSession } from '../../stores/useSession'
 import { rpcUpdateGameState, rpcPlayerUpdate } from '../../lib/room'
 import CARDS from '../../data/questions/truth-or-dare.json'
+import { haptic } from '../../utils/haptic'
 
 const REPLAY_PATCH = {
   td_targetIndex: -1,
@@ -40,6 +41,7 @@ const TruthOrDare = () => {
 
   const handleDraw = async () => {
     if (!isHost || players.length === 0) return
+    haptic.medium()
     let next
     if (players.length === 1) next = 0
     else {
@@ -56,6 +58,7 @@ const TruthOrDare = () => {
 
   const handleChooseMode = async (m) => {
     if (!isMyTurn) return
+    haptic.light()
     const pool = m === 'truth' ? CARDS.truth : CARDS.dare
     const usedList = m === 'truth' ? usedTruth : usedDare
     const available = pool.filter((c) => !usedList.includes(c))

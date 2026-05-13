@@ -55,14 +55,6 @@ const BlobLogo = ({ size = 'md', clickable = false, onClick }) => {
         />
         {/* Glossy highlight */}
         <ellipse cx="35" cy="30" rx="18" ry="14" fill="url(#blob-hl)" />
-        {/* Smile */}
-        <path
-          d="M36 58 Q50 70, 64 58"
-          fill="none"
-          stroke="#fff"
-          strokeWidth="4"
-          strokeLinecap="round"
-        />
         {/* Eyes */}
         <circle cx="38" cy="46" r="3.5" fill="#fff" />
         <circle cx="62" cy="46" r="3.5" fill="#fff" />

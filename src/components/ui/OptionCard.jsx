@@ -6,6 +6,7 @@
 // `selected`: ring accent attorno
 
 import { motion } from 'framer-motion'
+import { haptic } from '../../utils/haptic'
 
 const OptionCard = ({
   option,
@@ -22,7 +23,7 @@ const OptionCard = ({
     transition={{ delay: index * 0.06, type: 'spring', stiffness: 280, damping: 22 }}
     whileHover={!disabled ? { scale: 1.02, y: -2 } : {}}
     whileTap={!disabled ? { scale: 0.98 } : {}}
-    onClick={disabled ? undefined : onClick}
+    onClick={disabled ? undefined : () => { haptic.light(); onClick?.() }}
     disabled={disabled}
     style={{
       width: '100%',

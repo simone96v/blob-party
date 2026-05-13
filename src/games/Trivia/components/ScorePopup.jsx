@@ -1,7 +1,9 @@
 // Feedback punteggio post-reveal: numero grosso animato + label "Cervellone! / Boh!".
 // Mostra anche lo streak attivo se >= 2.
 
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { haptic } from '../../../utils/haptic'
 
 const ScorePopup = ({ points, isCorrect, didAnswer, currentStreak }) => {
   const color =
@@ -13,6 +15,14 @@ const ScorePopup = ({ points, isCorrect, didAnswer, currentStreak }) => {
     : isCorrect
       ? (points >= 18 ? 'Cervellone! 🧠⚡' : 'Genio! ✨')
       : 'Che figura 💀'
+
+  useEffect(() => {
+    if (!didAnswer) return
+    if (isCorrect && currentStreak >= 2) haptic.heavy()
+    else if (isCorrect) haptic.double()
+    else haptic.medium()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <motion.div

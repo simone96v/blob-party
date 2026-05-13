@@ -8,6 +8,7 @@
 // Animazione: whileTap scale 0.96, transizione spring stiffness 400.
 
 import { motion } from 'framer-motion'
+import { haptic } from '../../utils/haptic'
 
 const VARIANT_CLASS = {
   primary:   'text-white',
@@ -23,6 +24,7 @@ const Button = ({
   children,
   type = 'button',
   className = '',
+  style: styleProp,
   ...rest
 }) => {
   const widthClass = width === 'full' ? 'w-full' : ''
@@ -33,7 +35,7 @@ const Button = ({
     <motion.button
       type={type}
       disabled={disabled}
-      onClick={disabled ? undefined : onClick}
+      onClick={disabled ? undefined : (e) => { haptic.tick(); onClick?.(e) }}
       whileTap={disabled ? undefined : { scale: 0.96 }}
       transition={{ type: 'spring', stiffness: 400 }}
       className={[
@@ -59,6 +61,7 @@ const Button = ({
         boxShadow: variant === 'primary'
           ? '0 6px 18px rgba(124, 58, 237, 0.35)'
           : 'none',
+        ...styleProp,
       }}
       {...rest}
     >

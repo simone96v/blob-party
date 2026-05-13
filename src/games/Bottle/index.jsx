@@ -10,6 +10,7 @@ import GameFinalScreen from '../../components/GameFinalScreen'
 import { useSession } from '../../stores/useSession'
 import { rpcUpdateGameState, rpcPlayerUpdate } from '../../lib/room'
 import CARDS from '../../data/questions/bottle.json'
+import { haptic } from '../../utils/haptic'
 
 const SPIN_DURATION_MS = 3200
 const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)]
@@ -49,6 +50,7 @@ const Bottle = () => {
   // -- Host actions --
   const handleSpin = async () => {
     if (!isHost || phase === 'spinning' || phase === 'choice' || phase === 'card' || players.length === 0) return
+    haptic.medium()
     let next
     if (players.length === 1) next = 0
     else {
@@ -77,6 +79,7 @@ const Bottle = () => {
 
   const completeRef = useRef(-1)
   const handleSpinComplete = async () => {
+    if (spunCount > 0) haptic.land()
     if (!isHost) return
     if (completeRef.current === spunCount) return
     completeRef.current = spunCount
@@ -95,6 +98,7 @@ const Bottle = () => {
   // -- Player target actions --
   const handleChooseMode = async (m) => {
     if (!isMyTurn) return
+    haptic.light()
     const pool = m === 'truth' ? CARDS.truth : CARDS.dare
     const usedList = m === 'truth' ? usedTruth : usedDare
     const available = pool.filter((c) => !usedList.includes(c))

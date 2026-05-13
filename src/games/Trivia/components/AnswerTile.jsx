@@ -7,6 +7,7 @@
 
 import { motion } from 'framer-motion'
 import { ANSWER_COLORS, ANSWER_LABELS } from '../constants'
+import { haptic } from '../../../utils/haptic'
 
 const AnswerTile = ({
   index,
@@ -29,7 +30,7 @@ const AnswerTile = ({
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: index * 0.05 }}
         whileTap={!disabled ? { scale: 0.96 } : undefined}
-        onClick={disabled ? undefined : onClick}
+        onClick={disabled ? undefined : () => { haptic.light(); onClick?.() }}
         disabled={disabled}
         style={{
           ...tileBase,

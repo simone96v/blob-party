@@ -85,6 +85,37 @@ const GamesScreen = () => {
         return
       }
 
+      if (winnerId === 'mappa') {
+        const { default: mappaData } = await import('../games/Mappa/data/mappa.json')
+        const pool = [...mappaData.questions]
+        for (let i = pool.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1))
+          ;[pool[i], pool[j]] = [pool[j], pool[i]]
+        }
+        const count = Math.min(numQuestions || 10, pool.length)
+        const deck = pool.slice(0, count)
+        const now = new Date().toISOString()
+        const fullState = {
+          players: (session.players || []).map((p) => ({ ...p, score: 0 })),
+          currentIdx: 0,
+          round: 0,
+          activeGame: 'mappa',
+          selectedGame: winnerId,
+          deck,
+          current_round: 0,
+          current_question: deck[0],
+          pins: {},
+          timer_duration: 30,
+        }
+        const pushRes = await pushRoom(roomCode, 'mappa_countdown', fullState, now)
+        if (pushRes.error) {
+          showError('generic')
+          setLaunching(false)
+          return
+        }
+        return
+      }
+
       const phaseMap = {
         bottle: 'play_bottle',
         spinwheel: 'play_spinwheel',

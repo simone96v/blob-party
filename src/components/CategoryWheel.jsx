@@ -13,10 +13,12 @@
 //   - onRequestSpin(): host chiede di spinnare
 //   - onSpinEnd(category): dopo animazione + celebrazione
 //   - disabled: disabilita il bottone
-//   - isHost: mostra/nasconde il bottone
+//   - canSpin: true se il giocatore locale può spinnare
+//   - spinnerName: nome del giocatore che deve spinnare (per il testo d'attesa)
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { haptic } from '../utils/haptic'
 
 const WHEEL_SIZE = 280
 const CX = WHEEL_SIZE / 2
@@ -29,7 +31,8 @@ const CategoryWheel = ({
   onRequestSpin,
   onSpinEnd,
   disabled = false,
-  isHost = false,
+  canSpin = false,
+  spinnerName = '',
 }) => {
   const [rotation, setRotation] = useState(0)
   const [spinning, setSpinning] = useState(false)
@@ -65,6 +68,7 @@ const CategoryWheel = ({
     setSpinning(true)
     setLanded(null)
     setCelebrating(false)
+    haptic.medium()
 
     const segCenter = winIdx * angle + angle / 2
     const offset = ((360 - segCenter) % 360 + 360) % 360
@@ -78,6 +82,7 @@ const CategoryWheel = ({
       setSpinning(false)
       setLanded(cats[winIdx])
       setCelebrating(true)
+      haptic.land()
 
       celebTimer = setTimeout(() => {
         setCelebrating(false)
@@ -232,8 +237,8 @@ const CategoryWheel = ({
         </motion.svg>
       </div>
 
-      {/* Spin button (host only) / status text (client) */}
-      {isHost ? (
+      {/* Spin button (spinner) / status text (others) */}
+      {canSpin ? (
         <button
           type="button"
           onClick={onRequestSpin}
@@ -274,7 +279,11 @@ const CategoryWheel = ({
           alignItems: 'center',
           justifyContent: 'center',
         }}>
-          {isBusy ? '🌀 La ruota gira...' : '👑 Aspettando che l\'host spinni...'}
+          {isBusy
+            ? '🌀 La ruota gira...'
+            : spinnerName
+              ? `🎡 Tocca a ${spinnerName} spinnare!`
+              : '⏳ In attesa...'}
         </p>
       )}
     </div>

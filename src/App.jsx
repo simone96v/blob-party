@@ -1,5 +1,7 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { useRoomSync } from './hooks/useRoomSync'
+import { useHostCleanup } from './hooks/useHostCleanup'
 import { ConnectionContext } from './contexts/connection'
 
 import ErrorBoundary from './components/ErrorBoundary'
@@ -17,7 +19,10 @@ import TriviaLobbyScreen from './screens/TriviaLobbyScreen'
 import RoundEndScreen from './screens/RoundEndScreen'
 import ScoreboardScreen from './screens/ScoreboardScreen'
 
+const MappaTest = lazy(() => import('./games/Mappa/MappaTest'))
+
 function App() {
+  useHostCleanup()
   const { status } = useRoomSync()
 
   return (
@@ -37,6 +42,7 @@ function App() {
           <Route path="/game/:gameId" element={<GameScreen />} />
           <Route path="/round-end" element={<RoundEndScreen />} />
           <Route path="/scoreboard" element={<ScoreboardScreen />} />
+          <Route path="/test/mappa" element={<Suspense><MappaTest /></Suspense>} />
         </Routes>
       </ConnectionContext.Provider>
     </ErrorBoundary>

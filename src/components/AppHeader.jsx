@@ -8,12 +8,18 @@
 import { useNavigate } from 'react-router-dom'
 import BlobLogo from './ui/BlobLogo'
 import { useSession } from '../stores/useSession'
+import { closeRoom } from '../lib/room'
 
 const AppHeader = ({ actions = null, leading = null }) => {
   const navigate = useNavigate()
+  const isHost = useSession((s) => s.isHost)
+  const roomCode = useSession((s) => s.roomCode)
   const resetSession = useSession((s) => s.resetSession)
 
-  const handleLogoClick = () => {
+  const handleLogoClick = async () => {
+    if (isHost && roomCode) {
+      await closeRoom(roomCode)
+    }
     resetSession()
     navigate('/', { replace: true })
   }

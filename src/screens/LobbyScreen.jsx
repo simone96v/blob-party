@@ -5,17 +5,16 @@
 
 import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import AppHeader from '../components/AppHeader'
 import ErrorBanner from '../components/ErrorBanner'
 import ShareModal from '../components/ShareModal'
-import SettingsModal from '../components/SettingsModal'
-import HelpModal from '../components/HelpModal'
 import Button from '../components/ui/Button'
 import IconButton from '../components/ui/IconButton'
 import GradientTitle from '../components/ui/GradientTitle'
 import { useSession } from '../stores/useSession'
 import { useSettings } from '../stores/useSettings'
-import { addPlayerToRoom, pushRoom } from '../lib/room'
+import { addPlayerToRoom, pushRoom, closeRoom } from '../lib/room'
 
 const containerVariants = {
   hidden: {},
@@ -28,11 +27,10 @@ const itemVariants = {
 }
 
 const LobbyScreen = () => {
+  const navigate = useNavigate()
   const [name, setName] = useState('')
   const [starting, setStarting] = useState(false)
-  const [showSettings, setShowSettings] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
-  const [showHelpModal, setShowHelpModal] = useState(false)
 
   const isHost = useSession((s) => s.isHost)
   const roomCode = useSession((s) => s.roomCode)
@@ -40,12 +38,10 @@ const LobbyScreen = () => {
   const localPlayerId = useSession((s) => s.localPlayerId)
   const removePlayer = useSession((s) => s.removePlayer)
   const setOnlineMode = useSession((s) => s.setOnlineMode)
+  const resetSession = useSession((s) => s.resetSession)
   const showError = useSession((s) => s.showError)
 
   const numQuestions = useSettings((s) => s.numQuestions)
-  const timerDuration = useSettings((s) => s.timerDuration)
-  const setNumQuestions = useSettings((s) => s.setNumQuestions)
-  const setTimerDuration = useSettings((s) => s.setTimerDuration)
 
   const hostHasJoined = !isHost || (isHost && !!localPlayerId)
   const showNameInput = !localPlayerId && players.length < 8
@@ -120,18 +116,16 @@ const LobbyScreen = () => {
       transition={{ duration: 0.2 }}
     >
       <AppHeader
-        actions={
-          <>
-            {isHost && hostHasJoined && (
-              <IconButton ariaLabel="Impostazioni" onClick={() => setShowSettings(true)}>
-                ⚙️
-              </IconButton>
-            )}
-            <IconButton ariaLabel="Come si gioca" onClick={() => setShowHelpModal(true)}>
-              ❓
-            </IconButton>
-          </>
+        leading={
+          <IconButton ariaLabel="Indietro" onClick={async () => {
+            if (isHost && roomCode) {
+              await closeRoom(roomCode)
+            }
+            resetSession()
+            navigate('/', { replace: true })
+          }}>←</IconButton>
         }
+        actions={null}
       />
       <ErrorBanner />
       <div className="screen-body" style={{ gap: 'clamp(12px, 1.8dvh, 18px)', overflowY: 'auto' }}>
@@ -199,25 +193,24 @@ const LobbyScreen = () => {
             <div style={{ fontSize: 'clamp(11px, 1.4dvh, 13px)', color: 'var(--muted)', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>
               ✍️ {isHost ? 'Il tuo nome (host)' : 'Il tuo nome'}
             </div>
-            <div className="flex" style={{ gap: 8 }}>
+            <form onSubmit={(e) => { e.preventDefault(); handleAdd() }} style={{ display: 'flex', gap: 8 }}>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
                 placeholder="Es. Marco"
                 style={inputStyle}
-                maxLength={8}
+                maxLength={12}
                 autoFocus
               />
               <Button
+                type="submit"
                 variant="primary"
-                onClick={handleAdd}
                 disabled={!name.trim() || adding}
-                style={{ flexShrink: 0, padding: '0 clamp(14px, 3vw, 20px)' }}
+                style={{ flexShrink: 0, padding: '0 16px', boxShadow: 'none', height: 'clamp(44px, 6dvh, 56px)' }}
               >
                 {adding ? '...' : 'Entra'}
               </Button>
-            </div>
+            </form>
           </motion.div>
         )}
 
@@ -244,7 +237,7 @@ const LobbyScreen = () => {
                   {p.name?.slice(0, 2).toUpperCase()}
                 </div>
                 <span style={playerNameStyle}>
-                  {p.name?.slice(0, 8)}
+                  {p.name?.slice(0, 12)}
                 </span>
                 {p.is_host && <span style={hostPillStyle}>👑 HOST</span>}
                 {isHost && !p.is_host && (
@@ -293,19 +286,6 @@ const LobbyScreen = () => {
         roomCode={roomCode}
       />
 
-      <SettingsModal
-        open={showSettings}
-        onClose={() => setShowSettings(false)}
-        numQuestions={numQuestions}
-        setNumQuestions={setNumQuestions}
-        timerDuration={timerDuration}
-        setTimerDuration={setTimerDuration}
-      />
-
-      <HelpModal
-        open={showHelpModal}
-        onClose={() => setShowHelpModal(false)}
-      />
     </motion.div>
   )
 }
@@ -314,6 +294,7 @@ const LobbyScreen = () => {
 
 const inputStyle = {
   flex: 1,
+  minWidth: 0,
   height: 'clamp(44px, 6dvh, 56px)',
   background: 'var(--surface)',
   border: '1.5px solid var(--border)',

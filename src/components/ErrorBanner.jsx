@@ -9,6 +9,8 @@ import { useSession } from '../stores/useSession'
 
 const ERROR_MESSAGES = {
   connection:     'Connessione persa — riprovo...',
+  host_left:      'L\'host ha chiuso il party.',
+  connection_lost:'Connessione persa. Ritorno alla home...',
   room_not_found: 'Party non trovato. Controlla il codice.',
   room_full:      'Party pieno (massimo 8 giocatori).',
   generic:        'Qualcosa è andato storto. Riprova.',

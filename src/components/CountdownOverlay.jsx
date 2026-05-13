@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { haptic } from '../utils/haptic'
 
 const STEPS = [
   { label: '3', color: '#7C3AED', delay: 0 },
@@ -14,10 +15,12 @@ const STEPS = [
 const CountdownOverlay = ({ questionStartedAt, onComplete }) => {
   const [stepIndex, setStepIndex] = useState(-1)
   const completedRef = useRef(false)
+  const lastHapticStep = useRef(-1)
 
   useEffect(() => {
     if (!questionStartedAt) return
     completedRef.current = false
+    lastHapticStep.current = -1
 
     const startMs = new Date(questionStartedAt).getTime()
 
@@ -31,6 +34,12 @@ const CountdownOverlay = ({ questionStartedAt, onComplete }) => {
           onComplete?.()
         }
         return
+      }
+
+      if (idx !== lastHapticStep.current) {
+        lastHapticStep.current = idx
+        if (idx === 3) haptic.heavy()
+        else haptic.tick()
       }
 
       setStepIndex(idx)

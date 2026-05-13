@@ -1,6 +1,6 @@
-// HomeScreen — hero animato + CTA "Crea party" / "Ho già un codice" + anteprima giochi.
+// HomeScreen — hero + CTA "Crea party" / "Ho già un codice" + blob che sbucano.
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import GradientTitle from '../components/ui/GradientTitle'
@@ -9,7 +9,6 @@ import Spinner from '../components/ui/Spinner'
 import ErrorBanner from '../components/ErrorBanner'
 import { useSession } from '../stores/useSession'
 import { createRoom } from '../lib/room'
-import { GAMES } from '../data/games'
 
 const OPTIONS = [
   {
@@ -36,54 +35,6 @@ const STATS = [
   { emoji: '⚡', label: 'Senza account' },
 ]
 
-const PLAYABLE_GAMES = GAMES.filter((g) => !g.locked)
-
-const HeroBlob = () => (
-  <motion.div
-    animate={{ y: [0, -8, 0], rotate: [0, 2, 0, -2, 0] }}
-    transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-    style={{ display: 'inline-block', lineHeight: 0 }}
-  >
-    <svg
-      width="clamp(72px, 12dvh, 104px)"
-      height="clamp(72px, 12dvh, 104px)"
-      viewBox="0 0 100 100"
-      style={{
-        width: 'clamp(72px, 12dvh, 104px)',
-        height: 'clamp(72px, 12dvh, 104px)',
-        filter: 'drop-shadow(0 12px 28px rgba(124, 58, 237, 0.45))',
-      }}
-      aria-hidden="true"
-    >
-      <defs>
-        <linearGradient id="home-blob-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#A78BFA" />
-          <stop offset="50%" stopColor="#7C3AED" />
-          <stop offset="100%" stopColor="#EC4899" />
-        </linearGradient>
-        <radialGradient id="home-blob-hl" cx="32%" cy="28%" r="35%">
-          <stop offset="0%" stopColor="rgba(255,255,255,0.7)" />
-          <stop offset="100%" stopColor="rgba(255,255,255,0)" />
-        </radialGradient>
-      </defs>
-      <path
-        d="M50 6 C72 6, 94 22, 94 48 C94 72, 78 92, 54 94 C30 96, 8 78, 6 54 C4 30, 22 8, 50 6 Z"
-        fill="url(#home-blob-grad)"
-      />
-      <ellipse cx="35" cy="30" rx="18" ry="14" fill="url(#home-blob-hl)" />
-      <path
-        d="M34 58 Q50 72, 66 58"
-        fill="none"
-        stroke="#fff"
-        strokeWidth="4.5"
-        strokeLinecap="round"
-      />
-      <circle cx="38" cy="46" r="4" fill="#fff" />
-      <circle cx="62" cy="46" r="4" fill="#fff" />
-    </svg>
-  </motion.div>
-)
-
 const StatPill = ({ emoji, label, delay }) => (
   <motion.div
     initial={{ opacity: 0, y: 8 }}
@@ -109,29 +60,173 @@ const StatPill = ({ emoji, label, delay }) => (
   </motion.div>
 )
 
-const GameBubble = ({ game, index }) => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.4 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ delay: 0.35 + index * 0.05, type: 'spring', stiffness: 300, damping: 18 }}
-    whileHover={{ y: -4, scale: 1.12, rotate: -4 }}
-    title={game.name}
-    style={{
-      width: 'clamp(40px, 6dvh, 48px)',
-      height: 'clamp(40px, 6dvh, 48px)',
-      borderRadius: '50%',
-      background: game.bg,
-      boxShadow: `0 6px 14px ${game.shadow}`,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: 'clamp(20px, 2.8dvh, 24px)',
-      flexShrink: 0,
-      cursor: 'default',
-    }}
-  >
-    {game.emoji}
-  </motion.div>
+// Sequenza espressioni — top e bottom sfasati.
+const EXPR_SEQUENCE = [
+  { top: 'normal',     bottom: 'normal',     dur: 2500 },
+  { top: 'blink',      bottom: 'normal',     dur: 150 },
+  { top: 'normal',     bottom: 'normal',     dur: 3000 },
+  { top: 'normal',     bottom: 'blink',      dur: 150 },
+  { top: 'normal',     bottom: 'normal',     dur: 2000 },
+  { top: 'look-right', bottom: 'look-left',  dur: 2000 },
+  { top: 'blink',      bottom: 'blink',      dur: 150 },
+  { top: 'happy',      bottom: 'normal',     dur: 2500 },
+  { top: 'normal',     bottom: 'happy',      dur: 2500 },
+  { top: 'blink',      bottom: 'normal',     dur: 150 },
+  { top: 'normal',     bottom: 'normal',     dur: 2000 },
+  { top: 'look-left',  bottom: 'look-right', dur: 2000 },
+  { top: 'normal',     bottom: 'blink',      dur: 150 },
+  { top: 'normal',     bottom: 'normal',     dur: 3000 },
+  { top: 'blink',      bottom: 'blink',      dur: 150 },
+]
+
+const useExpressions = () => {
+  const [topExpr, setTopExpr] = useState('normal')
+  const [bottomExpr, setBottomExpr] = useState('normal')
+  const idxRef = useRef(0)
+
+  useEffect(() => {
+    let timer
+    const step = () => {
+      const s = EXPR_SEQUENCE[idxRef.current]
+      setTopExpr(s.top)
+      setBottomExpr(s.bottom)
+      idxRef.current = (idxRef.current + 1) % EXPR_SEQUENCE.length
+      timer = setTimeout(step, s.dur)
+    }
+    step()
+    return () => clearTimeout(timer)
+  }, [])
+
+  return { topExpr, bottomExpr }
+}
+
+// Occhi SVG con espressioni — posizioni relative al centro (lx, rx, ey).
+const BlobEyes = ({ expr, lx, rx, ey, prefix }) => {
+  const pupilDx = expr === 'look-left' ? -4 : expr === 'look-right' ? 4 : 0
+
+  if (expr === 'blink') {
+    return (
+      <>
+        <ellipse cx={lx} cy={ey} rx="14" ry="2.5" fill="#fff" opacity="0.9" />
+        <ellipse cx={rx} cy={ey} rx="14" ry="2.5" fill="#fff" opacity="0.9" />
+      </>
+    )
+  }
+
+  if (expr === 'happy') {
+    return (
+      <>
+        <path d={`M${lx - 14} ${ey + 2} Q${lx} ${ey - 14}, ${lx + 14} ${ey + 2}`}
+          fill="none" stroke="#fff" strokeWidth="4.5" strokeLinecap="round" />
+        <path d={`M${rx - 14} ${ey + 2} Q${rx} ${ey - 14}, ${rx + 14} ${ey + 2}`}
+          fill="none" stroke="#fff" strokeWidth="4.5" strokeLinecap="round" />
+      </>
+    )
+  }
+
+  return (
+    <>
+      <ellipse cx={lx} cy={ey} rx="16" ry="17" fill={`url(#${prefix}-eye-l)`} />
+      <circle cx={lx + 2 + pupilDx} cy={ey + 3} r="7.5" fill="#6D28D9" />
+      <circle cx={lx + 4 + pupilDx} cy={ey + 1} r="3" fill="#1E1B4B" />
+      <circle cx={lx + 6 + pupilDx} cy={ey - 2} r="1.8" fill="rgba(255,255,255,0.9)" />
+      <ellipse cx={rx} cy={ey} rx="16" ry="17" fill={`url(#${prefix}-eye-r)`} />
+      <circle cx={rx + 2 + pupilDx} cy={ey + 3} r="7.5" fill="#6D28D9" />
+      <circle cx={rx + 4 + pupilDx} cy={ey + 1} r="3" fill="#1E1B4B" />
+      <circle cx={rx + 6 + pupilDx} cy={ey - 2} r="1.8" fill="rgba(255,255,255,0.9)" />
+    </>
+  )
+}
+
+const blobDefs = (prefix) => (
+  <defs>
+    <linearGradient id={`${prefix}-grad`} x1="0%" y1="0%" x2="100%" y2="80%">
+      <stop offset="0%" stopColor="#C4B5FD" />
+      <stop offset="30%" stopColor="#A78BFA" />
+      <stop offset="60%" stopColor="#7C3AED" />
+      <stop offset="100%" stopColor="#DB2777" />
+    </linearGradient>
+    <radialGradient id={`${prefix}-hl1`} cx="30%" cy="25%" r="35%">
+      <stop offset="0%" stopColor="rgba(255,255,255,0.7)" />
+      <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+    </radialGradient>
+    <radialGradient id={`${prefix}-hl2`} cx="65%" cy="35%" r="20%">
+      <stop offset="0%" stopColor="rgba(255,255,255,0.35)" />
+      <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+    </radialGradient>
+    <radialGradient id={`${prefix}-shd`} cx="50%" cy="20%" r="50%">
+      <stop offset="0%" stopColor="rgba(91,33,182,0.25)" />
+      <stop offset="100%" stopColor="rgba(91,33,182,0)" />
+    </radialGradient>
+    <radialGradient id={`${prefix}-eye-l`} cx="40%" cy="35%" r="50%">
+      <stop offset="0%" stopColor="#fff" />
+      <stop offset="100%" stopColor="#E9E5F5" />
+    </radialGradient>
+    <radialGradient id={`${prefix}-eye-r`} cx="40%" cy="35%" r="50%">
+      <stop offset="0%" stopColor="#fff" />
+      <stop offset="100%" stopColor="#E9E5F5" />
+    </radialGradient>
+  </defs>
+)
+
+const BottomBlob = ({ expr }) => (
+  <div style={{
+    position: 'fixed',
+    bottom: 'clamp(-80px, -12dvh, -50px)',
+    left: 0, right: 0,
+    zIndex: 0,
+    pointerEvents: 'none',
+    lineHeight: 0,
+    display: 'flex',
+    justifyContent: 'center',
+  }}>
+    <svg
+      viewBox="0 0 400 200"
+      preserveAspectRatio="xMidYMax meet"
+      style={{
+        width: '110%', maxWidth: 650, height: 'auto',
+        filter: 'drop-shadow(0 -8px 30px rgba(124, 58, 237, 0.3))',
+      }}
+      aria-hidden="true"
+    >
+      {blobDefs('bb')}
+      <ellipse cx="200" cy="160" rx="210" ry="150" fill="url(#bb-grad)" />
+      <ellipse cx="200" cy="160" rx="210" ry="150" fill="url(#bb-shd)" />
+      <ellipse cx="145" cy="75" rx="70" ry="35" fill="url(#bb-hl1)" />
+      <ellipse cx="270" cy="85" rx="40" ry="22" fill="url(#bb-hl2)" />
+      <BlobEyes expr={expr} lx={160} rx={240} ey={100} prefix="bb" />
+    </svg>
+  </div>
+)
+
+const TopBlob = ({ expr }) => (
+  <div style={{
+    position: 'fixed',
+    top: 'clamp(-80px, -12dvh, -50px)',
+    left: 0, right: 0,
+    zIndex: 0,
+    pointerEvents: 'none',
+    lineHeight: 0,
+    display: 'flex',
+    justifyContent: 'center',
+  }}>
+    <svg
+      viewBox="0 0 400 200"
+      preserveAspectRatio="xMidYMin meet"
+      style={{
+        width: '110%', maxWidth: 650, height: 'auto',
+        filter: 'drop-shadow(0 8px 30px rgba(124, 58, 237, 0.3))',
+      }}
+      aria-hidden="true"
+    >
+      {blobDefs('tb')}
+      <ellipse cx="200" cy="40" rx="210" ry="150" fill="url(#tb-grad)" />
+      <ellipse cx="200" cy="40" rx="210" ry="150" fill="url(#tb-shd)" />
+      <ellipse cx="255" cy="115" rx="70" ry="35" fill="url(#tb-hl1)" />
+      <ellipse cx="130" cy="105" rx="40" ry="22" fill="url(#tb-hl2)" />
+      <BlobEyes expr={expr} lx={160} rx={240} ey={100} prefix="tb" />
+    </svg>
+  </div>
 )
 
 const HomeScreen = () => {
@@ -140,6 +235,7 @@ const HomeScreen = () => {
   const setOnlineMode = useSession((s) => s.setOnlineMode)
   const showError = useSession((s) => s.showError)
   const [creating, setCreating] = useState(false)
+  const { topExpr, bottomExpr } = useExpressions()
 
   const handlePick = async (id) => {
     if (creating) return
@@ -183,15 +279,14 @@ const HomeScreen = () => {
           gap: 'clamp(20px, 3.5dvh, 36px)',
         }}
       >
-        {/* HERO */}
+        {/* HERO — solo testo, niente blob */}
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
           style={{ textAlign: 'center' }}
         >
-          <HeroBlob />
-          <GradientTitle as="h1" size="xl" style={{ marginTop: 'clamp(8px, 1.4dvh, 14px)' }}>
+          <GradientTitle as="h1" size="xl">
             Blob Party
           </GradientTitle>
           <p
@@ -241,39 +336,10 @@ const HomeScreen = () => {
           ))}
         </div>
 
-        {/* Game preview */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          style={{ textAlign: 'center' }}
-        >
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 800,
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              color: 'var(--muted)',
-              marginBottom: 10,
-            }}
-          >
-            {PLAYABLE_GAMES.length} giochi disponibili
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              gap: 'clamp(6px, 1vw, 10px)',
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-            }}
-          >
-            {PLAYABLE_GAMES.map((g, i) => (
-              <GameBubble key={g.id} game={g} index={i} />
-            ))}
-          </div>
-        </motion.div>
       </div>
+
+      <TopBlob expr={topExpr} />
+      <BottomBlob expr={bottomExpr} />
     </motion.div>
   )
 }
