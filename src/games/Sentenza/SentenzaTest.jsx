@@ -1,15 +1,32 @@
 import { useState } from 'react'
 import GradientTitle from '../../components/ui/GradientTitle'
 import PromptCard from './components/PromptCard'
+import SentenzaSelection from './components/SentenzaSelection'
+import SentenzaSelectionWaiting from './components/SentenzaSelectionWaiting'
 
 const SAMPLE_PROMPT = "Il mio terapeuta ha mollato dopo che gli ho parlato di ___"
 const SAMPLE_ANSWER = "tre Spritz, due tequila e un crollo emotivo"
 
-const PHASES = ['promptcard', 'selection', 'judging_setup', 'judging', 'reveal', 'final']
+const MOCK_ANSWERS = [
+  { id: 'a1', text: 'tre Spritz, due tequila e un crollo emotivo' },
+  { id: 'a2', text: 'la mia ex che ora è su Tinder' },
+  { id: 'a3', text: 'il mio capo che mi manda vocali di 4 minuti' },
+  { id: 'a4', text: 'un piatto di carbonara fatta con la panna' },
+]
+
+const MOCK_PLAYERS = [
+  { id: 'p1', name: 'Giulia', color: '#EC4899' },
+  { id: 'p2', name: 'Marco', color: '#3B82F6' },
+  { id: 'p3', name: 'Luca', color: '#22C55E' },
+  { id: 'p4', name: 'Sara', color: '#F59E0B' },
+]
+
+const PHASES = ['promptcard', 'selection', 'selection_judge', 'judging_setup', 'judging', 'reveal', 'final']
 
 const SentenzaTest = () => {
-  const [phase, setPhase] = useState('promptcard')
+  const [phase, setPhase] = useState('selection')
   const [revealed, setRevealed] = useState(false)
+  const [submittedIds, setSubmittedIds] = useState([])
 
   return (
     <div className="screen screen-narrow">
@@ -73,7 +90,52 @@ const SentenzaTest = () => {
           </div>
         )}
 
-        {phase !== 'promptcard' && (
+        {phase === 'selection' && (
+          <SentenzaSelection
+            prompt={SAMPLE_PROMPT}
+            answers={MOCK_ANSWERS}
+            timeLeft={22}
+            total={30}
+            onSubmit={(id) => console.log('submitted:', id)}
+          />
+        )}
+
+        {phase === 'selection_judge' && (
+          <>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {MOCK_PLAYERS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setSubmittedIds((prev) =>
+                    prev.includes(p.id) ? prev.filter((x) => x !== p.id) : [...prev, p.id]
+                  )}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: 8,
+                    border: submittedIds.includes(p.id) ? '2px solid var(--success)' : '1px solid var(--border)',
+                    background: 'var(--surface)',
+                    color: 'var(--text)',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {submittedIds.includes(p.id) ? '✓' : '○'} {p.name}
+                </button>
+              ))}
+            </div>
+            <SentenzaSelectionWaiting
+              prompt={SAMPLE_PROMPT}
+              players={MOCK_PLAYERS}
+              submittedIds={submittedIds}
+              timeLeft={18}
+              total={30}
+            />
+          </>
+        )}
+
+        {!['promptcard', 'selection', 'selection_judge'].includes(phase) && (
           <div style={{
             flex: 1,
             display: 'flex',
