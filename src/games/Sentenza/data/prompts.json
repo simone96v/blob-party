@@ -1,0 +1,19 @@
+{
+  "prompts": [
+    { "id": "p001", "text": "L'ultima cosa che ho cercato su Google in incognito è stata ___", "category": "amici", "spice": 2 },
+    { "id": "p002", "text": "Il segreto della felicità è semplicemente ___", "category": "amici", "spice": 1 },
+    { "id": "p003", "text": "Mia madre ha smesso di parlarmi quando ha scoperto ___", "category": "amici", "spice": 2 },
+    { "id": "p004", "text": "Il vero motivo per cui non mi compro casa è ___", "category": "amici", "spice": 1 },
+    { "id": "p005", "text": "In paradiso, quello che ti aspetta davvero è ___", "category": "amici", "spice": 2 },
+    { "id": "p006", "text": "Il nuovo programma di Maria De Filippi si chiamerà 'Uomini, donne e ___'", "category": "amici", "spice": 1 },
+    { "id": "p007", "text": "Il mio terapeuta ha mollato dopo che gli ho parlato di ___", "category": "amici", "spice": 2 },
+    { "id": "p008", "text": "L'unica cosa più imbarazzante di farsi sgamare a guardare porno è ___", "category": "alcolici", "spice": 3 },
+    { "id": "p009", "text": "Il Papa ha dichiarato peccato mortale ___", "category": "amici", "spice": 2 },
+    { "id": "p010", "text": "Tinder ha lanciato una nuova app per chi cerca solo ___", "category": "amici", "spice": 2 },
+    { "id": "p011", "text": "Nuova emergenza nazionale dichiarata dal governo: ___", "category": "amici", "spice": 1 },
+    { "id": "p012", "text": "Il segreto di longevità della mia bisnonna era ___", "category": "amici", "spice": 1 },
+    { "id": "p013", "text": "Il mio nuovo motto di vita è: 'Mai e poi mai ___'", "category": "amici", "spice": 1 },
+    { "id": "p014", "text": "Il regalo perfetto per chi ti sta sul cazzo è ___", "category": "alcolici", "spice": 2 },
+    { "id": "p015", "text": "Sanremo 2026 sarà ricordato per ___", "category": "amici", "spice": 1 }
+  ]
+}

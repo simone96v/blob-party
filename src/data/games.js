@@ -52,6 +52,21 @@ export const GAMES = [
     compatibility: { multi: true, single: true, excludedCategories: ['couple', 'gamenight'] },
     component: lazy(() => import('../games/NeverHaveI')),
   },
+  {
+    id: 'sentenza',
+    name: 'Sentenza',
+    emoji: '⚖️',
+    tagline: 'Il Giudice ha sempre ragione',
+    description: 'Completa la frase con la carta più assurda. Il Giudice sceglie la migliore.',
+    difficulty: 1,
+    minPlayers: 3,
+    maxPlayers: 8,
+    locked: true,
+    bg: 'linear-gradient(145deg, #818CF8 0%, #6366F1 60%, #4F46E5 100%)',
+    shadow: 'rgba(99, 102, 241, 0.40)',
+    compatibility: { multi: true, single: false, excludedCategories: ['couple'] },
+    component: lazy(() => import('../games/Sentenza')),
+  },
 ]
 
 export const getGame = (id) => GAMES.find((g) => g.id === id)

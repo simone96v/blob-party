@@ -21,6 +21,7 @@ import RoundEndScreen from './screens/RoundEndScreen'
 import ScoreboardScreen from './screens/ScoreboardScreen'
 
 const MappaTest = lazy(() => import('./games/Mappa/MappaTest'))
+const SentenzaTest = lazy(() => import('./games/Sentenza/SentenzaTest'))
 
 function App() {
   useHostCleanup()
@@ -45,6 +46,7 @@ function App() {
           <Route path="/round-end" element={<RoundEndScreen />} />
           <Route path="/scoreboard" element={<ScoreboardScreen />} />
           <Route path="/test/mappa" element={<Suspense><MappaTest /></Suspense>} />
+          <Route path="/test/sentenza" element={<Suspense><SentenzaTest /></Suspense>} />
         </Routes>
       </ConnectionContext.Provider>
     </ErrorBoundary>
