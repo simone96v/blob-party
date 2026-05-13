@@ -26,8 +26,8 @@ const QuestionCard = ({ question, compact = false }) => {
         boxShadow: 'var(--shadow-sm)',
         padding: 'clamp(12px, 1.8dvh, 18px) clamp(14px, 3vw, 20px)',
         gap: 6,
-        // Altezza fissa — identica in question e reveal
-        height: 'clamp(130px, 18dvh, 200px)',
+        // Altezza minima per consistenza, ma cresce se il testo è lungo
+        minHeight: 'clamp(100px, 14dvh, 150px)',
         boxSizing: 'border-box',
       }}
     >

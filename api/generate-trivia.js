@@ -9,18 +9,18 @@
 // Senza la env var ritorna { questions: [], error: 'no_api_key' } e il client
 // fa fallback al pool locale.
 
-const SYSTEM_PROMPT = `Sei il game master di un trivia alcolico EPICO tra amici a una serata di bevute.
-Il tuo obiettivo: generare domande ORIGINALI, DIVERTENTI e MAI BANALI ogni volta.
+const SYSTEM_PROMPT = `Sei il game master di un trivia alcolico tra amici.
 
-Regole ferree:
-- Ogni domanda ha esattamente 4 risposte, con UNA SOLA risposta corretta
-- Le risposte sbagliate devono essere plausibili E divertenti (no risposte ovviamente assurde)
-- Tono: brillante, scanzonato, da serata con amici e drink in mano
-- Metti creatività nelle domande: situazioni assurde, curiosità pazzesche, fatti incredibili ma veri
-- Mescola domande di cultura generale a tema alcolico con chicche poco conosciute
-- NON ripetere mai le solite domande classiche da quiz — inventa, sorprendi, fai ridere
-- Difficoltà variata: ~30% easy, ~50% medium, ~20% hard
-- Output: SOLO JSON valido, niente markdown, niente fences, niente preambolo`
+REGOLE FONDAMENTALI:
+- Domande CORTE: massimo 10 parole per domanda
+- Risposte CORTE: massimo 4-5 parole per risposta
+- 4 risposte per domanda, UNA SOLA corretta
+- Le domande devono riguardare FATTI REALI: persone vere, brand veri, meme veri, eventi veri
+- Risposte sbagliate plausibili ma errate
+- Varia la posizione della risposta corretta (0,1,2,3)
+- Difficoltà mista: easy, medium, hard
+- Tono divertente da serata tra amici
+- Output: SOLO JSON valido, niente altro`
 
 const CATEGORY_DESCRIPTIONS = {
   cocktail: 'cocktail e mixology: ricette classiche (Negroni, Mojito, Spritz, Margarita...), ingredienti, tecniche di preparazione, storia dei cocktail, barman famosi, liquori e amari',
@@ -51,21 +51,18 @@ export default async function handler(req, res) {
     return
   }
 
-  // Seed random per forzare l'AI a generare domande diverse ogni volta
   const seed = Math.random().toString(36).slice(2, 8)
 
-  const userPrompt = `[seed:${seed}] Genera ${count} domande ORIGINALI e FRESCHE di trivia per la categoria "${category}" (${CATEGORY_DESCRIPTIONS[category]}).
+  const userPrompt = `[seed:${seed}] Genera ${count} domande per "${category}" (${CATEGORY_DESCRIPTIONS[category]}).
 
-IMPORTANTE: queste domande devono essere UNICHE e MAI viste prima. Inventa domande creative, curiosità sorprendenti, fatti poco conosciuti. Sorprendi i giocatori!
+REQUISITI:
+- Domande CORTE (max 10 parole). Esempio: "Chi ha inventato il Negroni?"
+- Risposte CORTE (max 5 parole). Esempio: "Conte Camillo Negroni"
+- USA fatti reali: persone famose, brand, meme, eventi, canzoni, film VERI
+- Mai domande generiche o inventate
 
-Output JSON esattamente in questo schema:
-{"questions":[{"question":"...","answers":["...","...","...","..."],"correct":0,"difficulty":"easy","topic":"..."}]}
-
-- "correct" è l'indice 0-3 della risposta giusta (VARIA la posizione della risposta corretta, non metterla sempre in 0!)
-- "difficulty": mix di "easy", "medium", "hard"
-- "topic": una parola che descrive il sotto-tema
-- Mescola la posizione della risposta corretta (a volte 0, a volte 1, 2, 3)
-- Rendi le domande divertenti e coinvolgenti per un gruppo di amici`
+JSON:
+{"questions":[{"question":"...","answers":["...","...","...","..."],"correct":0,"difficulty":"easy","topic":"..."}]}`
 
   try {
     const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -77,7 +74,7 @@ Output JSON esattamente in questo schema:
         'X-Title': 'Blob Party',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.0-flash-001',
+        model: 'deepseek/deepseek-v4-flash',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: userPrompt },

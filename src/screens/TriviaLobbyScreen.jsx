@@ -9,7 +9,7 @@
 //   3. TUTTI i client (host incluso) vedono la wheel animare via Realtime
 //   4. Al termine animazione, host genera deck via AI e lancia il game
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import AppHeader from '../components/AppHeader'
@@ -20,7 +20,7 @@ import ErrorBanner from '../components/ErrorBanner'
 import { useSession } from '../stores/useSession'
 import { useSettings } from '../stores/useSettings'
 import { pushRoom, rpcStartGame } from '../lib/room'
-import { generateDeck, prefetchCategory, clearAiCache } from '../lib/aiQuestions'
+import { generateDeck, clearAiCache } from '../lib/aiQuestions'
 import { TRIVIA_CATEGORIES } from '../games/Trivia/constants'
 
 const ALL_CATEGORIES = TRIVIA_CATEGORIES
@@ -52,6 +52,8 @@ const TriviaLobbyScreen = () => {
   const spinTarget = session?.spinTarget ?? null
 
   const [launching, setLaunching] = useState(false)
+  // Promise della generazione AI — avviata al click Spin, pronta quando l'animazione finisce.
+  const deckPromiseRef = useRef(null)
 
   // Categorie ancora "spinnabili" (escluse quelle già giocate).
   const availableCategories = useMemo(
@@ -88,12 +90,6 @@ const TriviaLobbyScreen = () => {
     if (roundIdx === 0) clearAiCache()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHost])
-
-  // Pre-fetch AI in background.
-  useEffect(() => {
-    if (!isHost) return
-    availableCategories.forEach((c) => prefetchCategory(c.id, questionsPerRound + 3))
-  }, [isHost, availableCategories, questionsPerRound])
 
   // Update settings on session.
   const updateSessionSetting = (patch) => {
@@ -138,14 +134,16 @@ const TriviaLobbyScreen = () => {
   }
 
   // Host clicca Spin → sceglie vincitore → pusha spinTarget su DB.
-  // Tutti i client (host incluso) vedranno lo spin via Realtime.
+  // Avvia SUBITO la generazione AI in parallelo con l'animazione (6.4s).
   const handleRequestSpin = useCallback(() => {
     if (!isHost || launching) return
     if (availableCategories.length === 0) return
 
-    // Scegli categoria vincente
     const winIdx = Math.floor(Math.random() * availableCategories.length)
     const winner = availableCategories[winIdx]
+
+    // Genera domande IN PARALLELO con l'animazione — 0 lag percepito
+    deckPromiseRef.current = generateDeck(winner.id, questionsPerRound)
 
     // Push spinTarget su DB → Realtime lo propaga a tutti
     const s = useSession.getState()
@@ -164,14 +162,18 @@ const TriviaLobbyScreen = () => {
         ...newGameState,
       })
     }
-  }, [isHost, launching, availableCategories])
+  }, [isHost, launching, availableCategories, questionsPerRound])
 
-  // Animazione completata — solo l'host genera deck e lancia il game.
+  // Animazione completata — le domande sono GIA' in generazione dal click Spin.
   const handleSpinEnd = useCallback(async (category) => {
     if (!isHost || launching) return
     setLaunching(true)
     try {
-      const deck = await generateDeck(category.id, questionsPerRound)
+      // Usa la promise avviata in handleRequestSpin — di solito già risolta
+      const deck = deckPromiseRef.current
+        ? await deckPromiseRef.current
+        : await generateDeck(category.id, questionsPerRound)
+      deckPromiseRef.current = null
       const s = useSession.getState()
       const newSession = {
         ...(s.gameState?.triviaSession ?? {}),
