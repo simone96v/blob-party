@@ -51,11 +51,12 @@ const Mappa = () => {
       const j = Math.floor(Math.random() * (i + 1))
       ;[pool[i], pool[j]] = [pool[j], pool[i]]
     }
-    const deckSize = s.gameState?.deck?.length || 10
+    const deckSize = s.gameState?.mappaRounds ?? s.gameState?.deck?.length ?? 10
     const deck = pool.slice(0, Math.min(deckSize, pool.length))
     const now = new Date().toISOString()
     const resetPlayers = (s.players || []).map((p) => ({ ...p, score: 0 }))
 
+    const mappaRounds = s.gameState?.mappaRounds ?? deckSize
     if (s.mode === 'online' && s.roomCode) {
       const fullState = {
         players: resetPlayers,
@@ -67,6 +68,7 @@ const Mappa = () => {
         current_question: deck[0],
         pins: {},
         timer_duration: s.gameState?.timer_duration ?? 30,
+        mappaRounds,
       }
       await pushRoom(s.roomCode, 'mappa_countdown', fullState, now)
     } else {
@@ -78,6 +80,7 @@ const Mappa = () => {
           current_question: deck[0],
           pins: {},
           timer_duration: s.gameState?.timer_duration ?? 30,
+          mappaRounds,
         },
         currentPhase: 'mappa_countdown',
         questionStartedAt: now,

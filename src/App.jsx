@@ -16,6 +16,7 @@ import GamesScreen from './screens/GamesScreen'
 import GameHubScreen from './screens/GameHubScreen'
 import GameScreen from './screens/GameScreen'
 import TriviaLobbyScreen from './screens/TriviaLobbyScreen'
+import MappaLobbyScreen from './screens/MappaLobbyScreen'
 import RoundEndScreen from './screens/RoundEndScreen'
 import ScoreboardScreen from './screens/ScoreboardScreen'
 
@@ -39,6 +40,7 @@ function App() {
           <Route path="/games" element={<GamesScreen />} />
           <Route path="/hub" element={<GameHubScreen />} />
           <Route path="/trivia-lobby" element={<TriviaLobbyScreen />} />
+          <Route path="/mappa-lobby" element={<MappaLobbyScreen />} />
           <Route path="/game/:gameId" element={<GameScreen />} />
           <Route path="/round-end" element={<RoundEndScreen />} />
           <Route path="/scoreboard" element={<ScoreboardScreen />} />
