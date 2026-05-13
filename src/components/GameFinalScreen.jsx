@@ -1,4 +1,4 @@
-// Schermata finale dei mini-giochi sync (Bottle, SpinWheel, TruthOrDare, NeverHaveI).
+// Schermata finale dei mini-giochi sync (NeverHaveI).
 // Mostra titolo + 2 CTA: Rigioca / Cambia gioco.
 // I client vedono "Aspettando il boss... 👑" finché l'host non decide.
 

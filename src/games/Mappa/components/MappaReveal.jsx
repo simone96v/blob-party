@@ -26,11 +26,15 @@ const MappaReveal = ({
     if (!answer) return []
     return players.map((p) => {
       const pin = pins?.[p.id]
-      if (!pin || (pin.lat === 0 && pin.lng === 0 && pin.auto)) {
+      if (!pin || typeof pin.lat !== 'number' || typeof pin.lng !== 'number'
+        || (pin.lat === 0 && pin.lng === 0 && pin.auto)) {
         return { ...p, distance: null, roundScore: 0, hasPin: false, auto: false, pin: null }
       }
       const dist = haversine(pin.lat, pin.lng, answer.lat, answer.lng)
       const pts = calcScore(dist)
+      if (!isFinite(dist)) {
+        return { ...p, distance: null, roundScore: 0, hasPin: false, auto: false, pin: null }
+      }
       return { ...p, distance: dist, roundScore: pts, hasPin: true, auto: !!pin.auto, pin }
     }).sort((a, b) => b.roundScore - a.roundScore)
   }, [answer, players, pins])

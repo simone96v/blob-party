@@ -209,7 +209,7 @@ export const pushVote = async (roomCode, playerId, answerIndex) => {
   return { error }
 }
 
-// --- RPC per giochi sync (Bottle / Spinwheel / TruthOrDare / NeverHaveI) ---
+// --- RPC per giochi sync (NeverHaveI) ---
 
 // Inizializza lo state minimo per il gioco scelto e cambia phase.
 // Chiamato dall'host quando il voting in /games si conclude.

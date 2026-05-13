@@ -117,9 +117,6 @@ const GamesScreen = () => {
       }
 
       const phaseMap = {
-        bottle: 'play_bottle',
-        spinwheel: 'play_spinwheel',
-        truthordare: 'play_truthordare',
         neverhave: 'play_neverhave',
       }
       const newPhase = phaseMap[winnerId]

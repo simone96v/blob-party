@@ -6,6 +6,7 @@
 //   realAnswer: { lat, lng, name } — pin risposta reale (solo in reveal)
 //   disabled: bool — blocca interazione
 
+import { Component } from 'react'
 import { MapContainer, TileLayer, Marker, Polyline, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -77,6 +78,9 @@ const ClickHandler = ({ onPinDrop, disabled }) => {
   return null
 }
 
+const validCoord = (v) => typeof v === 'number' && isFinite(v)
+const validPin = (p) => p && validCoord(p.lat) && validCoord(p.lng)
+
 const MapView = ({
   onPinDrop,
   pins = [],
@@ -84,55 +88,77 @@ const MapView = ({
   realAnswer = null,
   disabled = false,
   rounded = true,
-}) => (
-  <MapContainer
-    center={ITALY_CENTER}
-    zoom={6}
-    minZoom={5}
-    maxZoom={9}
-    maxBounds={ITALY_BOUNDS}
-    maxBoundsViscosity={1.0}
-    style={{ width: '100%', height: '100%', borderRadius: rounded ? 16 : 0, zIndex: 0 }}
-    zoomControl={false}
-    attributionControl={true}
-  >
-    <TileLayer
-      url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-    />
+}) => {
+  const safePins = pins.filter(validPin)
+  const safeAnswer = validPin(realAnswer) ? realAnswer : null
 
-    {!revealMode && onPinDrop && (
-      <ClickHandler onPinDrop={onPinDrop} disabled={disabled} />
-    )}
-
-    {pins.map((pin, i) => (
-      <Marker
-        key={pin.id ?? `pin-${i}`}
-        position={[pin.lat, pin.lng]}
-        icon={pin.auto ? createAutoIcon() : createPinIcon(pin.color ?? '#7C3AED', pin.animated)}
+  return (
+    <MapContainer
+      center={ITALY_CENTER}
+      zoom={6}
+      minZoom={5}
+      maxZoom={9}
+      maxBounds={ITALY_BOUNDS}
+      maxBoundsViscosity={1.0}
+      style={{ width: '100%', height: '100%', borderRadius: rounded ? 16 : 0, zIndex: 0 }}
+      zoomControl={false}
+      attributionControl={true}
+    >
+      <TileLayer
+        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
       />
-    ))}
 
-    {revealMode && realAnswer && (
-      <Marker
-        position={[realAnswer.lat, realAnswer.lng]}
-        icon={createRealIcon()}
-      />
-    )}
+      {!revealMode && onPinDrop && (
+        <ClickHandler onPinDrop={onPinDrop} disabled={disabled} />
+      )}
 
-    {revealMode && realAnswer && pins.map((pin, i) => (
-      <Polyline
-        key={`line-${pin.id ?? i}`}
-        positions={[[pin.lat, pin.lng], [realAnswer.lat, realAnswer.lng]]}
-        pathOptions={{
-          color: pin.auto ? '#9CA3AF' : (pin.color ?? '#7C3AED'),
-          weight: 2,
-          dashArray: '6 4',
-          opacity: 0.6,
-        }}
-      />
-    ))}
-  </MapContainer>
+      {safePins.map((pin, i) => (
+        <Marker
+          key={pin.id ?? `pin-${i}`}
+          position={[pin.lat, pin.lng]}
+          icon={pin.auto ? createAutoIcon() : createPinIcon(pin.color ?? '#7C3AED', pin.animated)}
+        />
+      ))}
+
+      {revealMode && safeAnswer && (
+        <Marker
+          position={[safeAnswer.lat, safeAnswer.lng]}
+          icon={createRealIcon()}
+        />
+      )}
+
+      {revealMode && safeAnswer && safePins.map((pin, i) => (
+        <Polyline
+          key={`line-${pin.id ?? i}`}
+          positions={[[pin.lat, pin.lng], [safeAnswer.lat, safeAnswer.lng]]}
+          pathOptions={{
+            color: pin.auto ? '#9CA3AF' : (pin.color ?? '#7C3AED'),
+            weight: 2,
+            dashArray: '6 4',
+            opacity: 0.6,
+          }}
+        />
+      ))}
+    </MapContainer>
+  )
+}
+
+class MapErrorBoundary extends Component {
+  state = { hasError: false }
+  static getDerivedStateFromError() { return { hasError: true } }
+  render() {
+    if (this.state.hasError) {
+      return <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)', color: 'var(--muted)', fontSize: 14 }}>Mappa non disponibile</div>
+    }
+    return this.props.children
+  }
+}
+
+const SafeMapView = (props) => (
+  <MapErrorBoundary>
+    <MapView {...props} />
+  </MapErrorBoundary>
 )
 
-export default MapView
+export default SafeMapView

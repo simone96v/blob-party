@@ -1,5 +1,5 @@
 // Bottone tondo per icone / azioni rapide.
-// Usato in AppHeader (settings, help), Bottle header (back), etc.
+// Usato in AppHeader (settings, help), etc.
 
 import { motion } from 'framer-motion'
 
