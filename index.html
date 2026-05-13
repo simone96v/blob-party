@@ -4,10 +4,74 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>gamenight</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <title>Blob Party</title>
+    <style>
+      /* Fallback diagnostic UI — sostituito da React quando l'app monta */
+      #boot-fallback {
+        position: fixed; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 16px;
+        font-family: system-ui, sans-serif; color: #1F2937; background: #F5F3FF;
+        padding: 24px; text-align: center;
+      }
+      #boot-fallback .logo { font-size: 56px; line-height: 1; }
+      #boot-fallback .title {
+        font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin: 0;
+        background: linear-gradient(120deg, #7C3AED 30%, #EC4899 90%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      }
+      #boot-fallback .msg { color: #6B7280; font-size: 14px; max-width: 420px; margin: 0; }
+      #boot-fallback .err {
+        margin-top: 8px; font-size: 12px; color: #DC2626;
+        background: rgba(220, 38, 38, 0.08); padding: 10px 14px;
+        border-radius: 10px; max-width: 420px; word-break: break-word;
+      }
+      #boot-fallback .btn {
+        background: linear-gradient(135deg, #7C3AED 0%, #EC4899 100%);
+        color: #fff; border: none; padding: 12px 22px; border-radius: 14px;
+        font-weight: 800; font-size: 14px; cursor: pointer;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    <div id="boot-fallback">
+      <div class="logo">🎉</div>
+      <h1 class="title">Blob Party</h1>
+      <p class="msg" id="boot-msg">Avvio in corso...</p>
+      <div id="boot-err" class="err" style="display:none"></div>
+      <button class="btn" id="boot-reset" style="display:none" onclick="
+        try { localStorage.clear(); sessionStorage.clear(); } catch(e){}
+        location.reload(true);
+      ">Resetta e ricarica</button>
+    </div>
+    <script>
+      // Diagnostica boot: se main.jsx non monta entro 8s o lancia errore globale,
+      // mostriamo errore al posto della pagina bianca.
+      (function () {
+        var msgEl = document.getElementById('boot-msg');
+        var errEl = document.getElementById('boot-err');
+        var resetEl = document.getElementById('boot-reset');
+        function showError(text) {
+          if (msgEl) msgEl.textContent = 'Avvio fallito.';
+          if (errEl) { errEl.style.display = 'block'; errEl.textContent = text; }
+          if (resetEl) resetEl.style.display = 'inline-block';
+        }
+        window.addEventListener('error', function (e) {
+          showError((e.message || 'errore sconosciuto') + ' @ ' + (e.filename || '?') + ':' + (e.lineno || '?'));
+        });
+        window.addEventListener('unhandledrejection', function (e) {
+          showError('Promise rejection: ' + (e.reason && (e.reason.message || e.reason) || 'unknown'));
+        });
+        // Se dopo 8s il fallback è ancora visibile, l'app non è partita
+        setTimeout(function () {
+          var fb = document.getElementById('boot-fallback');
+          if (fb && fb.style.display !== 'none' && !errEl.textContent) {
+            showError('Timeout: il bundle JS non è partito entro 8 secondi. Possibili cause: adblocker, connessione, browser incompatibile.');
+          }
+        }, 8000);
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

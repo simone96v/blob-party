@@ -4,6 +4,8 @@ import { motion } from 'framer-motion'
 import AppHeader from '../components/AppHeader'
 import ErrorBanner from '../components/ErrorBanner'
 import Button from '../components/ui/Button'
+import GradientTitle from '../components/ui/GradientTitle'
+import LinkCta from '../components/ui/LinkCta'
 import { addPlayerToRoom } from '../lib/room'
 import { useSession } from '../stores/useSession'
 
@@ -69,10 +71,25 @@ const JoinScreen = () => {
       <form
         className="screen-body"
         onSubmit={handleSubmit}
-        style={{ justifyContent: 'center' }}
+        style={{ justifyContent: 'center', gap: 'clamp(10px, 1.8dvh, 16px)' }}
       >
-        <label style={{ color: 'var(--muted)', fontSize: 'clamp(13px, 1.8dvh, 15px)' }}>
-          Codice stanza
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{ textAlign: 'center', marginBottom: 'clamp(4px, 1.5dvh, 12px)' }}
+        >
+          <GradientTitle as="h2" size="md">Entra nel party 🚪</GradientTitle>
+          <p style={{
+            margin: '8px 0 0',
+            color: 'var(--muted)',
+            fontSize: 'clamp(13px, 1.7dvh, 15px)',
+          }}>
+            Inserisci il codice del party
+          </p>
+        </motion.div>
+
+        <label style={{ color: 'var(--muted)', fontSize: 'clamp(13px, 1.8dvh, 15px)', fontWeight: 600 }}>
+          Codice party
         </label>
         <input
           value={code}
@@ -82,21 +99,35 @@ const JoinScreen = () => {
           autoFocus
           maxLength={4}
         />
-        <label style={{ color: 'var(--muted)', fontSize: 'clamp(13px, 1.8dvh, 15px)' }}>
+        <label style={{ color: 'var(--muted)', fontSize: 'clamp(13px, 1.8dvh, 15px)', fontWeight: 600 }}>
           Il tuo nome
         </label>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Nome"
+          placeholder="Nome (max 8)"
           style={inputStyle}
-          maxLength={20}
+          maxLength={8}
         />
       </form>
-      <div className="screen-footer">
+      <div
+        className="screen-footer"
+        style={{
+          flexDirection: 'column',
+          gap: 10,
+          height: 'auto',
+          padding: 'clamp(16px, 2.5dvh, 22px) clamp(16px, 4vw, 28px) clamp(20px, 3dvh, 28px)',
+          alignItems: 'stretch',
+        }}
+      >
         <Button variant="primary" width="full" onClick={handleSubmit} disabled={!canSubmit}>
-          {submitting ? 'Entro...' : 'Entra'}
+          {submitting ? 'Entro...' : '🚪 Entra nel party'}
         </Button>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <LinkCta onClick={() => navigate('/')}>
+            ← Indietro
+          </LinkCta>
+        </div>
       </div>
     </motion.div>
   )

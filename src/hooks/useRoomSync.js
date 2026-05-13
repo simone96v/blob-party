@@ -19,11 +19,21 @@ const RECONNECT_DELAY_MS = 3000
 // sono tutte gestite dal componente Trivia a /game/trivia.
 const phaseToPath = (phase) => {
   switch (phase) {
-    case 'lobby':      return '/lobby'
-    case 'countdown':  return '/game/trivia'
-    case 'question':   return '/game/trivia'
-    case 'reveal':     return '/game/trivia'
-    case 'final':      return '/game/trivia'
+    case 'lobby':       return '/lobby'
+    case 'game_voting': return '/games'
+    // Trivia session lobby (settings + wheel)
+    case 'trivia_lobby': return '/trivia-lobby'
+    // Trivia phases (gameplay)
+    case 'countdown':   return '/game/trivia'
+    case 'question':    return '/game/trivia'
+    case 'reveal':      return '/game/trivia'
+    case 'final':       return '/game/trivia'
+    // Giochi offline (host gioca, tutti seguono): la phase porta direttamente
+    // alla schermata del gioco. Ogni client mantiene state locale.
+    case 'play_bottle':       return '/game/bottle'
+    case 'play_spinwheel':    return '/game/spinwheel'
+    case 'play_truthordare':  return '/game/truthordare'
+    case 'play_neverhave':    return '/game/neverhave'
     // Legacy
     case 'hub':        return '/hub'
     case 'game':       return '/game/trivia'
@@ -40,6 +50,7 @@ export const useRoomSync = () => {
   const mode          = useSession((s) => s.mode)
   const roomCode      = useSession((s) => s.roomCode)
   const isHost        = useSession((s) => s.isHost)
+  const awaitingGameChange = useSession((s) => s.awaitingGameChange)
   const syncFromRemote = useSession((s) => s.syncFromRemote)
   const showError     = useSession((s) => s.showError)
 
@@ -53,6 +64,12 @@ export const useRoomSync = () => {
     isHostRef.current = isHost
   }, [isHost])
 
+  // awaitingGameChange in ref per leggerlo dentro l'handler senza riavviare la sub.
+  const awaitingRef = useRef(awaitingGameChange)
+  useEffect(() => {
+    awaitingRef.current = awaitingGameChange
+  }, [awaitingGameChange])
+
   useEffect(() => {
     if (mode !== 'online' || !roomCode) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -63,6 +80,9 @@ export const useRoomSync = () => {
     let cancelled = false
 
     const navigateToPhase = (phase) => {
+      // L'host sta scegliendo un nuovo gioco dalla home: non rinavigare automaticamente
+      // alla phase precedente. Il flag viene resettato quando avvia il nuovo gioco.
+      if (awaitingRef.current) return
       const target = phaseToPath(phase)
       if (target && window.location.pathname !== target) navigate(target)
     }

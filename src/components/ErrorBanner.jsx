@@ -9,8 +9,8 @@ import { useSession } from '../stores/useSession'
 
 const ERROR_MESSAGES = {
   connection:     'Connessione persa — riprovo...',
-  room_not_found: 'Stanza non trovata. Controlla il codice.',
-  room_full:      'Stanza piena (massimo 8 giocatori).',
+  room_not_found: 'Party non trovato. Controlla il codice.',
+  room_full:      'Party pieno (massimo 8 giocatori).',
   generic:        'Qualcosa è andato storto. Riprova.',
 }
 

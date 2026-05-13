@@ -1,0 +1,147 @@
+// Fase question: header standard + HUD + question card + grid risposte + status bar.
+
+import { AnimatePresence, motion } from 'framer-motion'
+import AppHeader from '../../../components/AppHeader'
+import GameHUD from '../../../components/GameHUD'
+import IconButton from '../../../components/ui/IconButton'
+import QuestionCard from '../components/QuestionCard'
+import AnswerTile from '../components/AnswerTile'
+
+const QuestionPhase = ({
+  currentQuestion,
+  questionNumber,
+  totalQuestions,
+  timeLeft,
+  timerDuration,
+  players,
+  localPlayerId,
+  localAnswer,
+  isExpired,
+  submitting,
+  isHost,
+  onAnswer,
+  onExit,
+}) => {
+  const hasAnswered = localAnswer !== null
+
+  return (
+    <div style={containerStyle}>
+      <AppHeader
+        leading={isHost && <IconButton ariaLabel="Esci" onClick={onExit}>←</IconButton>}
+        actions={<RoundBadge n={questionNumber} total={totalQuestions} />}
+      />
+      <GameHUD
+        questionNumber={questionNumber}
+        totalQuestions={totalQuestions}
+        timeLeft={timeLeft}
+        total={timerDuration}
+        players={players}
+        localPlayerId={localPlayerId}
+        phase="question"
+      />
+
+      <div style={bodyStyle}>
+        <QuestionCard question={currentQuestion} />
+
+        <div style={gridStyle}>
+          {currentQuestion?.answers.map((ans, i) => (
+            <AnswerTile
+              key={i}
+              index={i}
+              text={ans}
+              mode="answer"
+              isMine={i === localAnswer}
+              isLocked={hasAnswered}
+              disabled={hasAnswered || isExpired || submitting}
+              onClick={() => onAnswer(i)}
+            />
+          ))}
+        </div>
+
+        <div style={statusBarStyle}>
+          <AnimatePresence mode="wait">
+            {hasAnswered && (
+              <motion.p
+                key="answered"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                style={{ ...statusTextStyle, color: 'var(--success)' }}
+              >
+                Bloccata! 🔒
+              </motion.p>
+            )}
+            {!hasAnswered && isExpired && (
+              <motion.p
+                key="expired"
+                initial={{ scale: 0.85 }}
+                animate={{ scale: 1 }}
+                style={{ ...statusTextStyle, color: 'var(--danger)' }}
+              >
+                Troppo lento, lumaca! 🐌
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const RoundBadge = ({ n, total }) => (
+  <div style={{
+    background: 'var(--bg2)',
+    color: 'var(--accent)',
+    fontWeight: 800,
+    fontSize: 'clamp(11px, 1.4dvh, 13px)',
+    padding: '5px 12px',
+    borderRadius: 999,
+    border: '1.5px solid rgba(124,58,237,0.18)',
+    letterSpacing: '0.05em',
+    minWidth: 44,
+    textAlign: 'center',
+  }}>
+    {n}/{total}
+  </div>
+)
+
+const containerStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  flex: 1,
+  overflow: 'hidden',
+  position: 'relative',
+}
+
+const bodyStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  flex: 1,
+  padding: 'clamp(10px, 1.8dvh, 18px) clamp(14px, 3vw, 22px)',
+  gap: 'clamp(10px, 1.6dvh, 16px)',
+  overflow: 'hidden',
+}
+
+const gridStyle = {
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
+  gap: 'clamp(8px, 1.2dvh, 12px)',
+  flexShrink: 0,
+}
+
+const statusBarStyle = {
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  height: 'clamp(20px, 2.5dvh, 28px)',
+  flexShrink: 0,
+}
+
+const statusTextStyle = {
+  margin: 0,
+  fontSize: 'clamp(13px, 1.6dvh, 16px)',
+  textAlign: 'center',
+  fontWeight: 700,
+}
+
+export default QuestionPhase

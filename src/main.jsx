@@ -15,3 +15,8 @@ createRoot(document.getElementById('root')).render(
     </BrowserRouter>
   </StrictMode>,
 )
+
+// Rimuovi il fallback HTML di boot ora che React ha preso il controllo.
+// (Definito in index.html — vedi #boot-fallback)
+const bootFallback = document.getElementById('boot-fallback')
+if (bootFallback) bootFallback.remove()

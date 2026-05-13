@@ -11,19 +11,25 @@
 /* usabili come utility (bg-surface, text-muted, ecc).                 */
 /* ------------------------------------------------------------------ */
 :root {
-  --bg:        #0F0F1A;
-  --surface:   #1A1A2E;
-  --surface2:  #252540;
+  --bg:        #F5F3FF;
+  --bg2:       #EDE9FE;
+  --surface:   #FFFFFF;
+  --surface2:  #F4F0FF;
   --accent:    #7C3AED;
-  --accent2:   #A855F7;
-  --success:   #10B981;
+  --accent2:   #EC4899;
+  --accent3:   #06B6D4;
+  --success:   #22C55E;
   --danger:    #EF4444;
   --warning:   #F59E0B;
-  --text:      #F1F5F9;
-  --muted:     #94A3B8;
-  --border:    rgba(255, 255, 255, 0.08);
-  --radius:    16px;
-  --radius-sm: 10px;
+  --text:      #1F2937;
+  --muted:     #6B7280;
+  --border:    rgba(31, 41, 55, 0.08);
+  --border-strong: rgba(31, 41, 55, 0.16);
+  --shadow-sm: 0 2px 8px rgba(124, 58, 237, 0.08);
+  --shadow-md: 0 8px 24px rgba(124, 58, 237, 0.12);
+  --shadow-lg: 0 16px 40px rgba(124, 58, 237, 0.18);
+  --radius:    22px;
+  --radius-sm: 14px;
 }
 
 /* ------------------------------------------------------------------ */
@@ -45,10 +51,120 @@ body {
   overflow: hidden;
   margin: 0;
   font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(236, 72, 153, 0.10), transparent 45%),
+    radial-gradient(circle at 100% 0%, rgba(6, 182, 212, 0.10), transparent 45%),
+    radial-gradient(circle at 50% 100%, rgba(124, 58, 237, 0.10), transparent 50%),
+    var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  position: relative;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* ------------------------------------------------------------------ */
+/* Liquid blob background — sfondo animato con blob morphanti          */
+/* ------------------------------------------------------------------ */
+.liquid-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.liquid-blob {
+  position: absolute;
+  filter: blur(80px);
+  will-change: transform, border-radius;
+  mix-blend-mode: multiply;
+}
+
+.liquid-blob.lb1 {
+  width: 340px;
+  height: 340px;
+  background: rgba(167, 139, 250, 0.35);
+  top: -90px;
+  left: -110px;
+  border-radius: 56% 44% 65% 35% / 47% 67% 33% 53%;
+  animation: blob-morph-1 32s ease-in-out infinite;
+}
+
+.liquid-blob.lb2 {
+  width: 300px;
+  height: 300px;
+  background: rgba(236, 72, 153, 0.28);
+  top: 22%;
+  right: -130px;
+  border-radius: 50% 50% 40% 60% / 40% 60% 40% 60%;
+  animation: blob-morph-2 40s ease-in-out infinite;
+}
+
+.liquid-blob.lb3 {
+  width: 380px;
+  height: 380px;
+  background: rgba(6, 182, 212, 0.22);
+  bottom: -140px;
+  left: 22%;
+  border-radius: 60% 40% 50% 50% / 55% 45% 60% 40%;
+  animation: blob-morph-3 36s ease-in-out infinite;
+}
+
+@keyframes blob-morph-1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    border-radius: 56% 44% 65% 35% / 47% 67% 33% 53%;
+  }
+  33% {
+    transform: translate(50px, 35px) scale(1.08) rotate(20deg);
+    border-radius: 42% 58% 50% 50% / 55% 50% 50% 45%;
+  }
+  66% {
+    transform: translate(-25px, 55px) scale(0.96) rotate(-15deg);
+    border-radius: 60% 40% 55% 45% / 42% 58% 50% 50%;
+  }
+}
+
+@keyframes blob-morph-2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    border-radius: 50% 50% 40% 60% / 40% 60% 40% 60%;
+  }
+  40% {
+    transform: translate(-60px, -40px) scale(1.10) rotate(-25deg);
+    border-radius: 45% 55% 55% 45% / 55% 45% 55% 45%;
+  }
+  70% {
+    transform: translate(-20px, 50px) scale(0.97) rotate(12deg);
+    border-radius: 58% 42% 45% 55% / 45% 55% 60% 40%;
+  }
+}
+
+@keyframes blob-morph-3 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    border-radius: 60% 40% 50% 50% / 55% 45% 60% 40%;
+  }
+  35% {
+    transform: translate(40px, -60px) scale(1.06) rotate(18deg);
+    border-radius: 55% 45% 50% 50% / 45% 55% 50% 50%;
+  }
+  75% {
+    transform: translate(-35px, 30px) scale(0.93) rotate(-20deg);
+    border-radius: 45% 55% 55% 45% / 60% 40% 50% 50%;
+  }
+}
+
+/* Riduci animazioni per chi preferisce motion ridotto */
+@media (prefers-reduced-motion: reduce) {
+  .liquid-blob {
+    animation: none !important;
+  }
 }
 
 #root {
@@ -122,11 +238,13 @@ body {
 /* Schermate che devono restare phone-like su desktop */
 @media (min-width: 768px) {
   .screen-narrow {
-    max-width: 500px;
+    max-width: 520px;
     margin-left: auto;
     margin-right: auto;
     border-left: 1px solid var(--border);
     border-right: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(8px);
   }
 }
 

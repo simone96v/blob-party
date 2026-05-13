@@ -1,725 +1,729 @@
 [
   {
-    "id": "trv_001",
-    "question": "Qual è la capitale dell'Australia?",
-    "answers": ["Sydney", "Melbourne", "Canberra", "Brisbane"],
+    "id": "ck_001",
+    "question": "Quale cocktail si prepara con gin, vermut rosso e Campari? 🍊",
+    "answers": ["Americano", "Negroni", "Manhattan", "Boulevardier"],
+    "correct": 1,
+    "category": "cocktail",
+    "difficulty": "easy",
+    "topic": "cocktail"
+  },
+  {
+    "id": "ck_002",
+    "question": "Lo Spritz originale veneto: Prosecco + soda + cosa? 🧡",
+    "answers": ["Campari", "Aperol", "Select", "Cynar"],
+    "correct": 1,
+    "category": "cocktail",
+    "difficulty": "easy",
+    "topic": "cocktail"
+  },
+  {
+    "id": "ck_003",
+    "question": "Il Mojito classico NON contiene quale di questi ingredienti? 🌿",
+    "answers": ["Rum bianco", "Menta fresca", "Vodka", "Lime"],
     "correct": 2,
-    "category": "gamenight",
+    "category": "cocktail",
+    "difficulty": "easy",
+    "topic": "cocktail"
+  },
+  {
+    "id": "ck_004",
+    "question": "Che tipo di bicchiere si usa per servire un Martini? 🍸",
+    "answers": ["Tumbler", "Coppa coupette", "Highball", "Flute"],
+    "correct": 1,
+    "category": "cocktail",
     "difficulty": "medium",
-    "topic": "geografia"
+    "topic": "mixology"
   },
   {
-    "id": "trv_002",
-    "question": "Quale elemento chimico ha simbolo Au?",
-    "answers": ["Argento", "Oro", "Alluminio", "Argon"],
-    "correct": 1,
-    "category": "gamenight",
+    "id": "ck_005",
+    "question": "La Margarita si basa su quale spirito? 🇲🇽",
+    "answers": ["Rum", "Vodka", "Tequila", "Mezcal"],
+    "correct": 2,
+    "category": "cocktail",
     "difficulty": "easy",
-    "topic": "scienza"
+    "topic": "cocktail"
   },
   {
-    "id": "trv_003",
-    "question": "In che anno è finita la Seconda Guerra Mondiale?",
-    "answers": ["1942", "1945", "1948", "1950"],
+    "id": "ck_006",
+    "question": "Il cocktail Cosmopolitan si è reso famoso grazie a quale serie TV? 👠",
+    "answers": ["Friends", "Sex and the City", "Desperate Housewives", "Gossip Girl"],
     "correct": 1,
-    "category": "gamenight",
+    "category": "cocktail",
     "difficulty": "easy",
-    "topic": "storia"
+    "topic": "cocktail"
   },
   {
-    "id": "trv_004",
-    "question": "Dove si sono tenute le Olimpiadi estive del 2024?",
-    "answers": ["Parigi", "Londra", "Tokyo", "Los Angeles"],
+    "id": "ck_007",
+    "question": "Quale ingrediente rende il Blue Lagoon... blu? 💙",
+    "answers": ["Blue Curacao", "Sciroppo di mirtillo", "Colorante alimentare", "Genziana"],
     "correct": 0,
-    "category": "gamenight",
-    "difficulty": "easy",
-    "topic": "sport"
+    "category": "cocktail",
+    "difficulty": "medium",
+    "topic": "mixology"
   },
   {
-    "id": "trv_005",
-    "question": "Qual è il pianeta più piccolo del Sistema Solare?",
-    "answers": ["Marte", "Mercurio", "Venere", "Plutone"],
+    "id": "ck_008",
+    "question": "James Bond vuole il suo Martini preparato in che modo? 🕶️",
+    "answers": ["Mescolato, non shakerato", "Shakerato, non mescolato", "Con 3 olive", "Doppio"],
     "correct": 1,
-    "category": "gamenight",
+    "category": "cocktail",
+    "difficulty": "easy",
+    "topic": "cocktail"
+  },
+  {
+    "id": "ck_009",
+    "question": "Quale amaro italiano è l'ingrediente chiave del Negroni Sbagliato? 🇮🇹",
+    "answers": ["Fernet", "Campari", "Averna", "Montenegro"],
+    "correct": 1,
+    "category": "cocktail",
     "difficulty": "medium",
+    "topic": "cocktail"
+  },
+  {
+    "id": "ck_010",
+    "question": "Cosa differenzia un Negroni Sbagliato dal Negroni classico? 🥂",
+    "answers": ["Si usa vodka al posto del gin", "Si usa Prosecco al posto del gin", "Si aggiunge panna", "Si toglie il Campari"],
+    "correct": 1,
+    "category": "cocktail",
+    "difficulty": "medium",
+    "topic": "cocktail"
+  },
+
+  {
+    "id": "sb_001",
+    "question": "Secondo il Guinness, il record mondiale di birra bevuta in un minuto si aggira intorno a... 🍺",
+    "answers": ["1 litro", "2 litri", "3 litri", "5 litri"],
+    "correct": 1,
+    "category": "sbronze",
+    "difficulty": "hard",
+    "topic": "record"
+  },
+  {
+    "id": "sb_002",
+    "question": "L'alcol viene metabolizzato principalmente da quale organo? 🫁",
+    "answers": ["Stomaco", "Reni", "Fegato", "Intestino"],
+    "correct": 2,
+    "category": "sbronze",
+    "difficulty": "easy",
     "topic": "scienza"
   },
   {
-    "id": "trv_006",
-    "question": "Chi ha dipinto la Gioconda?",
-    "answers": ["Raffaello", "Michelangelo", "Leonardo da Vinci", "Caravaggio"],
-    "correct": 2,
-    "category": "gamenight",
-    "difficulty": "easy",
-    "topic": "arte"
-  },
-  {
-    "id": "trv_007",
-    "question": "Quale fiume attraversa Roma?",
-    "answers": ["Po", "Arno", "Tevere", "Adige"],
-    "correct": 2,
-    "category": "gamenight",
-    "difficulty": "easy",
-    "topic": "geografia"
-  },
-  {
-    "id": "trv_008",
-    "question": "Quale paese ha la foglia d'acero sulla bandiera?",
-    "answers": ["Stati Uniti", "Canada", "Norvegia", "Svezia"],
+    "id": "sb_003",
+    "question": "In Italia, il limite legale di alcol nel sangue per guidare è... 🚗",
+    "answers": ["0.2 g/l", "0.5 g/l", "0.8 g/l", "1.0 g/l"],
     "correct": 1,
-    "category": "gamenight",
-    "difficulty": "easy",
-    "topic": "geografia"
-  },
-  {
-    "id": "trv_009",
-    "question": "Chi ha vinto più Palloni d'Oro nella storia?",
-    "answers": ["Cristiano Ronaldo", "Lionel Messi", "Diego Maradona", "Johan Cruyff"],
-    "correct": 1,
-    "category": "gamenight",
+    "category": "sbronze",
     "difficulty": "medium",
-    "topic": "sport"
+    "topic": "legge"
   },
   {
-    "id": "trv_010",
-    "question": "In che anno è caduto il Muro di Berlino?",
-    "answers": ["1985", "1987", "1989", "1991"],
+    "id": "sb_004",
+    "question": "I russi mandavano i cosmonauti nello spazio con una razione di quale alcolico? 🚀",
+    "answers": ["Vodka", "Cognac", "Birra", "Champagne"],
+    "correct": 1,
+    "category": "sbronze",
+    "difficulty": "hard",
+    "topic": "storia"
+  },
+  {
+    "id": "sb_005",
+    "question": "Il termine 'hangover' in italiano si traduce comunemente come... 🤕",
+    "answers": ["Malessere", "Postumi della sbornia", "Mal di mare", "Colpo di calore"],
+    "correct": 1,
+    "category": "sbronze",
+    "difficulty": "easy",
+    "topic": "cultura"
+  },
+  {
+    "id": "sb_006",
+    "question": "In quale paese è tradizione brindare guardandosi negli occhi per NON avere 7 anni di cattivo amore? 👀",
+    "answers": ["Italia", "Francia", "Germania", "Spagna"],
+    "correct": 1,
+    "category": "sbronze",
+    "difficulty": "medium",
+    "topic": "tradizioni"
+  },
+  {
+    "id": "sb_007",
+    "question": "L'Oktoberfest di Monaco dura circa quante settimane? 🎪",
+    "answers": ["1 settimana", "2 settimane", "3 settimane", "4 settimane"],
+    "correct": 1,
+    "category": "sbronze",
+    "difficulty": "medium",
+    "topic": "feste"
+  },
+  {
+    "id": "sb_008",
+    "question": "Quale rimedio per la sbornia è scientificamente più efficace? 🧪",
+    "answers": ["Caffè nero", "Bere tanta acqua", "Doccia fredda", "Mangiare limoni"],
+    "correct": 1,
+    "category": "sbronze",
+    "difficulty": "easy",
+    "topic": "scienza"
+  },
+  {
+    "id": "sb_009",
+    "question": "In Giappone c'è un fenomeno chiamato 'nomunication'. Cosa vuol dire? 🇯🇵",
+    "answers": ["Non bere al lavoro", "Bere insieme per fare team building", "Dieta senza alcol", "Meditazione alcolica"],
+    "correct": 1,
+    "category": "sbronze",
+    "difficulty": "hard",
+    "topic": "cultura"
+  },
+  {
+    "id": "sb_010",
+    "question": "Durante il Proibizionismo americano (1920-1933), l'alcol era venduto legalmente come... 💊",
+    "answers": ["Detersivo", "Medicinale", "Profumo", "Combustibile"],
+    "correct": 1,
+    "category": "sbronze",
+    "difficulty": "medium",
+    "topic": "storia"
+  },
+
+  {
+    "id": "br_001",
+    "question": "La birra 'IPA' significa... 🍺",
+    "answers": ["Italian Pale Ale", "India Pale Ale", "Irish Premium Ale", "Imperial Pale Ale"],
+    "correct": 1,
+    "category": "birra",
+    "difficulty": "medium",
+    "topic": "birra"
+  },
+  {
+    "id": "br_002",
+    "question": "Il Prosecco DOC viene prodotto principalmente in quale regione italiana? 🥂",
+    "answers": ["Toscana", "Piemonte", "Veneto", "Lombardia"],
     "correct": 2,
-    "category": "gamenight",
+    "category": "birra",
+    "difficulty": "easy",
+    "topic": "vino"
+  },
+  {
+    "id": "br_003",
+    "question": "Lo Champagne DEVE provenire obbligatoriamente da quale paese? 🍾",
+    "answers": ["Italia", "Spagna", "Francia", "Germania"],
+    "correct": 2,
+    "category": "birra",
+    "difficulty": "easy",
+    "topic": "vino"
+  },
+  {
+    "id": "br_004",
+    "question": "La Guinness, birra scura irlandese, è di che tipo? ☘️",
+    "answers": ["Lager", "Pilsner", "Stout", "Weiss"],
+    "correct": 2,
+    "category": "birra",
+    "difficulty": "medium",
+    "topic": "birra"
+  },
+  {
+    "id": "br_005",
+    "question": "Come si chiama il vitigno del famoso Chianti toscano? 🍷",
+    "answers": ["Nebbiolo", "Sangiovese", "Merlot", "Barbera"],
+    "correct": 1,
+    "category": "birra",
+    "difficulty": "medium",
+    "topic": "vino"
+  },
+  {
+    "id": "br_006",
+    "question": "Il Belgio è famoso per quale tipo particolare di birra fermentata spontaneamente? 🇧🇪",
+    "answers": ["Porter", "Lambic", "Bock", "Kölsch"],
+    "correct": 1,
+    "category": "birra",
+    "difficulty": "hard",
+    "topic": "birra"
+  },
+  {
+    "id": "br_007",
+    "question": "Quale birra italiana ha come slogan storico 'Sapore vero'? 🇮🇹",
+    "answers": ["Peroni", "Moretti", "Nastro Azzurro", "Ichnusa"],
+    "correct": 1,
+    "category": "birra",
+    "difficulty": "easy",
+    "topic": "birra"
+  },
+  {
+    "id": "br_008",
+    "question": "Il vino rosato si ottiene da uve... 🌸",
+    "answers": ["Bianche miste a rosse", "Rosse con macerazione breve", "Rosa naturali", "Bianche con colorante"],
+    "correct": 1,
+    "category": "birra",
+    "difficulty": "medium",
+    "topic": "vino"
+  },
+  {
+    "id": "br_009",
+    "question": "Heineken ha le sue origini in quale paese? 🌷",
+    "answers": ["Germania", "Belgio", "Olanda", "Danimarca"],
+    "correct": 2,
+    "category": "birra",
+    "difficulty": "easy",
+    "topic": "birra"
+  },
+  {
+    "id": "br_010",
+    "question": "Il Barolo, uno dei vini italiani più pregiati, viene da quale regione? 🏔️",
+    "answers": ["Toscana", "Piemonte", "Veneto", "Sicilia"],
+    "correct": 1,
+    "category": "birra",
+    "difficulty": "medium",
+    "topic": "vino"
+  },
+
+  {
+    "id": "gi_001",
+    "question": "Nel Beer Pong, quanti bicchieri si mettono per squadra nella formazione classica? 🏓",
+    "answers": ["6", "8", "10", "12"],
+    "correct": 2,
+    "category": "giochi",
+    "difficulty": "easy",
+    "topic": "drinking game"
+  },
+  {
+    "id": "gi_002",
+    "question": "Nel gioco 'King's Cup', quando esce il Re cosa succede? 👑",
+    "answers": ["Bevi tu", "Tutti bevono", "Versi nel bicchiere centrale", "Scegli chi beve"],
+    "correct": 2,
+    "category": "giochi",
+    "difficulty": "medium",
+    "topic": "drinking game"
+  },
+  {
+    "id": "gi_003",
+    "question": "Nel 'Never Have I Ever' alcolico, quando bevi? 🤔",
+    "answers": ["Quando NON hai fatto la cosa", "Quando HAI fatto la cosa", "Quando tutti ridono", "A caso"],
+    "correct": 1,
+    "category": "giochi",
+    "difficulty": "easy",
+    "topic": "drinking game"
+  },
+  {
+    "id": "gi_004",
+    "question": "Il gioco del 'Centurion' prevede quanti shot di birra in 100 minuti? 💯",
+    "answers": ["50", "75", "100", "150"],
+    "correct": 2,
+    "category": "giochi",
+    "difficulty": "medium",
+    "topic": "drinking game"
+  },
+  {
+    "id": "gi_005",
+    "question": "Nel 'Flip Cup', cosa devi fare dopo aver bevuto? 🥤",
+    "answers": ["Lanciare il bicchiere", "Capovolgere il bicchiere col dito", "Schiacciarlo", "Passarlo al compagno"],
+    "correct": 1,
+    "category": "giochi",
+    "difficulty": "easy",
+    "topic": "drinking game"
+  },
+  {
+    "id": "gi_006",
+    "question": "In quale paese si gioca tradizionalmente il 'Bierpong' alle feste universitarie? 🇺🇸",
+    "answers": ["Germania", "Inghilterra", "Stati Uniti", "Australia"],
+    "correct": 2,
+    "category": "giochi",
+    "difficulty": "easy",
+    "topic": "cultura"
+  },
+  {
+    "id": "gi_007",
+    "question": "Nel gioco 'Buzz', quale numero è proibito dire? 🐝",
+    "answers": ["3", "5", "7", "Dipende dalla regola scelta"],
+    "correct": 3,
+    "category": "giochi",
+    "difficulty": "medium",
+    "topic": "drinking game"
+  },
+  {
+    "id": "gi_008",
+    "question": "Come si chiama il brindisi tedesco tradizionale? 🇩🇪",
+    "answers": ["Cheers", "Prost", "Salud", "Skol"],
+    "correct": 1,
+    "category": "giochi",
+    "difficulty": "easy",
+    "topic": "tradizioni"
+  },
+  {
+    "id": "gi_009",
+    "question": "Nel gioco 'Ride the Bus' con le carte, chi perde alla fine... 🚌",
+    "answers": ["Offre un giro a tutti", "Deve bere una penalita' pesante", "Fa un ballo", "Va a comprare altro alcol"],
+    "correct": 1,
+    "category": "giochi",
+    "difficulty": "medium",
+    "topic": "drinking game"
+  },
+  {
+    "id": "gi_010",
+    "question": "In Giappone il brindisi si fa dicendo... 🇯🇵",
+    "answers": ["Ganbei!", "Kampai!", "Slainte!", "Chin chin!"],
+    "correct": 1,
+    "category": "giochi",
+    "difficulty": "medium",
+    "topic": "tradizioni"
+  },
+
+  {
+    "id": "vp_001",
+    "question": "Quale cantante ha scritto 'Red Red Wine'? (Non era ubriaco, giura lui) 🍷",
+    "answers": ["Bob Marley", "UB40", "Neil Diamond", "Bob Dylan"],
+    "correct": 1,
+    "category": "vip",
+    "difficulty": "medium",
+    "topic": "musica"
+  },
+  {
+    "id": "vp_002",
+    "question": "Quale rockstar britannica era famosa per distruggere camere d'albergo dopo le sbronze? 🎸",
+    "answers": ["Mick Jagger", "Keith Moon", "Freddie Mercury", "David Bowie"],
+    "correct": 1,
+    "category": "vip",
+    "difficulty": "medium",
+    "topic": "rockstar"
+  },
+  {
+    "id": "vp_003",
+    "question": "Quale attrice ha fatto notizia per aver guidato ubriaca a Hollywood nel 2007? 🚔",
+    "answers": ["Paris Hilton", "Lindsay Lohan", "Britney Spears", "Nicole Richie"],
+    "correct": 1,
+    "category": "vip",
+    "difficulty": "medium",
+    "topic": "scandali"
+  },
+  {
+    "id": "vp_004",
+    "question": "George Clooney ha venduto il suo brand di tequila per circa quanto? 💰",
+    "answers": ["100 milioni $", "500 milioni $", "1 miliardo $", "2 miliardi $"],
+    "correct": 2,
+    "category": "vip",
+    "difficulty": "hard",
+    "topic": "business"
+  },
+  {
+    "id": "vp_005",
+    "question": "Quale cantante italiana ha il brand 'Prosecco Pink'? 🇮🇹",
+    "answers": ["Laura Pausini", "Emma Marrone", "Elettra Lamborghini", "Elodie"],
+    "correct": 2,
+    "category": "vip",
+    "difficulty": "hard",
+    "topic": "vip italiani"
+  },
+  {
+    "id": "vp_006",
+    "question": "Winston Churchill era famoso per bere quanto champagne al giorno? 🥂",
+    "answers": ["Un bicchiere", "Mezza bottiglia", "Una bottiglia intera", "Due bottiglie"],
+    "correct": 2,
+    "category": "vip",
     "difficulty": "medium",
     "topic": "storia"
   },
   {
-    "id": "trv_011g",
-    "question": "Qual è il paese più grande del mondo per superficie?",
-    "answers": ["Canada", "Cina", "Russia", "USA"],
-    "correct": 2,
-    "category": "gamenight",
-    "difficulty": "easy",
-    "topic": "geografia"
-  },
-  {
-    "id": "trv_012g",
-    "question": "Quante ossa ha il corpo umano adulto?",
-    "answers": ["186", "206", "226", "246"],
+    "id": "vp_007",
+    "question": "Quale rapper ha un brand di cognac molto famoso chiamato 'D'USSE'? 🥃",
+    "answers": ["Drake", "Jay-Z", "Kanye West", "Diddy"],
     "correct": 1,
-    "category": "gamenight",
-    "difficulty": "medium",
-    "topic": "scienza"
-  },
-  {
-    "id": "trv_013g",
-    "question": "Quale pianeta ha il maggior numero di lune nel Sistema Solare?",
-    "answers": ["Giove", "Saturno", "Urano", "Nettuno"],
-    "correct": 1,
-    "category": "gamenight",
+    "category": "vip",
     "difficulty": "hard",
-    "topic": "scienza"
+    "topic": "business"
   },
   {
-    "id": "trv_014g",
-    "question": "In che anno ha debuttato il primo iPhone?",
-    "answers": ["2005", "2007", "2009", "2010"],
+    "id": "vp_008",
+    "question": "Quale scrittore americano era famoso per scrivere ubriaco e correggere da sobrio? 📝",
+    "answers": ["F. Scott Fitzgerald", "Ernest Hemingway", "Jack Kerouac", "Charles Bukowski"],
     "correct": 1,
-    "category": "gamenight",
+    "category": "vip",
     "difficulty": "medium",
-    "topic": "tecnologia"
+    "topic": "cultura"
   },
   {
-    "id": "trv_015g",
-    "question": "Quale scrittore ha creato il personaggio di Sherlock Holmes?",
-    "answers": ["Agatha Christie", "Arthur Conan Doyle", "G.K. Chesterton", "Edgar Allan Poe"],
+    "id": "vp_009",
+    "question": "Il cantante Ozzy Osbourne ha morsicato la testa a quale animale durante un concerto? 🦇",
+    "answers": ["Un topo", "Un pipistrello", "Un serpente", "Un piccione"],
     "correct": 1,
-    "category": "gamenight",
+    "category": "vip",
     "difficulty": "easy",
-    "topic": "letteratura"
+    "topic": "rockstar"
   },
   {
-    "id": "trv_016g",
-    "question": "Quanti lati ha un esagono?",
-    "answers": ["5", "6", "7", "8"],
-    "correct": 1,
-    "category": "gamenight",
-    "difficulty": "easy",
-    "topic": "matematica"
-  },
-  {
-    "id": "trv_017g",
-    "question": "Chi ha composto la Quinta Sinfonia?",
-    "answers": ["Mozart", "Bach", "Beethoven", "Chopin"],
+    "id": "vp_010",
+    "question": "La festa piu esclusiva al mondo, il Met Gala, viene organizzata a... 🎭",
+    "answers": ["Los Angeles", "Londra", "New York", "Parigi"],
     "correct": 2,
-    "category": "gamenight",
+    "category": "vip",
+    "difficulty": "easy",
+    "topic": "feste"
+  },
+
+  {
+    "id": "mu_001",
+    "question": "Quale canzone inizia con 'Tonight I'm gonna have myself a real good time'? 🎤",
+    "answers": ["Bohemian Rhapsody", "Don't Stop Me Now", "We Will Rock You", "Somebody to Love"],
+    "correct": 1,
+    "category": "musica",
     "difficulty": "easy",
     "topic": "musica"
   },
   {
-    "id": "trv_018g",
-    "question": "Quale nazione ospiterà i Mondiali di calcio 2026?",
-    "answers": ["Argentina", "USA-Canada-Messico", "Brasile", "Qatar"],
+    "id": "mu_002",
+    "question": "Il locale Studio 54 di New York era famoso negli anni... 🕺",
+    "answers": ["Anni '60", "Anni '70", "Anni '80", "Anni '90"],
     "correct": 1,
-    "category": "gamenight",
+    "category": "musica",
     "difficulty": "medium",
-    "topic": "sport"
+    "topic": "locali"
   },
   {
-    "id": "trv_019g",
-    "question": "Qual è la moneta ufficiale del Giappone?",
-    "answers": ["Won", "Yuan", "Yen", "Baht"],
-    "correct": 2,
-    "category": "gamenight",
+    "id": "mu_003",
+    "question": "Quale DJ italiano e' diventato famoso nel mondo con 'L'Amour Toujours'? 🇮🇹",
+    "answers": ["Benny Benassi", "Gigi D'Agostino", "Bob Sinclar", "David Guetta"],
+    "correct": 1,
+    "category": "musica",
     "difficulty": "easy",
-    "topic": "geografia"
+    "topic": "musica"
   },
   {
-    "id": "trv_020g",
-    "question": "Chi ha scritto l'Odissea?",
-    "answers": ["Virgilio", "Omero", "Sofocle", "Platone"],
-    "correct": 1,
-    "category": "gamenight",
-    "difficulty": "easy",
-    "topic": "letteratura"
-  },
-  {
-    "id": "trv_021g",
-    "question": "Quanti anni dura un mandato presidenziale negli USA?",
-    "answers": ["3", "4", "5", "6"],
-    "correct": 1,
-    "category": "gamenight",
-    "difficulty": "easy",
-    "topic": "politica"
-  },
-  {
-    "id": "trv_022g",
-    "question": "Quale metallo è liquido a temperatura ambiente?",
-    "answers": ["Zinco", "Alluminio", "Mercurio", "Piombo"],
-    "correct": 2,
-    "category": "gamenight",
-    "difficulty": "medium",
-    "topic": "scienza"
-  },
-  {
-    "id": "trv_023g",
-    "question": "In quale oceano si trovano le Maldive?",
-    "answers": ["Pacifico", "Atlantico", "Indiano", "Artico"],
-    "correct": 2,
-    "category": "gamenight",
-    "difficulty": "medium",
-    "topic": "geografia"
-  },
-  {
-    "id": "trv_024g",
-    "question": "Che tipo di animale è un calamaro?",
-    "answers": ["Crostaceo", "Mollusco", "Pesce", "Anellide"],
-    "correct": 1,
-    "category": "gamenight",
-    "difficulty": "medium",
-    "topic": "natura"
-  },
-  {
-    "id": "trv_025g",
-    "question": "Quale paese ha vinto più Mondiali di calcio?",
-    "answers": ["Argentina", "Germania", "Italia", "Brasile"],
+    "id": "mu_004",
+    "question": "'YMCA' dei Village People e' diventata l'inno di che tipo di feste? 🏳️‍🌈",
+    "answers": ["Matrimoni", "Capodanno", "Feste in piscina", "Tutte le feste del mondo"],
     "correct": 3,
-    "category": "gamenight",
+    "category": "musica",
     "difficulty": "easy",
-    "topic": "sport"
+    "topic": "musica"
+  },
+  {
+    "id": "mu_005",
+    "question": "Il festival di Coachella si tiene in quale stato americano? 🌵",
+    "answers": ["Nevada", "California", "Texas", "Arizona"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "festival"
+  },
+  {
+    "id": "mu_006",
+    "question": "'Tequila' e' una famosa canzone strumentale dove l'unica parola cantata e'... 🎺",
+    "answers": ["Fiesta", "Tequila", "Ole", "Salud"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "musica"
+  },
+  {
+    "id": "mu_007",
+    "question": "Quale canzone degli ABBA e' diventata l'inno delle feste di matrimonio? 💒",
+    "answers": ["Waterloo", "Mamma Mia", "Dancing Queen", "Gimme! Gimme! Gimme!"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "musica"
+  },
+  {
+    "id": "mu_008",
+    "question": "Il Tomorrowland, mega festival di musica elettronica, si tiene in... 🎆",
+    "answers": ["Olanda", "Belgio", "Germania", "Spagna"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "festival"
+  },
+  {
+    "id": "mu_009",
+    "question": "'Shots' di LMFAO parla letteralmente di... 🥃",
+    "answers": ["Fotografie", "Colpi di fulmine", "Shot di alcolici", "Tiri a canestro"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "musica"
+  },
+  {
+    "id": "mu_010",
+    "question": "Quale hit italiana estiva ha fatto ballare tutti con 'L'estate sta finendo'? ☀️",
+    "answers": ["883", "Righeira", "Jovanotti", "Vasco Rossi"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "musica"
   },
 
   {
-    "id": "trv_011",
-    "question": "In quale serie TV compare Walter White?",
-    "answers": ["The Wire", "Breaking Bad", "The Sopranos", "Better Call Saul"],
+    "id": "ci_001",
+    "question": "In 'Una notte da leoni' (The Hangover) dove si svegliano i protagonisti? 🐯",
+    "answers": ["New York", "Las Vegas", "Miami", "Los Angeles"],
     "correct": 1,
-    "category": "bar",
+    "category": "cinema",
+    "difficulty": "easy",
+    "topic": "film"
+  },
+  {
+    "id": "ci_002",
+    "question": "Quale animale trovano nella stanza d'albergo in The Hangover? 🏨",
+    "answers": ["Un canguro", "Una tigre", "Un orso", "Un coccodrillo"],
+    "correct": 1,
+    "category": "cinema",
+    "difficulty": "easy",
+    "topic": "film"
+  },
+  {
+    "id": "ci_003",
+    "question": "Nel film 'Cocktail' (1988), chi interpreta il barman protagonista? 🍸",
+    "answers": ["Patrick Swayze", "Tom Cruise", "Kevin Costner", "Mel Gibson"],
+    "correct": 1,
+    "category": "cinema",
+    "difficulty": "medium",
+    "topic": "film"
+  },
+  {
+    "id": "ci_004",
+    "question": "In quale film si dice la celebre frase 'Qui si producono lacrime, non vino'? 🎬",
+    "answers": ["Il Padrino", "Sideways", "Un'ottima annata", "Mondovino"],
+    "correct": 1,
+    "category": "cinema",
+    "difficulty": "hard",
+    "topic": "film"
+  },
+  {
+    "id": "ci_005",
+    "question": "Homer Simpson: qual e' la sua birra preferita? 🍻",
+    "answers": ["Budweiser", "Duff", "Krusty Beer", "Flaming Moe"],
+    "correct": 1,
+    "category": "cinema",
     "difficulty": "easy",
     "topic": "serie tv"
   },
   {
-    "id": "trv_012",
-    "question": "Chi canta \"Bohemian Rhapsody\"?",
-    "answers": ["The Beatles", "Queen", "Led Zeppelin", "Pink Floyd"],
+    "id": "ci_006",
+    "question": "In 'Il Grande Lebowski', il Dude beve sempre quale cocktail? 🎳",
+    "answers": ["Margarita", "White Russian", "Old Fashioned", "Gin Tonic"],
     "correct": 1,
-    "category": "bar",
-    "difficulty": "easy",
-    "topic": "musica"
-  },
-  {
-    "id": "trv_013",
-    "question": "Come prende il Martini James Bond?",
-    "answers": ["Liscio", "Shakerato, non mescolato", "Con due olive", "Doppio ghiaccio"],
-    "correct": 1,
-    "category": "bar",
+    "category": "cinema",
     "difficulty": "medium",
-    "topic": "cinema"
+    "topic": "film"
   },
   {
-    "id": "trv_014",
-    "question": "Quante carte ha un mazzo di poker senza jolly?",
-    "answers": ["48", "50", "52", "54"],
+    "id": "ci_007",
+    "question": "Quale serie TV italiana e' ambientata in un bar? ☕",
+    "answers": ["Boris", "Camera Cafe", "I Cesaroni", "Un medico in famiglia"],
+    "correct": 1,
+    "category": "cinema",
+    "difficulty": "easy",
+    "topic": "serie tv"
+  },
+  {
+    "id": "ci_008",
+    "question": "In 'Superbad', i protagonisti cercano disperatamente di comprare... 🆔",
+    "answers": ["Biglietti per un concerto", "Alcolici per una festa", "Un'auto usata", "Regali di laurea"],
+    "correct": 1,
+    "category": "cinema",
+    "difficulty": "medium",
+    "topic": "film"
+  },
+  {
+    "id": "ci_009",
+    "question": "Quale personaggio di 'How I Met Your Mother' ha inventato infinite regole per il bere? 🍺",
+    "answers": ["Ted", "Marshall", "Barney", "Robin"],
     "correct": 2,
-    "category": "bar",
+    "category": "cinema",
+    "difficulty": "easy",
+    "topic": "serie tv"
+  },
+  {
+    "id": "ci_010",
+    "question": "Nel film 'Beerfest' i protagonisti partecipano a una competizione di... 🏆",
+    "answers": ["Preparazione birra", "Bevuta di birra", "Degustazione cieca", "Lancio del barile"],
+    "correct": 1,
+    "category": "cinema",
+    "difficulty": "medium",
+    "topic": "film"
+  },
+
+  {
+    "id": "ht_001",
+    "question": "Secondo le statistiche, qual e' il social media piu usato per il 'drunk texting'? 📱",
+    "answers": ["Instagram", "WhatsApp", "Twitter/X", "TikTok"],
+    "correct": 1,
+    "category": "hot",
+    "difficulty": "easy",
+    "topic": "dating"
+  },
+  {
+    "id": "ht_002",
+    "question": "Il 'walk of shame' dopo una serata e' piu comune in quale giorno della settimana? 🚶",
+    "answers": ["Venerdi mattina", "Sabato mattina", "Domenica mattina", "Lunedi mattina"],
+    "correct": 2,
+    "category": "hot",
+    "difficulty": "easy",
+    "topic": "cultura"
+  },
+  {
+    "id": "ht_003",
+    "question": "Quale app di dating e' nata con il meccanismo dello 'swipe'? 💘",
+    "answers": ["Bumble", "Tinder", "Hinge", "Badoo"],
+    "correct": 1,
+    "category": "hot",
+    "difficulty": "easy",
+    "topic": "dating"
+  },
+  {
+    "id": "ht_004",
+    "question": "Il 'liquid courage' (coraggio liquido) si riferisce a... 🦁",
+    "answers": ["Un energy drink", "L'effetto disinibente dell'alcol", "Un cocktail specifico", "Un modo di dire francese"],
+    "correct": 1,
+    "category": "hot",
+    "difficulty": "easy",
+    "topic": "cultura"
+  },
+  {
+    "id": "ht_005",
+    "question": "In media, dopo quanti drink le persone iniziano a mandare messaggi agli ex? 📲",
+    "answers": ["1-2", "3-4", "5-6", "7+"],
+    "correct": 1,
+    "category": "hot",
+    "difficulty": "medium",
+    "topic": "dating"
+  },
+  {
+    "id": "ht_006",
+    "question": "Il termine 'beer goggles' significa che dopo aver bevuto... 🤓",
+    "answers": ["Vedi doppio", "Le persone ti sembrano piu attraenti", "Non trovi piu gli occhiali", "Ti senti invincibile"],
+    "correct": 1,
+    "category": "hot",
+    "difficulty": "easy",
+    "topic": "cultura"
+  },
+  {
+    "id": "ht_007",
+    "question": "Quale e' la scusa piu usata per andarsene da un appuntamento andato male? 🏃",
+    "answers": ["'Ho il cane che sta male'", "'Domani mi sveglio presto'", "'Mi ha chiamato mia mamma'", "Tutte le precedenti"],
+    "correct": 3,
+    "category": "hot",
+    "difficulty": "easy",
+    "topic": "dating"
+  },
+  {
+    "id": "ht_008",
+    "question": "Il 'pregame' o 'pre-serata' consiste nel... 🏠",
+    "answers": ["Dormire prima di uscire", "Bere a casa prima di andare in locale", "Scegliere il vestito", "Prenotare il tavolo"],
+    "correct": 1,
+    "category": "hot",
+    "difficulty": "easy",
+    "topic": "cultura"
+  },
+  {
+    "id": "ht_009",
+    "question": "Il 'truth or dare' (obbligo o verita) diventa piu piccante soprattutto quando... 🔥",
+    "answers": ["Si gioca con estranei", "Si aggiunge l'alcol", "Si gioca al buio", "Si usano carte speciali"],
+    "correct": 1,
+    "category": "hot",
     "difficulty": "easy",
     "topic": "giochi"
   },
   {
-    "id": "trv_015",
-    "question": "Da quale paese arriva la tequila?",
-    "answers": ["Spagna", "Messico", "Cuba", "Colombia"],
-    "correct": 1,
-    "category": "bar",
-    "difficulty": "easy",
-    "topic": "drink"
-  },
-  {
-    "id": "trv_016",
-    "question": "Chi interpreta Rachel in Friends?",
-    "answers": ["Courteney Cox", "Jennifer Aniston", "Lisa Kudrow", "Sarah Jessica Parker"],
-    "correct": 1,
-    "category": "bar",
-    "difficulty": "easy",
-    "topic": "serie tv"
-  },
-  {
-    "id": "trv_017",
-    "question": "Qual è la prima regola del Fight Club?",
-    "answers": ["Vinci sempre", "Non parlarne", "Non colpire al viso", "Solo uno alla volta"],
-    "correct": 1,
-    "category": "bar",
-    "difficulty": "easy",
-    "topic": "cinema"
-  },
-  {
-    "id": "trv_018",
-    "question": "Chi ha diretto Pulp Fiction?",
-    "answers": ["Martin Scorsese", "Quentin Tarantino", "Francis Ford Coppola", "Steven Spielberg"],
-    "correct": 1,
-    "category": "bar",
-    "difficulty": "easy",
-    "topic": "cinema"
-  },
-  {
-    "id": "trv_019",
-    "question": "Quale ingrediente NON c'è in un Negroni classico?",
-    "answers": ["Gin", "Campari", "Vermouth rosso", "Prosecco"],
-    "correct": 3,
-    "category": "bar",
-    "difficulty": "medium",
-    "topic": "drink"
-  },
-  {
-    "id": "trv_020",
-    "question": "Quale gruppo ha pubblicato \"The Dark Side of the Moon\"?",
-    "answers": ["The Doors", "Pink Floyd", "Led Zeppelin", "The Rolling Stones"],
-    "correct": 1,
-    "category": "bar",
-    "difficulty": "medium",
-    "topic": "musica"
-  },
-  {
-    "id": "trv_011b",
-    "question": "Quale attore interpreta Tony Stark nei film Marvel?",
-    "answers": ["Chris Evans", "Chris Hemsworth", "Robert Downey Jr.", "Mark Ruffalo"],
+    "id": "ht_010",
+    "question": "In Italia, il 'rimorchiare' in discoteca e' statisticamente piu facile... ⏰",
+    "answers": ["All'apertura", "A meta serata", "Nell'ultima mezz'ora", "Mai, e' sempre impossibile"],
     "correct": 2,
-    "category": "bar",
-    "difficulty": "easy",
-    "topic": "cinema"
-  },
-  {
-    "id": "trv_012b",
-    "question": "In quale città è ambientata la serie Narcos?",
-    "answers": ["Buenos Aires", "Lima", "Medellín", "Bogotá"],
-    "correct": 2,
-    "category": "bar",
+    "category": "hot",
     "difficulty": "medium",
-    "topic": "serie tv"
-  },
-  {
-    "id": "trv_013b",
-    "question": "Quale cantante è soprannominata \"La Regina del Pop\"?",
-    "answers": ["Beyoncé", "Rihanna", "Madonna", "Britney Spears"],
-    "correct": 2,
-    "category": "bar",
-    "difficulty": "easy",
-    "topic": "musica"
-  },
-  {
-    "id": "trv_014b",
-    "question": "Qual è il cocktail composto da vodka, succo di mirtillo, succo di lime e liquore all'arancia?",
-    "answers": ["Martini", "Cosmopolitan", "Sex on the Beach", "Mojito"],
-    "correct": 1,
-    "category": "bar",
-    "difficulty": "medium",
-    "topic": "drink"
-  },
-  {
-    "id": "trv_015b",
-    "question": "In quale film c'è la famosa scena del coltello nella doccia?",
-    "answers": ["Il silenzio degli innocenti", "Psycho", "Halloween", "Scream"],
-    "correct": 1,
-    "category": "bar",
-    "difficulty": "medium",
-    "topic": "cinema"
-  },
-  {
-    "id": "trv_016b",
-    "question": "Quale band ha inciso \"Smells Like Teen Spirit\"?",
-    "answers": ["Pearl Jam", "Soundgarden", "Nirvana", "Alice in Chains"],
-    "correct": 2,
-    "category": "bar",
-    "difficulty": "easy",
-    "topic": "musica"
-  },
-  {
-    "id": "trv_017b",
-    "question": "Quante stagioni ha Game of Thrones?",
-    "answers": ["6", "7", "8", "9"],
-    "correct": 2,
-    "category": "bar",
-    "difficulty": "easy",
-    "topic": "serie tv"
-  },
-  {
-    "id": "trv_018b",
-    "question": "Quale attore ha vinto 3 premi Oscar come migliore attore?",
-    "answers": ["Al Pacino", "Jack Nicholson", "Dustin Hoffman", "Daniel Day-Lewis"],
-    "correct": 3,
-    "category": "bar",
-    "difficulty": "hard",
-    "topic": "cinema"
-  },
-  {
-    "id": "trv_019b",
-    "question": "Cosa significa la sigla IPA nel mondo della birra?",
-    "answers": ["Italian Pale Ale", "India Pale Ale", "Irish Premium Ale", "International Pale Ale"],
-    "correct": 1,
-    "category": "bar",
-    "difficulty": "medium",
-    "topic": "drink"
-  },
-  {
-    "id": "trv_020b",
-    "question": "Chi è il personaggio principale di Stranger Things?",
-    "answers": ["Mike Wheeler", "Will Byers", "Eleven", "Dustin Henderson"],
-    "correct": 2,
-    "category": "bar",
-    "difficulty": "medium",
-    "topic": "serie tv"
-  },
-  {
-    "id": "trv_021b",
-    "question": "Quale rapper ha pubblicato l'album \"The College Dropout\"?",
-    "answers": ["Jay-Z", "Kanye West", "Eminem", "Drake"],
-    "correct": 1,
-    "category": "bar",
-    "difficulty": "medium",
-    "topic": "musica"
-  },
-  {
-    "id": "trv_022b",
-    "question": "Il gin tonic si guarnisce tradizionalmente con?",
-    "answers": ["Menta fresca", "Lime o limone", "Ciliegia al maraschino", "Oliva"],
-    "correct": 1,
-    "category": "bar",
-    "difficulty": "easy",
-    "topic": "drink"
-  },
-  {
-    "id": "trv_023b",
-    "question": "Quale film ha vinto l'Oscar come miglior film nel 2020?",
-    "answers": ["1917", "Joker", "Parasite", "Ford v Ferrari"],
-    "correct": 2,
-    "category": "bar",
-    "difficulty": "medium",
-    "topic": "cinema"
-  },
-  {
-    "id": "trv_024b",
-    "question": "Da quante persone è composto un team nel gioco del bowling per punteggio perfetto?",
-    "answers": ["1", "2", "4", "5"],
-    "correct": 0,
-    "category": "bar",
-    "difficulty": "medium",
-    "topic": "giochi"
-  },
-  {
-    "id": "trv_025b",
-    "question": "Quale cantante ha pubblicato l'album \"Thriller\"?",
-    "answers": ["Prince", "Michael Jackson", "Tina Turner", "David Bowie"],
-    "correct": 1,
-    "category": "bar",
-    "difficulty": "easy",
-    "topic": "musica"
-  },
-
-  {
-    "id": "trv_021",
-    "question": "Quale ormone è chiamato \"l'ormone dell'amore\"?",
-    "answers": ["Cortisolo", "Ossitocina", "Adrenalina", "Insulina"],
-    "correct": 1,
-    "category": "couple",
-    "difficulty": "medium",
-    "topic": "psicologia"
-  },
-  {
-    "id": "trv_022",
-    "question": "In che film c'è la scena del disegno di Rose nuda?",
-    "answers": ["Pretty Woman", "Titanic", "Notting Hill", "The Notebook"],
-    "correct": 1,
-    "category": "couple",
-    "difficulty": "easy",
-    "topic": "cinema"
-  },
-  {
-    "id": "trv_023",
-    "question": "Quando si festeggia San Valentino?",
-    "answers": ["14 gennaio", "14 febbraio", "14 marzo", "1 maggio"],
-    "correct": 1,
-    "category": "couple",
-    "difficulty": "easy",
-    "topic": "curiosità"
-  },
-  {
-    "id": "trv_024",
-    "question": "Quale NON è uno dei 5 linguaggi dell'amore secondo Chapman?",
-    "answers": ["Parole di affermazione", "Contatto fisico", "Tempo di qualità", "Profumi condivisi"],
-    "correct": 3,
-    "category": "couple",
-    "difficulty": "hard",
-    "topic": "psicologia"
-  },
-  {
-    "id": "trv_025",
-    "question": "Chi ha scritto \"Romeo e Giulietta\"?",
-    "answers": ["Dante Alighieri", "William Shakespeare", "Johann Wolfgang von Goethe", "Lord Byron"],
-    "correct": 1,
-    "category": "couple",
-    "difficulty": "easy",
-    "topic": "letteratura"
-  },
-  {
-    "id": "trv_026",
-    "question": "Quanti anni si festeggiano alle \"nozze d'argento\"?",
-    "answers": ["10", "25", "40", "50"],
-    "correct": 1,
-    "category": "couple",
-    "difficulty": "easy",
-    "topic": "curiosità"
-  },
-  {
-    "id": "trv_027",
-    "question": "Quale fiore è il simbolo classico della dichiarazione d'amore?",
-    "answers": ["Tulipano giallo", "Rosa rossa", "Margherita", "Girasole"],
-    "correct": 1,
-    "category": "couple",
-    "difficulty": "easy",
-    "topic": "curiosità"
-  },
-  {
-    "id": "trv_028",
-    "question": "In che film Tom Cruise dice \"You complete me\"?",
-    "answers": ["Top Gun", "Jerry Maguire", "Magnolia", "Vanilla Sky"],
-    "correct": 1,
-    "category": "couple",
-    "difficulty": "medium",
-    "topic": "cinema"
-  },
-  {
-    "id": "trv_029",
-    "question": "Quale autore ha scritto \"Cent'anni di solitudine\"?",
-    "answers": ["Pablo Neruda", "Gabriel García Márquez", "Jorge Luis Borges", "Mario Vargas Llosa"],
-    "correct": 1,
-    "category": "couple",
-    "difficulty": "medium",
-    "topic": "letteratura"
-  },
-  {
-    "id": "trv_030",
-    "question": "In che città è ambientato \"Romeo e Giulietta\"?",
-    "answers": ["Firenze", "Verona", "Venezia", "Padova"],
-    "correct": 1,
-    "category": "couple",
-    "difficulty": "easy",
-    "topic": "letteratura"
-  },
-  {
-    "id": "trv_021c",
-    "question": "Quante settimane dura mediamente un innamoramento secondo la scienza?",
-    "answers": ["4 settimane", "3 mesi", "6 mesi", "1 anno"],
-    "correct": 1,
-    "category": "couple",
-    "difficulty": "hard",
-    "topic": "psicologia"
-  },
-  {
-    "id": "trv_022c",
-    "question": "Quale famosa coppia di Hollywood ha divorziato nel 2016 dopo 12 anni insieme?",
-    "answers": ["Brad Pitt e Jennifer Aniston", "Brad Pitt e Angelina Jolie", "Tom Hanks e Rita Wilson", "Will Smith e Jada Pinkett"],
-    "correct": 1,
-    "category": "couple",
-    "difficulty": "medium",
-    "topic": "vip"
-  },
-  {
-    "id": "trv_023c",
-    "question": "Come si chiama il fidanzato di Cenerentola nella favola Disney?",
-    "answers": ["Principe Adam", "Principe Eric", "Principe Azzurro (Cenerentola)", "Principe Filippo"],
-    "correct": 2,
-    "category": "couple",
-    "difficulty": "medium",
-    "topic": "cinema"
-  },
-  {
-    "id": "trv_024c",
-    "question": "Quale nazione ha il tasso di matrimoni più alto al mondo?",
-    "answers": ["India", "Messico", "Bahamas", "USA"],
-    "correct": 2,
-    "category": "couple",
-    "difficulty": "hard",
-    "topic": "curiosità"
-  },
-  {
-    "id": "trv_025c",
-    "question": "Da dove proviene la tradizione degli anelli nuziali?",
-    "answers": ["Grecia antica", "Egitto antico", "Roma antica", "Cinese"],
-    "correct": 1,
-    "category": "couple",
-    "difficulty": "medium",
-    "topic": "storia"
-  },
-
-  {
-    "id": "trv_031",
-    "question": "Quante ore dura il bacio più lungo della storia (record Guinness)?",
-    "answers": ["24 ore", "33 ore", "58 ore", "72 ore"],
-    "correct": 2,
-    "category": "wild",
-    "difficulty": "hard",
-    "topic": "record"
-  },
-  {
-    "id": "trv_032",
-    "question": "Qual è la fobia per le suocere?",
-    "answers": ["Pentafobia", "Pentheraphobia", "Vitricofobia", "Matrifobia"],
-    "correct": 1,
-    "category": "wild",
-    "difficulty": "hard",
-    "topic": "curiosità"
-  },
-  {
-    "id": "trv_033",
-    "question": "Chi ha vinto più Grammy Award nella storia?",
-    "answers": ["Beyoncé", "Stevie Wonder", "Michael Jackson", "Madonna"],
-    "correct": 0,
-    "category": "wild",
-    "difficulty": "medium",
-    "topic": "musica"
-  },
-  {
-    "id": "trv_034",
-    "question": "Quanti hot dog ha ingurgitato Joey Chestnut nel record del 2021 (in 10 minuti)?",
-    "answers": ["50", "76", "83", "92"],
-    "correct": 1,
-    "category": "wild",
-    "difficulty": "hard",
-    "topic": "record"
-  },
-  {
-    "id": "trv_035",
-    "question": "Quale paese è considerato la capitale mondiale del naturismo?",
-    "answers": ["Italia", "Francia", "Germania", "Brasile"],
-    "correct": 2,
-    "category": "wild",
-    "difficulty": "medium",
-    "topic": "curiosità"
-  },
-  {
-    "id": "trv_036",
-    "question": "Quante volte si è sposata Elizabeth Taylor?",
-    "answers": ["5", "6", "8", "10"],
-    "correct": 2,
-    "category": "wild",
-    "difficulty": "medium",
-    "topic": "vip"
-  },
-  {
-    "id": "trv_037",
-    "question": "Quanto è alta la persona più alta mai vissuta (Robert Wadlow)?",
-    "answers": ["2,11 m", "2,42 m", "2,72 m", "3,01 m"],
-    "correct": 2,
-    "category": "wild",
-    "difficulty": "hard",
-    "topic": "record"
-  },
-  {
-    "id": "trv_038",
-    "question": "Quale canzone è stata la più scaricata illegalmente nella storia di internet?",
-    "answers": ["My Heart Will Go On", "Baby One More Time", "Lose Yourself", "One More Time"],
-    "correct": 2,
-    "category": "wild",
-    "difficulty": "hard",
-    "topic": "musica"
-  },
-  {
-    "id": "trv_039",
-    "question": "In quale paese è legale per legge la nudità pubblica integrale?",
-    "answers": ["Olanda", "Austria", "Svizzera", "Norvegia"],
-    "correct": 2,
-    "category": "wild",
-    "difficulty": "hard",
-    "topic": "curiosità"
-  },
-  {
-    "id": "trv_040",
-    "question": "Chi ha cantato \"WAP\" insieme a Cardi B nel 2020?",
-    "answers": ["Nicki Minaj", "Megan Thee Stallion", "Doja Cat", "Lizzo"],
-    "correct": 1,
-    "category": "wild",
-    "difficulty": "medium",
-    "topic": "musica"
-  },
-  {
-    "id": "trv_041w",
-    "question": "Qual è il nome del film vietato ai minori che ha vinto l'Oscar nel 1970?",
-    "answers": ["Midnight Cowboy", "The Wild Bunch", "Bonnie and Clyde", "Easy Rider"],
-    "correct": 0,
-    "category": "wild",
-    "difficulty": "hard",
-    "topic": "cinema"
-  },
-  {
-    "id": "trv_042w",
-    "question": "Quanti piercing aveva nel 2003 Guinness World Record di Elaine Davidson?",
-    "answers": ["192", "720", "1903", "4225"],
-    "correct": 2,
-    "category": "wild",
-    "difficulty": "hard",
-    "topic": "record"
-  },
-  {
-    "id": "trv_043w",
-    "question": "Quale film di commedia erotica italiana degli anni '70 è il più visto in assoluto?",
-    "answers": ["Amici miei", "Il secondo tragico Fantozzi", "La poliziotta", "Malizia"],
-    "correct": 3,
-    "category": "wild",
-    "difficulty": "hard",
-    "topic": "cinema"
-  },
-  {
-    "id": "trv_044w",
-    "question": "Secondo una ricerca, qual è il giorno della settimana in cui si ha più attività romantica?",
-    "answers": ["Mercoledì", "Venerdì", "Sabato", "Domenica"],
-    "correct": 2,
-    "category": "wild",
-    "difficulty": "medium",
-    "topic": "curiosità"
-  },
-  {
-    "id": "trv_045w",
-    "question": "Chi ha scritto il romanzo scandalo \"Lolita\"?",
-    "answers": ["Henry Miller", "Vladimir Nabokov", "Charles Bukowski", "D.H. Lawrence"],
-    "correct": 1,
-    "category": "wild",
-    "difficulty": "medium",
-    "topic": "letteratura"
+    "topic": "cultura"
   }
 ]

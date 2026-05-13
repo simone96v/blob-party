@@ -16,6 +16,7 @@ import {
   rpcTimeoutReveal,
   rpcBeginRound,
   rpcHostAdvance,
+  pushRoom,
 } from '../../lib/room'
 
 export const useTrivia = () => {
@@ -143,6 +144,57 @@ export const useTrivia = () => {
     setAdvancing(false)
   }, [isOnline, isHost, advancing, roomCode, localPlayerId])
 
+  // "Rigioca" / "Prossimo round" — comportamento smart per session mode:
+  // - In session mid-round (round N+1 < totalRounds): rpcHostAdvance porta tutti
+  //   in trivia_lobby (server-side logic) per il prossimo spin
+  // - In session end o single-round: reset session e torna in trivia_lobby
+  //   per iniziare una nuova sessione
+  const hostReplay = useCallback(async () => {
+    if (!isOnline || !isHost || advancing) return
+    setAdvancing(true)
+    const { setAwaitingGameChange, showError } = useSession.getState()
+
+    const sessionInfo = gameState?.triviaSession
+    const hasMoreRounds = sessionInfo
+      && (sessionInfo.roundIdx + 1) < (sessionInfo.totalRounds ?? 1)
+
+    if (hasMoreRounds) {
+      // Mid-session: DB host_advance porta tutti in trivia_lobby.
+      const { error } = await rpcHostAdvance(roomCode, localPlayerId)
+      if (error) {
+        console.error('[useTrivia] hostReplay (next round) error:', error)
+        showError('generic')
+      }
+      setAdvancing(false)
+      return
+    }
+
+    // Fine sessione: reset session + torna in trivia_lobby per nuovo giro.
+    setAwaitingGameChange(true)
+    const s = useSession.getState()
+    const resetPlayers = (s.players || []).map((p) => ({
+      ...p,
+      score: 0,
+      current_streak: 0,
+      best_streak: 0,
+      correct_count: 0,
+      total_speed_ms: 0,
+    }))
+    const newState = {
+      players: resetPlayers,
+      currentIdx: 0,
+      round: 0,
+      activeGame: 'trivia',
+      selectedGame: 'trivia',
+      selectedCategory: s.gameState?.selectedCategory ?? null,
+      categoryVotes: s.gameState?.categoryVotes ?? {},
+      // triviaSession verrà reinizializzato dalla lobby
+    }
+    await pushRoom(roomCode, 'trivia_lobby', newState)
+    setAwaitingGameChange(false)
+    setAdvancing(false)
+  }, [isOnline, isHost, advancing, roomCode, localPlayerId, gameState])
+
   // Has more questions?
   const hasMoreQuestions = questionNumber < totalQuestions
 
@@ -177,5 +229,6 @@ export const useTrivia = () => {
     // Actions
     submitAnswer,
     hostAdvance,
+    hostReplay,
   }
 }

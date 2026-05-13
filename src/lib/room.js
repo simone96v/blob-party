@@ -163,10 +163,16 @@ export const rpcTimeoutReveal = async (roomCode, round) => {
 }
 
 // Avvia il gioco: genera countdown → poi begin_round avvia la prima domanda.
-export const rpcStartGame = async (roomCode, deck) => {
+// `timerDuration` (sec) viene salvato in state per scoring server-side.
+// `resetScores` (default true) determina se azzerare punteggi+aggregate
+// (round singolo o primo round di sessione) o mantenerli (round successivi
+// nella session mode di Trivia).
+export const rpcStartGame = async (roomCode, deck, timerDuration = 15, resetScores = true) => {
   const { data, error } = await supabase.rpc('start_game', {
     p_code: roomCode,
     p_deck: deck,
+    p_timer_duration: timerDuration,
+    p_reset_scores: resetScores,
   })
   if (error) return { data: null, error }
   return { data, error: null }
@@ -199,6 +205,44 @@ export const pushVote = async (roomCode, playerId, answerIndex) => {
     p_answer: answerIndex,
   })
   return { error }
+}
+
+// --- RPC per giochi sync (Bottle / Spinwheel / TruthOrDare / NeverHaveI) ---
+
+// Inizializza lo state minimo per il gioco scelto e cambia phase.
+// Chiamato dall'host quando il voting in /games si conclude.
+export const rpcInitGame = async (roomCode, gameId, phase) => {
+  const { data, error } = await supabase.rpc('init_game', {
+    p_code: roomCode,
+    p_game_id: gameId,
+    p_phase: phase,
+  })
+  if (error) return { data: null, error }
+  return { data, error: null }
+}
+
+// Patch atomico dello state. Solo host autorizzato. Usato per la maggior parte
+// delle mutazioni nei giochi sync (gira ruota, pesca carta, reset ecc).
+export const rpcUpdateGameState = async (roomCode, playerId, patch) => {
+  const { data, error } = await supabase.rpc('update_game_state', {
+    p_code: roomCode,
+    p_player_id: playerId,
+    p_patch: patch,
+  })
+  if (error) return { data: null, error }
+  return { data, error: null }
+}
+
+// Patch atomico dello state che qualunque player può fare (non solo host).
+// Usato es. in Truth/Dare quando il player estratto sceglie verità o obbligo.
+export const rpcPlayerUpdate = async (roomCode, playerId, patch) => {
+  const { data, error } = await supabase.rpc('player_update_game_state', {
+    p_code: roomCode,
+    p_player_id: playerId,
+    p_patch: patch,
+  })
+  if (error) return { data: null, error }
+  return { data, error: null }
 }
 
 // Elimina la stanza. Chiamato su "Nuova serata" dallo scoreboard (host).

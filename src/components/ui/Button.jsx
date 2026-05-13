@@ -10,8 +10,8 @@
 import { motion } from 'framer-motion'
 
 const VARIANT_CLASS = {
-  primary:   'bg-gradient-to-r from-accent to-accent2 text-white',
-  secondary: 'bg-transparent text-muted',
+  primary:   'text-white',
+  secondary: 'text-muted',
   danger:    'bg-danger text-white',
 }
 
@@ -48,7 +48,17 @@ const Button = ({
         padding: '0 clamp(16px, 4vw, 24px)',
         fontSize: 'clamp(14px, 2dvh, 18px)',
         gap: '8px',
-        border: isSecondary ? '1.5px solid var(--border)' : 'none',
+        borderRadius: 'var(--radius-sm)',
+        background: variant === 'primary'
+          ? 'linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)'
+          : isSecondary
+            ? 'var(--surface)'
+            : undefined,
+        color: isSecondary ? 'var(--text)' : undefined,
+        border: isSecondary ? '1.5px solid var(--border-strong)' : 'none',
+        boxShadow: variant === 'primary'
+          ? '0 6px 18px rgba(124, 58, 237, 0.35)'
+          : 'none',
       }}
       {...rest}
     >

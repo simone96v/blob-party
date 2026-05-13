@@ -1,36 +1,53 @@
-// Header presente in ogni schermata. Renderizza direttamente l'elemento <header class="screen-header">,
-// quindi le screen non devono wrapparlo: basta metterlo come primo figlio di .screen.
-// Layout (gestito da .screen-header in index.css: flex row, space-between, padding fluido):
-//   [🎮 GameNight]                              [ConnectionBadge (solo se mode==='online')]
+// Header standard dell'app: 3 slot orizzontali.
+//   leading    | logo Blob Party (centro)    | actions
+//   (sinistra)                                  (destra)
 //
-// `connectionStatus` arriva da useRoomSync (montato in App.jsx) e viene passato giù.
+// Il logo è cliccabile e fa reset session → /.
+// I caller passano `leading` (es. back btn host) e `actions` (es. counter/badge).
 
-import { useContext } from 'react'
-import ConnectionBadge from './ConnectionBadge'
+import { useNavigate } from 'react-router-dom'
+import BlobLogo from './ui/BlobLogo'
 import { useSession } from '../stores/useSession'
-import { ConnectionContext } from '../contexts/connection'
 
-const AppHeader = ({ connectionStatus }) => {
-  const ctxStatus = useContext(ConnectionContext)
-  const mode = useSession((s) => s.mode)
-  const status = connectionStatus ?? ctxStatus
+const AppHeader = ({ actions = null, leading = null }) => {
+  const navigate = useNavigate()
+  const resetSession = useSession((s) => s.resetSession)
+
+  const handleLogoClick = () => {
+    resetSession()
+    navigate('/', { replace: true })
+  }
+
   return (
-    <header className="screen-header">
-      <div
-        className="font-bold flex items-center"
-        style={{
-          color: 'var(--text)',
-          fontSize: 'clamp(18px, 3dvh, 24px)',
-          gap: '8px',
-          letterSpacing: '-0.01em',
-        }}
-      >
-        <span aria-hidden="true">🎮</span>
-        <span>GameNight</span>
+    <header className="screen-header" style={{ position: 'relative' }}>
+      {/* Slot sinistra (back btn / placeholder) */}
+      <div style={slotStyle}>
+        {leading || <div style={{ width: 36 }} />}
       </div>
-      {mode === 'online' && <ConnectionBadge status={status} />}
+
+      {/* Logo centrato */}
+      <div style={{
+        position: 'absolute',
+        left: '50%',
+        top: '50%',
+        transform: 'translate(-50%, -50%)',
+      }}>
+        <BlobLogo size="md" clickable onClick={handleLogoClick} />
+      </div>
+
+      {/* Slot destra (indicatori / actions) */}
+      <div style={{ ...slotStyle, marginLeft: 'auto' }}>
+        {actions || <div style={{ width: 36 }} />}
+      </div>
     </header>
   )
+}
+
+const slotStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 10,
+  zIndex: 1,
 }
 
 export default AppHeader

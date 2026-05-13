@@ -4,24 +4,24 @@
 
 export const COPY = {
   gamenight: {
-    lobbyTitle: 'Chi gioca stasera?',
-    startCTA: 'Inizia la sfida',
-    roundEnd: 'Round finito',
+    lobbyTitle: 'Chi si fa umiliare stasera? 🎮',
+    startCTA: 'Che la carneficina abbia inizio!',
+    roundEnd: 'Round finito! 🔥',
   },
   bar: {
-    lobbyTitle: 'Chi è ancora sobrio?',
-    startCTA: 'Cin cin',
-    roundEnd: 'Round finito',
+    lobbyTitle: 'Chi è ancora sobrio qui? 🍺',
+    startCTA: 'Cin cin, cervelli vuoti! 🥃',
+    roundEnd: 'Ronda scoccata! 🍻',
   },
   couple: {
-    lobbyTitle: 'Solo io e te',
-    startCTA: 'Iniziamo',
-    roundEnd: 'Mostra le carte',
+    lobbyTitle: 'Dimostra che mi conosci davvero 💕',
+    startCTA: 'Iniziamo... se hai il coraggio 🔥',
+    roundEnd: 'Carta scoperta! 💘',
   },
   wild: {
-    lobbyTitle: 'Chi ha il coraggio?',
-    startCTA: 'Si parte',
-    roundEnd: 'Esecuzione',
+    lobbyTitle: 'Chi ha le palle di giocare? 🌶️',
+    startCTA: 'Niente censura, si parte! 💥',
+    roundEnd: 'Tutti hanno visto! 😈',
   },
 }
 

@@ -26,17 +26,26 @@ const DEFAULTS = {
   gameState: {},
   questionStartedAt: null,
 
+  // True quando l'host ha cliccato "Cambia gioco" a fine partita e sta scegliendo
+  // un nuovo gioco dalla home. Sospende l'auto-navigation di useRoomSync così l'host
+  // non viene riportato a /game/trivia. Si resetta quando avvia il nuovo gioco.
+  awaitingGameChange: false,
+
   error: null,
 }
 
 // Oggetto state JSONB che viene scritto sulla riga `rooms`.
+// I campi sono TOP-LEVEL nel JSONB (allineato con quello che scrivono le RPC
+// server-side: deck, current_question, current_round, round_results, ecc).
+// `s.gameState` locale = blob piatto con TUTTI i campi di gioco mescolati
+// (server-derived + client-derived come categoryVotes/selectedCategory).
 const buildState = (s) => ({
   players: s.players,
   currentIdx: s.currentIdx,
   round: s.round,
   activeGame: s.activeGame,
   settings: useSettings.getState(),
-  gameState: s.gameState,
+  ...s.gameState,
 })
 
 // Debounced push: raggruppa chiamate rapide (es. addScore x N) in un unico push.
@@ -157,8 +166,8 @@ export const useSession = create(
         pushIfHostNow(get)
       },
 
-      endGame: (_result) => {
-        // _result è informativo: i punti vengono già scritti via addScore durante il gioco.
+      endGame: () => {
+        // I punti vengono già scritti via addScore durante il gioco.
         set({ currentPhase: 'round_end' })
         pushIfHostNow(get)
       },
@@ -173,29 +182,21 @@ export const useSession = create(
       syncFromRemote: (remote, phase, questionStartedAt) => {
         if (!remote) return
         set((s) => {
-          // Estrai players dal remote state; il resto va in gameState.
-          const { players: remotePlayers, ...restState } = remote
-
-          // Nel modello server-authoritative, tutti fanno REPLACE:
-          // il server è l'unica fonte di verità, non c'è stato locale da preservare.
-          // Manteniamo il merge per l'host solo per il campo gameState
-          // (evita che l'eco di un push sovrascriva stato generato localmente).
-          let nextGameState = s.gameState
-          if (Object.keys(restState).length > 0) {
-            nextGameState = s.isHost
-              ? { ...s.gameState, ...restState }
-              : restState
-          }
-
+          // Tutti i campi del remote (tranne quelli con slot dedicato nello store)
+          // finiscono in s.gameState come blob piatto.
+          // settings non viene sincronizzato lato locale (es. category)
+          // eslint-disable-next-line no-unused-vars
+          const { players: rPlayers, currentIdx: rIdx, round: rRound, activeGame: rGame, settings, ...rest } = remote
+          const merged = s.isHost
+            ? { ...s.gameState, ...rest }
+            : rest
           return {
-            players:      remotePlayers ?? s.players,
-            currentIdx:   remote.currentIdx ?? s.currentIdx,
-            round:        remote.round      ?? s.round,
-            activeGame:   remote.activeGame ?? s.activeGame,
-            gameState:    nextGameState,
-            // Sync currentPhase per tutti (server è fonte di verità).
+            players:    rPlayers ?? s.players,
+            currentIdx: rIdx     ?? s.currentIdx,
+            round:      rRound   ?? s.round,
+            activeGame: rGame    ?? s.activeGame,
+            gameState:  merged,
             ...(phase != null ? { currentPhase: phase } : {}),
-            // Sync questionStartedAt per il timer server-derived.
             ...(questionStartedAt !== undefined ? { questionStartedAt } : {}),
           }
         })
@@ -203,6 +204,60 @@ export const useSession = create(
 
       resetToLocal: () => {
         set({ mode: 'local', roomCode: null, isHost: false, localPlayerId: null })
+      },
+
+      // ---- cambio gioco ----
+      setAwaitingGameChange: (v) => set({ awaitingGameChange: !!v }),
+
+      // ---- voting (multi) ----
+      // Invia il voto del local player per un campo (categoryVotes | gameVotes).
+      // Eccezione alla regola "solo host pusha": ogni client deve poter votare.
+      castVote: async (field, value) => {
+        const s = get()
+        if (s.mode !== 'online' || !s.roomCode || !s.localPlayerId) return
+        const current = s.gameState?.[field] || {}
+        const updated = { ...current, [s.localPlayerId]: value }
+        const newGameState = { ...s.gameState, [field]: updated }
+        // Aggiorna anche localmente per UI istantanea (verrà confermato via Realtime).
+        set({ gameState: newGameState })
+        const fullState = buildState({ ...s, gameState: newGameState })
+        await pushRoom(s.roomCode, s.currentPhase, fullState)
+      },
+
+      // L'host chiude la votazione, calcola il winner e avanza fase.
+      closeVoting: async (field, nextPhase, selectedField) => {
+        const s = get()
+        if (s.mode !== 'online' || !s.isHost || !s.roomCode) return
+        const votes = s.gameState?.[field] || {}
+        const counts = {}
+        Object.values(votes).forEach((v) => { counts[v] = (counts[v] || 0) + 1 })
+        const values = Object.keys(counts)
+        if (values.length === 0) return
+        const max = Math.max(...Object.values(counts))
+        const winners = values.filter((k) => counts[k] === max)
+        const winner = winners[Math.floor(Math.random() * winners.length)]
+        const newGameState = { ...s.gameState, [selectedField]: winner }
+        set({ gameState: newGameState, currentPhase: nextPhase })
+        const fullState = buildState({ ...s, gameState: newGameState })
+        await pushRoom(s.roomCode, nextPhase, fullState)
+      },
+
+      // Reset dei voti (per ricominciare la selezione).
+      resetSelectionVotes: async () => {
+        const s = get()
+        if (!s.isHost || !s.roomCode) return
+        const newGameState = {
+          ...s.gameState,
+          categoryVotes: {},
+          gameVotes: {},
+          selectedCategory: null,
+          selectedGame: null,
+        }
+        set({ gameState: newGameState })
+        if (s.mode === 'online') {
+          const fullState = buildState({ ...s, gameState: newGameState })
+          await pushRoom(s.roomCode, s.currentPhase, fullState)
+        }
       },
 
       // ---- errori ----
@@ -218,6 +273,9 @@ export const useSession = create(
       // Evita che host e client sullo stesso browser si sovrascrivano a vicenda.
       // Sopravvive al reload ma NON alla chiusura tab (corretto per una sessione di gioco).
       storage: createJSONStorage(() => sessionStorage),
+      // Bump quando lo shape del state cambia: invalida i dati persistiti incompatibili
+      // (es. il restructure Trivia v2 con nuovi campi sui players).
+      version: 2,
     },
   ),
 )
