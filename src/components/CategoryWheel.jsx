@@ -36,21 +36,29 @@ const CategoryWheel = ({
   const [landed, setLanded] = useState(null)
   const [celebrating, setCelebrating] = useState(false)
   const processedTarget = useRef(null)
-  // Ref stabile per il callback — evita che il cambio di onSpinEnd
-  // cancelli i timer dell'animazione in corso.
+
+  // Refs stabili — evitano che le Realtime updates (che producono nuovi array/callback)
+  // cancellino i timer dell'animazione in corso via cleanup dell'effect.
+  const categoriesRef = useRef(categories)
   const onSpinEndRef = useRef(onSpinEnd)
+  useEffect(() => { categoriesRef.current = categories }, [categories])
   useEffect(() => { onSpinEndRef.current = onSpinEnd }, [onSpinEnd])
 
   const segCount = categories.length
   const segAngle = segCount > 0 ? 360 / segCount : 0
 
-  // Quando spinTarget cambia (arriva dal DB), avvia l'animazione
+  // Quando spinTarget cambia (arriva dal DB), avvia l'animazione.
+  // UNICA dep reale: spinTarget. Tutto il resto è letto via ref.
   useEffect(() => {
     if (!spinTarget) return
     if (spinTarget === processedTarget.current) return
-    if (segCount === 0) return
 
-    const winIdx = categories.findIndex((c) => c.id === spinTarget)
+    const cats = categoriesRef.current
+    const count = cats.length
+    if (count === 0) return
+
+    const angle = 360 / count
+    const winIdx = cats.findIndex((c) => c.id === spinTarget)
     if (winIdx === -1) return
 
     processedTarget.current = spinTarget
@@ -58,7 +66,7 @@ const CategoryWheel = ({
     setLanded(null)
     setCelebrating(false)
 
-    const segCenter = winIdx * segAngle + segAngle / 2
+    const segCenter = winIdx * angle + angle / 2
     const offset = ((360 - segCenter) % 360 + 360) % 360
     const total = 360 * 6 + offset
 
@@ -68,12 +76,12 @@ const CategoryWheel = ({
     let celebTimer
     const spinTimer = setTimeout(() => {
       setSpinning(false)
-      setLanded(categories[winIdx])
+      setLanded(cats[winIdx])
       setCelebrating(true)
 
       celebTimer = setTimeout(() => {
         setCelebrating(false)
-        onSpinEndRef.current?.(categories[winIdx])
+        onSpinEndRef.current?.(cats[winIdx])
       }, 2200)
     }, 4200)
 
@@ -81,9 +89,9 @@ const CategoryWheel = ({
       clearTimeout(spinTimer)
       clearTimeout(celebTimer)
     }
-    // onSpinEnd è gestito via ref — non serve nelle deps
+    // Solo spinTarget triggera l'animazione. categories e onSpinEnd via ref.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spinTarget, categories, segCount, segAngle])
+  }, [spinTarget])
 
   if (segCount === 0) {
     return (
