@@ -35,6 +35,15 @@ const GAME_COLORS = {
     badgeBorder: 'rgba(249, 115, 22, 0.18)',
     hoverGlow: '0 8px 20px rgba(249, 115, 22, 0.4)',
   },
+  blobjump: {
+    accent: '#7C3AED',
+    accentLight: '#C4B5FD',
+    gradient: 'linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%)',
+    shadow: 'rgba(124, 58, 237, 0.35)',
+    shadowLight: 'rgba(124, 58, 237, 0.18)',
+    badgeBorder: 'rgba(124, 58, 237, 0.18)',
+    hoverGlow: '0 8px 20px rgba(124, 58, 237, 0.4)',
+  },
 }
 
 const accentBtnStyle = (game) => {

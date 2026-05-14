@@ -67,6 +67,21 @@ export const GAMES = [
     compatibility: { multi: true, single: false, excludedCategories: ['couple'] },
     component: lazy(() => import('../games/Sentenza')),
   },
+  {
+    id: 'blobjump',
+    name: 'Blob Jump',
+    emoji: '🦘',
+    tagline: 'Salta più in alto!',
+    description: 'Il tuo blob rimbalza verso il cielo. Chi sale più in alto vince!',
+    difficulty: 1,
+    minPlayers: 2,
+    maxPlayers: 8,
+    locked: false,
+    bg: 'linear-gradient(145deg, #C4B5FD 0%, #A78BFA 60%, #7C3AED 100%)',
+    shadow: 'rgba(124, 58, 237, 0.40)',
+    compatibility: { multi: true, single: false, excludedCategories: ['couple'] },
+    component: lazy(() => import('../games/BlobJump')),
+  },
 ]
 
 export const getGame = (id) => GAMES.find((g) => g.id === id)

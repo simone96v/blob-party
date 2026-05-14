@@ -104,6 +104,25 @@ const GamesScreen = () => {
         return
       }
 
+      if (winnerId === 'blobjump') {
+        const fullState = {
+          players: (session.players || []).map((p) => ({ ...p, score: 0 })),
+          currentIdx: 0,
+          round: 0,
+          activeGame: 'blobjump',
+          selectedGame: winnerId,
+          selectedCategory: session.gameState?.selectedCategory ?? null,
+          categoryVotes: session.gameState?.categoryVotes ?? {},
+        }
+        const pushRes = await pushRoom(roomCode, 'blobjump_lobby', fullState)
+        if (pushRes.error) {
+          showError('generic')
+          setLaunching(false)
+          return
+        }
+        return
+      }
+
       if (winnerId === 'sentenza') {
         const fullState = {
           players: (session.players || []).map((p) => ({ ...p, score: 0 })),

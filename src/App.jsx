@@ -9,6 +9,7 @@ import LiquidBackground from './components/LiquidBackground'
 import HomeScreen from './screens/HomeScreen'
 
 const ModeScreen = lazy(() => import('./screens/ModeScreen'))
+const CreatePartyScreen = lazy(() => import('./screens/CreatePartyScreen'))
 const JoinScreen = lazy(() => import('./screens/JoinScreen'))
 const WaitingScreen = lazy(() => import('./screens/WaitingScreen'))
 const LobbyScreen = lazy(() => import('./screens/LobbyScreen'))
@@ -19,10 +20,12 @@ const GameScreen = lazy(() => import('./screens/GameScreen'))
 const TriviaLobbyScreen = lazy(() => import('./screens/TriviaLobbyScreen'))
 const MappaLobbyScreen = lazy(() => import('./screens/MappaLobbyScreen'))
 const SentenzaLobbyScreen = lazy(() => import('./screens/SentenzaLobbyScreen'))
+const BlobJumpLobbyScreen = lazy(() => import('./screens/BlobJumpLobbyScreen'))
 const RoundEndScreen = lazy(() => import('./screens/RoundEndScreen'))
 const ScoreboardScreen = lazy(() => import('./screens/ScoreboardScreen'))
 const MappaTest = lazy(() => import('./games/Mappa/MappaTest'))
 const SentenzaTest = lazy(() => import('./games/Sentenza/SentenzaTest'))
+const BlobJumpTest = lazy(() => import('./games/BlobJump/BlobJumpTest'))
 
 function App() {
   useHostCleanup()
@@ -35,6 +38,7 @@ function App() {
         <Suspense>
           <Routes>
             <Route path="/" element={<HomeScreen />} />
+            <Route path="/create" element={<CreatePartyScreen />} />
             <Route path="/mode" element={<ModeScreen />} />
             <Route path="/join" element={<JoinScreen />} />
             <Route path="/waiting" element={<WaitingScreen />} />
@@ -45,11 +49,13 @@ function App() {
             <Route path="/trivia-lobby" element={<TriviaLobbyScreen />} />
             <Route path="/mappa-lobby" element={<MappaLobbyScreen />} />
             <Route path="/sentenza-lobby" element={<SentenzaLobbyScreen />} />
+            <Route path="/blobjump-lobby" element={<BlobJumpLobbyScreen />} />
             <Route path="/game/:gameId" element={<GameScreen />} />
             <Route path="/round-end" element={<RoundEndScreen />} />
             <Route path="/scoreboard" element={<ScoreboardScreen />} />
             <Route path="/test/mappa" element={<MappaTest />} />
             <Route path="/test/sentenza" element={<SentenzaTest />} />
+            <Route path="/test/blobjump" element={<BlobJumpTest />} />
           </Routes>
         </Suspense>
       </ConnectionContext.Provider>
