@@ -64,6 +64,8 @@ export class GameEngine {
     this.cameraY = 0
     this.maxHeight = 0
     this.score = 0
+    this.lastMilestone = 0
+    this.milestoneFlash = 0
     this.isDead = false
     this.deathScore = 0
     this.rafId = null
@@ -74,13 +76,23 @@ export class GameEngine {
     this.squash = 1
     this.squashTimer = 0
     this.lastLandedPlatform = null
+    this.consecutiveBounces = 0
 
+    // Fragile platform shake tracking
+    this.fragileTimers = {} // idx → timer countdown
+
+    // Trail particles (ascending fast)
+    this.trailParticles = []
     this.breakParticles = []
     this.landingParticles = []
     this.bgParticles = this._generateBgParticles()
     this.stars = this._generateStars()
 
     this.springCompress = {}
+    this.screenShake = 0
+
+    // Danger zone warning (near bottom of camera)
+    this.dangerAlpha = 0
 
     this.totalHeight = Math.abs(this.platforms[this.platforms.length - 1].y)
   }
@@ -137,10 +149,12 @@ export class GameEngine {
     }
   }
 
+  // ── UPDATE ──────────────────────────────────────────────
+
   update(dt) {
     const blob = this.blob
 
-    // Update input smooth states (keyboard ramp, tilt filter)
+    // Update input smooth states
     this.input.update(dt)
 
     // Direction-based movement with acceleration + friction
@@ -150,11 +164,9 @@ export class GameEngine {
     const friction = PHYSICS.MOVE_FRICTION
 
     if (Math.abs(dir) > 0.01) {
-      // Accelerate toward target velocity
       const targetVx = dir * maxSpeed
       blob.vx += (targetVx - blob.vx) * Math.min(1, accel * dt)
     } else {
-      // Apply friction to decelerate
       blob.vx *= Math.pow(friction, dt * 60)
       if (Math.abs(blob.vx) < 2) blob.vx = 0
     }
@@ -163,14 +175,30 @@ export class GameEngine {
     blob.y += blob.vy * dt
     blob.x += blob.vx * dt
 
+    // Wrap around horizontally
     if (blob.x > GAME_WIDTH + PHYSICS.BLOB_RADIUS) blob.x = -PHYSICS.BLOB_RADIUS
     if (blob.x < -PHYSICS.BLOB_RADIUS) blob.x = GAME_WIDTH + PHYSICS.BLOB_RADIUS
 
+    // Update moving platforms
     for (const p of this.platforms) {
       if (p.type !== 'moving' || p.broken) continue
       p.x += p.movingDir * p.movingSpeed * dt
       if (p.x <= 0) { p.x = 0; p.movingDir = 1 }
       if (p.x + p.width >= GAME_WIDTH) { p.x = GAME_WIDTH - p.width; p.movingDir = -1 }
+    }
+
+    // Update fragile platform shake timers
+    for (const key of Object.keys(this.fragileTimers)) {
+      this.fragileTimers[key] -= dt
+      if (this.fragileTimers[key] <= 0) {
+        const idx = parseInt(key)
+        const p = this.platforms[idx]
+        if (p && !p.broken) {
+          p.broken = true
+          this._spawnBreakParticles(p)
+        }
+        delete this.fragileTimers[key]
+      }
     }
 
     // Spring decompress
@@ -179,38 +207,126 @@ export class GameEngine {
       if (this.springCompress[key] <= 0) delete this.springCompress[key]
     }
 
+    // Collision — only when falling
     if (blob.vy > 0) {
       for (let i = 0; i < this.platforms.length; i++) {
         const p = this.platforms[i]
         if (!this._isVisible(p)) continue
         if (isLanding(blob, p)) {
-          if (p.type === 'spring') {
-            blob.vy = PHYSICS.SPRING_VELOCITY
-            this.squash = 0.55
-            this.springCompress[i] = 1
-          } else {
-            blob.vy = PHYSICS.JUMP_VELOCITY
-            this.squash = 0.7
-          }
-          this.squashTimer = 0.12
-          this.lastLandedPlatform = p
-
-          this._spawnLandingParticles(blob.x, p.y, p.type)
-
-          if (p.type === 'fragile') {
-            p.broken = true
-            this._spawnBreakParticles(p)
-          }
+          this._handleLanding(i, p)
           break
         }
       }
     }
 
+    // Squash/stretch recovery
     if (this.squashTimer > 0) {
       this.squashTimer -= dt
       if (this.squashTimer <= 0) this.squash = 1
     }
 
+    // Update particles
+    this._updateParticles(dt)
+
+    // Spawn trail when ascending fast
+    if (blob.vy < -350 && !this.isDead) {
+      this._spawnTrailParticle()
+    }
+
+    // Camera — smooth follow upward with slight anticipation
+    const anticipation = blob.vy < -200 ? blob.vy * 0.06 : 0
+    const targetCameraY = blob.y - GAME_HEIGHT * 0.62 + anticipation
+    if (targetCameraY < this.cameraY) {
+      const smoothing = 1 - Math.pow(0.0001, dt)
+      this.cameraY += (targetCameraY - this.cameraY) * smoothing
+    }
+
+    // Screen shake decay
+    if (this.screenShake > 0) {
+      this.screenShake *= Math.pow(0.02, dt)
+      if (this.screenShake < 0.3) this.screenShake = 0
+    }
+
+    // Milestone flash decay
+    if (this.milestoneFlash > 0) {
+      this.milestoneFlash -= dt * 3
+      if (this.milestoneFlash < 0) this.milestoneFlash = 0
+    }
+
+    // Score & milestones
+    const height = GAME_HEIGHT - 80 - blob.y
+    if (height > this.maxHeight) {
+      this.maxHeight = height
+      const newScore = Math.floor(this.maxHeight / PHYSICS.PIXELS_PER_METER)
+      if (newScore > this.score) {
+        this.score = newScore
+        this.onScoreUpdate?.(this.score)
+        // Milestone every 50m
+        const milestone = Math.floor(this.score / 50)
+        if (milestone > this.lastMilestone) {
+          this.lastMilestone = milestone
+          this.milestoneFlash = 1
+        }
+      }
+    }
+
+    // Danger zone — blob near bottom of camera view
+    const screenBottom = blob.y - this.cameraY
+    const dangerThreshold = GAME_HEIGHT * 0.75
+    if (screenBottom > dangerThreshold && blob.vy > 0) {
+      this.dangerAlpha = lerp(0, 0.3, (screenBottom - dangerThreshold) / (GAME_HEIGHT * 0.25))
+    } else {
+      this.dangerAlpha *= 0.9
+      if (this.dangerAlpha < 0.01) this.dangerAlpha = 0
+    }
+
+    // Death check
+    if (blob.y - this.cameraY > GAME_HEIGHT + 60) {
+      this.die()
+    }
+  }
+
+  _handleLanding(idx, platform) {
+    const blob = this.blob
+
+    if (platform.type === 'spring') {
+      blob.vy = PHYSICS.SPRING_VELOCITY
+      this.squash = 0.5
+      this.squashTimer = 0.15
+      this.springCompress[idx] = 1
+      this.screenShake = 4
+      this.consecutiveBounces++
+      this._spawnLandingParticles(blob.x, platform.y, 'spring', 8)
+    } else if (platform.type === 'fragile') {
+      blob.vy = PHYSICS.JUMP_VELOCITY
+      this.squash = 0.7
+      this.squashTimer = 0.12
+      // Start shake timer — platform breaks after delay
+      if (this.fragileTimers[idx] === undefined) {
+        this.fragileTimers[idx] = PLATFORM.FRAGILE_BREAK_DELAY
+      }
+      this.consecutiveBounces++
+      this._spawnLandingParticles(blob.x, platform.y, 'fragile', 5)
+    } else {
+      blob.vy = PHYSICS.JUMP_VELOCITY
+      this.squash = 0.7
+      this.squashTimer = 0.12
+      this.consecutiveBounces++
+      this._spawnLandingParticles(blob.x, platform.y, platform.type, 5)
+    }
+
+    // Momentum transfer from moving platforms
+    if (platform.type === 'moving') {
+      const boost = platform.movingDir * platform.movingSpeed * PHYSICS.MOVING_PLATFORM_BOOST
+      blob.vx += boost
+    }
+
+    this.lastLandedPlatform = platform
+  }
+
+  // ── PARTICLES ──────────────────────────────────────────
+
+  _updateParticles(dt) {
     for (let i = this.breakParticles.length - 1; i >= 0; i--) {
       const bp = this.breakParticles[i]
       bp.x += bp.vx * dt
@@ -230,21 +346,59 @@ export class GameEngine {
       if (lp.life <= 0) this.landingParticles.splice(i, 1)
     }
 
-    const targetCameraY = blob.y - GAME_HEIGHT * 0.65
-    if (targetCameraY < this.cameraY) {
-      const smoothing = 1 - Math.pow(0.0001, dt)
-      this.cameraY += (targetCameraY - this.cameraY) * smoothing
+    for (let i = this.trailParticles.length - 1; i >= 0; i--) {
+      const tp = this.trailParticles[i]
+      tp.life -= dt
+      tp.size *= 0.96
+      tp.alpha *= 0.95
+      if (tp.life <= 0 || tp.alpha < 0.01) this.trailParticles.splice(i, 1)
     }
+  }
 
-    const height = (GAME_HEIGHT - 80 - blob.y)
-    if (height > this.maxHeight) {
-      this.maxHeight = height
-      this.score = Math.floor(this.maxHeight / PHYSICS.PIXELS_PER_METER)
-      this.onScoreUpdate?.(this.score)
+  _spawnTrailParticle() {
+    const blob = this.blob
+    this.trailParticles.push({
+      x: blob.x + (Math.random() - 0.5) * PHYSICS.BLOB_RADIUS * 0.8,
+      y: blob.y + PHYSICS.BLOB_RADIUS * 0.6,
+      size: 2 + Math.random() * 3,
+      alpha: 0.3 + Math.random() * 0.2,
+      life: 0.3 + Math.random() * 0.2,
+      color: this.blobGrad[1],
+    })
+  }
+
+  _spawnBreakParticles(platform) {
+    const cx = platform.x + platform.width / 2
+    const cy = platform.y
+    for (let i = 0; i < 10; i++) {
+      this.breakParticles.push({
+        x: cx + (Math.random() - 0.5) * platform.width,
+        y: cy + Math.random() * PLATFORM.HEIGHT,
+        vx: (Math.random() - 0.5) * 300,
+        vy: -Math.random() * 200 - 50,
+        size: 3 + Math.random() * 5,
+        rotation: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 12,
+        life: 0.5 + Math.random() * 0.5,
+        color: PLATFORM_STYLES.fragile.fill,
+      })
     }
+  }
 
-    if (blob.y - this.cameraY > GAME_HEIGHT + 60) {
-      this.die()
+  _spawnLandingParticles(x, platformY, type, count) {
+    const color = PLATFORM_STYLES[type]?.fill || PLATFORM_STYLES.normal.fill
+    for (let i = 0; i < count; i++) {
+      const angle = Math.PI + (Math.random() - 0.5) * Math.PI * 0.8
+      const speed = 40 + Math.random() * 100
+      this.landingParticles.push({
+        x: x + (Math.random() - 0.5) * 10,
+        y: platformY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 30,
+        life: 0.25 + Math.random() * 0.25,
+        color,
+        size: 2 + Math.random() * 3,
+      })
     }
   }
 
@@ -260,54 +414,28 @@ export class GameEngine {
     return screenY > -50 && screenY < GAME_HEIGHT + 50
   }
 
-  _spawnBreakParticles(platform) {
-    const cx = platform.x + platform.width / 2
-    const cy = platform.y
-    for (let i = 0; i < 8; i++) {
-      this.breakParticles.push({
-        x: cx + (Math.random() - 0.5) * platform.width,
-        y: cy + Math.random() * PLATFORM.HEIGHT,
-        vx: (Math.random() - 0.5) * 250,
-        vy: -Math.random() * 180 - 40,
-        size: 3 + Math.random() * 5,
-        rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 10,
-        life: 0.5 + Math.random() * 0.4,
-        color: PLATFORM_STYLES.fragile.fill,
-      })
-    }
-  }
-
-  _spawnLandingParticles(x, platformY, type) {
-    const color = PLATFORM_STYLES[type]?.fill || PLATFORM_STYLES.normal.fill
-    for (let i = 0; i < 5; i++) {
-      const angle = Math.PI + (Math.random() - 0.5) * Math.PI * 0.8
-      const speed = 40 + Math.random() * 80
-      this.landingParticles.push({
-        x: x + (Math.random() - 0.5) * 10,
-        y: platformY,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 30,
-        life: 0.25 + Math.random() * 0.2,
-        color,
-        size: 2 + Math.random() * 2,
-      })
-    }
-  }
-
   // ── RENDER ──────────────────────────────────────────────
 
   render() {
     const ctx = this.ctx
     const cam = this.cameraY
 
-    ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT)
+    // Apply screen shake
+    ctx.save()
+    if (this.screenShake > 0) {
+      const sx = (Math.random() - 0.5) * this.screenShake * 2
+      const sy = (Math.random() - 0.5) * this.screenShake * 2
+      ctx.translate(sx, sy)
+    }
+
+    ctx.clearRect(-5, -5, GAME_WIDTH + 10, GAME_HEIGHT + 10)
 
     const progress = Math.min(1, this.maxHeight / (this.totalHeight * 0.7))
     this._drawBackground(ctx, progress)
     this._drawBgParticles(ctx, cam, progress)
     this._drawStars(ctx, cam, progress)
 
+    // Draw platforms
     for (let i = 0; i < this.platforms.length; i++) {
       const p = this.platforms[i]
       if (p.broken) continue
@@ -321,6 +449,19 @@ export class GameEngine {
     if (!this.isDead) {
       this._drawBlob(ctx, this.blob.x, this.blob.y - cam, false)
     }
+
+    // Danger zone vignette
+    if (this.dangerAlpha > 0) {
+      this._drawDangerVignette(ctx)
+    }
+
+    // Milestone flash
+    if (this.milestoneFlash > 0) {
+      ctx.fillStyle = `rgba(255,255,255,${this.milestoneFlash * 0.15})`
+      ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT)
+    }
+
+    ctx.restore()
   }
 
   _drawBackground(ctx, progress) {
@@ -359,7 +500,29 @@ export class GameEngine {
     }
   }
 
+  _drawDangerVignette(ctx) {
+    const a = this.dangerAlpha
+    // Bottom edge red glow
+    const grad = ctx.createLinearGradient(0, GAME_HEIGHT * 0.7, 0, GAME_HEIGHT)
+    grad.addColorStop(0, 'rgba(239,68,68,0)')
+    grad.addColorStop(1, `rgba(239,68,68,${a})`)
+    ctx.fillStyle = grad
+    ctx.fillRect(0, GAME_HEIGHT * 0.7, GAME_WIDTH, GAME_HEIGHT * 0.3)
+    // Side glows
+    const sideGrad = ctx.createLinearGradient(0, 0, 20, 0)
+    sideGrad.addColorStop(0, `rgba(239,68,68,${a * 0.5})`)
+    sideGrad.addColorStop(1, 'rgba(239,68,68,0)')
+    ctx.fillStyle = sideGrad
+    ctx.fillRect(0, GAME_HEIGHT * 0.5, 20, GAME_HEIGHT * 0.5)
+    const sideGrad2 = ctx.createLinearGradient(GAME_WIDTH, 0, GAME_WIDTH - 20, 0)
+    sideGrad2.addColorStop(0, `rgba(239,68,68,${a * 0.5})`)
+    sideGrad2.addColorStop(1, 'rgba(239,68,68,0)')
+    ctx.fillStyle = sideGrad2
+    ctx.fillRect(GAME_WIDTH - 20, GAME_HEIGHT * 0.5, 20, GAME_HEIGHT * 0.5)
+  }
+
   _drawParticles(ctx, cam) {
+    // Break particles
     for (const bp of this.breakParticles) {
       const sy = bp.y - cam
       ctx.save()
@@ -373,6 +536,7 @@ export class GameEngine {
     }
     ctx.globalAlpha = 1
 
+    // Landing particles
     for (const lp of this.landingParticles) {
       const sy = lp.y - cam
       const a = Math.max(0, lp.life * 4)
@@ -383,12 +547,33 @@ export class GameEngine {
       ctx.fill()
     }
     ctx.globalAlpha = 1
+
+    // Trail particles
+    for (const tp of this.trailParticles) {
+      const sy = tp.y - cam
+      ctx.fillStyle = tp.color
+      ctx.globalAlpha = tp.alpha
+      ctx.beginPath()
+      ctx.arc(tp.x, sy, tp.size, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    ctx.globalAlpha = 1
   }
 
   _drawPlatform(ctx, p, screenY, idx) {
     const style = PLATFORM_STYLES[p.type] || PLATFORM_STYLES.normal
     const r = PLATFORM.HEIGHT / 2
     const h = PLATFORM.HEIGHT
+
+    // Fragile shake when about to break
+    let shakeX = 0
+    if (this.fragileTimers[idx] !== undefined) {
+      const intensity = 1 - this.fragileTimers[idx] / PLATFORM.FRAGILE_BREAK_DELAY
+      shakeX = Math.sin(this.elapsed * 80) * intensity * 4
+    }
+
+    ctx.save()
+    if (shakeX) ctx.translate(shakeX, 0)
 
     // Glow for moving/spring
     if (style.glow) {
@@ -410,7 +595,7 @@ export class GameEngine {
     ctx.shadowBlur = 0
 
     // Subtle top shine
-    ctx.strokeStyle = `rgba(255,255,255,0.3)`
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)'
     ctx.lineWidth = 1
     ctx.beginPath()
     ctx.moveTo(p.x + r, screenY + 1.5)
@@ -427,11 +612,11 @@ export class GameEngine {
       ctx.lineCap = 'round'
       ctx.beginPath()
       const coilW = 7, coils = 3
-      for (let i = 0; i <= coils * 2; i++) {
-        const t = i / (coils * 2)
-        const sx = cx + (i % 2 === 0 ? -coilW : coilW)
+      for (let j = 0; j <= coils * 2; j++) {
+        const t = j / (coils * 2)
+        const sx = cx + (j % 2 === 0 ? -coilW : coilW)
         const sy = screenY - 2 - t * coilH
-        if (i === 0) ctx.moveTo(cx, screenY - 2)
+        if (j === 0) ctx.moveTo(cx, screenY - 2)
         else ctx.lineTo(sx, sy)
       }
       ctx.stroke()
@@ -463,7 +648,6 @@ export class GameEngine {
       ctx.fillStyle = 'rgba(255,255,255,0.4)'
       const arrowY = screenY + h / 2
       const dir = p.movingDir
-      // Small arrow indicating direction
       ctx.beginPath()
       ctx.moveTo(p.x + p.width / 2 + dir * 8, arrowY)
       ctx.lineTo(p.x + p.width / 2 - dir * 3, arrowY - 3)
@@ -471,7 +655,11 @@ export class GameEngine {
       ctx.closePath()
       ctx.fill()
     }
+
+    ctx.restore()
   }
+
+  // ── BLOB RENDERING ─────────────────────────────────────
 
   _drawBlob(ctx, x, screenY, isDead) {
     const blob = this.blob
@@ -497,7 +685,7 @@ export class GameEngine {
     ctx.translate(x, screenY)
     ctx.scale(scaleX, scaleY)
 
-    // Body with 3-stop radial gradient from BLOB_GRADIENTS
+    // Body with 3-stop radial gradient
     const [light, mid, dark] = this.blobGrad
     const bodyGrad = ctx.createRadialGradient(-4, -5, 1, 0, 2, r * 1.1)
     bodyGrad.addColorStop(0, light)
@@ -508,7 +696,7 @@ export class GameEngine {
     ctx.arc(0, 0, r, 0, Math.PI * 2)
     ctx.fill()
 
-    // Subtle inner glow
+    // Inner glow
     const glowGrad = ctx.createRadialGradient(-3, -4, 0, 0, 0, r)
     glowGrad.addColorStop(0, 'rgba(255,255,255,0.25)')
     glowGrad.addColorStop(0.5, 'rgba(255,255,255,0)')
@@ -536,14 +724,15 @@ export class GameEngine {
 
   _drawAliveEyes(ctx, r) {
     const blob = this.blob
-    const lookDir = blob.vx > 30 ? 1 : blob.vx < -30 ? -1 : 0
+    // Smooth look direction based on velocity
+    const lookX = Math.max(-1, Math.min(1, blob.vx / 200))
     const eyeSpacing = r * 0.42
     const eyeY = -r * 0.12
     const eyeRx = r * 0.28
     const eyeRy = r * 0.32
     const pupilR = r * 0.15
-    const pupilOff = lookDir * 2.8
-    const pupilYOff = blob.vy > 300 ? 1.5 : blob.vy < -400 ? -1.5 : 0.5
+    const pupilOff = lookX * 3.2
+    const pupilYOff = blob.vy > 300 ? 2 : blob.vy < -400 ? -2 : 0.5
 
     for (const side of [-1, 1]) {
       const ex = side * eyeSpacing
@@ -588,7 +777,6 @@ export class GameEngine {
 
     for (const side of [-1, 1]) {
       const ex = side * eyeSpacing
-      // X shape
       ctx.beginPath()
       ctx.moveTo(ex - s, eyeY - s)
       ctx.lineTo(ex + s, eyeY + s)
