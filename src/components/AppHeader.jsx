@@ -1,20 +1,13 @@
-// Header standard dell'app: 3 slot orizzontali.
-//   leading    | logo Blob Party (centro)    | actions
-//   (sinistra)                                  (destra)
-//
-// Il logo è cliccabile e fa reset session → /.
-// I caller passano `leading` (es. back btn host) e `actions` (es. counter/badge).
-
 import { useNavigate } from 'react-router-dom'
-import BlobLogo from './ui/BlobLogo'
 import { useSession } from '../stores/useSession'
 import { closeRoom } from '../lib/room'
 
-const AppHeader = ({ actions = null, leading = null }) => {
+const AppHeader = ({ actions = null, leading = null, accentColor }) => {
   const navigate = useNavigate()
   const isHost = useSession((s) => s.isHost)
   const roomCode = useSession((s) => s.roomCode)
   const resetSession = useSession((s) => s.resetSession)
+  const accent = accentColor || '#7C3AED'
 
   const handleLogoClick = async () => {
     if (isHost && roomCode) {
@@ -26,22 +19,41 @@ const AppHeader = ({ actions = null, leading = null }) => {
 
   return (
     <header className="screen-header" style={{ position: 'relative' }}>
-      {/* Slot sinistra (back btn / placeholder) */}
       <div style={slotStyle}>
         {leading || <div style={{ width: 36 }} />}
       </div>
 
-      {/* Logo centrato */}
-      <div style={{
-        position: 'absolute',
-        left: '50%',
-        top: '50%',
-        transform: 'translate(-50%, -50%)',
-      }}>
-        <BlobLogo size="md" clickable onClick={handleLogoClick} />
-      </div>
+      <button
+        type="button"
+        onClick={handleLogoClick}
+        style={{
+          position: 'absolute',
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          cursor: 'pointer',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 0,
+        }}
+        aria-label="Blob Party"
+      >
+        <span
+          style={{
+            fontSize: 'clamp(17px, 2.3dvh, 20px)',
+            fontWeight: 900,
+            letterSpacing: '-0.025em',
+            color: accent,
+            lineHeight: 1,
+          }}
+        >
+          Blob Party
+        </span>
+      </button>
 
-      {/* Slot destra (indicatori / actions) */}
       <div style={{ ...slotStyle, marginLeft: 'auto' }}>
         {actions || <div style={{ width: 36 }} />}
       </div>

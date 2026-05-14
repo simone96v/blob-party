@@ -19,7 +19,7 @@ const SentenzaFinal = ({
 
   return (
     <div style={S.container}>
-      <AppHeader />
+      <AppHeader accentColor="#6366F1" />
 
       <div style={S.body}>
         <motion.div

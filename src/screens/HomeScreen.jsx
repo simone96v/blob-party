@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
+import AppHeader from '../components/AppHeader'
 import GradientTitle from '../components/ui/GradientTitle'
 import OptionCard from '../components/ui/OptionCard'
 import Spinner from '../components/ui/Spinner'
@@ -268,13 +269,14 @@ const HomeScreen = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
     >
+      <AppHeader />
       <ErrorBanner />
 
       <div
         className="screen-body"
         style={{
           justifyContent: 'center',
-          paddingTop: 'clamp(16px, 3dvh, 28px)',
+          paddingTop: 'clamp(12px, 2dvh, 20px)',
           paddingBottom: 'clamp(16px, 3dvh, 28px)',
           gap: 'clamp(20px, 3.5dvh, 36px)',
         }}
@@ -338,7 +340,6 @@ const HomeScreen = () => {
 
       </div>
 
-      <TopBlob expr={topExpr} />
       <BottomBlob expr={bottomExpr} />
     </motion.div>
   )

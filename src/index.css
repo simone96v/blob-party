@@ -190,11 +190,13 @@ body {
 
 .screen-header {
   flex-shrink: 0;
-  height: clamp(52px, 8dvh, 68px);
+  height: clamp(48px, 7dvh, 56px);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 clamp(16px, 4vw, 28px);
+  padding: 0 clamp(12px, 3vw, 20px);
+  background: #fff;
+  border-bottom: 1px solid var(--border);
 }
 
 .screen-body {
@@ -249,6 +251,6 @@ body {
 }
 
 @media (max-height: 680px) {
-  .screen-header { height: 48px; }
+  .screen-header { height: 44px; }
   .screen-footer { height: 60px; }
 }

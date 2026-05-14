@@ -137,6 +137,7 @@ const MappaLobbyScreen = () => {
   return (
     <div style={S.container}>
       <AppHeader
+        accentColor="#059669"
         leading={isHost && <IconButton ariaLabel="Indietro" onClick={handleBack}>←</IconButton>}
       />
 

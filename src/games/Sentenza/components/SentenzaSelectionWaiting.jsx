@@ -24,6 +24,7 @@ const SentenzaSelectionWaiting = ({
   return (
     <div style={S.container}>
       <AppHeader
+        accentColor="#6366F1"
         leading={isHost && <IconButton ariaLabel="Esci" onClick={onExit}>←</IconButton>}
         actions={<RoundBadge n={currentRound} total={totalRounds} />}
       />

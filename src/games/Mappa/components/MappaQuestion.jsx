@@ -34,6 +34,7 @@ const MappaQuestion = ({
   return (
     <div style={S.container}>
       <AppHeader
+        accentColor="#059669"
         leading={isHost && <IconButton ariaLabel="Esci" onClick={onExit}>←</IconButton>}
         actions={<RoundBadge n={questionNumber} total={totalQuestions} />}
       />

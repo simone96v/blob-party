@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import AppHeader from '../../../components/AppHeader'
 import GradientTitle from '../../../components/ui/GradientTitle'
 import Button from '../../../components/ui/Button'
 import PlayerAvatar from '../../../components/PlayerAvatar'
@@ -18,6 +19,7 @@ const MappaFinal = ({
 
   return (
     <div style={S.container}>
+      <AppHeader accentColor="#059669" />
       <div style={S.body}>
         <motion.div
           initial={{ opacity: 0, y: -10 }}
