@@ -1,0 +1,1602 @@
+[
+  {
+    "question": "Chi ha composto l'opera 'La Traviata'?",
+    "answers": ["Giacomo Puccini", "Giuseppe Verdi", "Gioachino Rossini", "Gaetano Donizetti"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "opera"
+  },
+  {
+    "question": "Quale cantante è nota come 'la tigre di Cremona'?",
+    "answers": ["Mina", "Ornella Vanoni", "Patty Pravo", "Iva Zanicchi"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "pop"
+  },
+  {
+    "question": "Chi ha cantato 'La canzone del sole'?",
+    "answers": ["Fabrizio De André", "Franco Battiato", "Lucio Battisti", "Lucio Dalla"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Quale opera di Puccini è ambientata in Giappone?",
+    "answers": ["Tosca", "La Bohème", "Turandot", "Madama Butterfly"],
+    "correct": 3,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "opera"
+  },
+  {
+    "question": "Quale rapper italiano ha pubblicato l'album 'Persona'?",
+    "answers": ["Ghali", "Marracash", "Guè", "Tedua"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rap"
+  },
+  {
+    "question": "Chi ha vinto il Festival di Sanremo nel 2022?",
+    "answers": ["Mahmood e Blanco", "Gianni Morandi", "Elisa", "Irama"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Quale compositore ha scritto 'Le quattro stagioni'?",
+    "answers": ["Johann Sebastian Bach", "Wolfgang Amadeus Mozart", "Antonio Vivaldi", "Arcangelo Corelli"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "classica"
+  },
+  {
+    "question": "In che anno Toto Cutugno vinse l'Eurovision?",
+    "answers": ["1988", "1990", "1992", "1986"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "eurovision"
+  },
+  {
+    "question": "Di quale città sono originari i Litfiba?",
+    "answers": ["Milano", "Roma", "Firenze", "Bologna"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rock"
+  },
+  {
+    "question": "Chi ha cantato 'Caruso'?",
+    "answers": ["Lucio Dalla", "Andrea Bocelli", "Zucchero", "Pino Daniele"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Quale band italiana ha inciso 'Impressioni di settembre'?",
+    "answers": ["Pooh", "Premiata Forneria Marconi", "Banco del Mutuo Soccorso", "New Trolls"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "band"
+  },
+  {
+    "question": "Chi ha scritto 'Bocca di rosa'?",
+    "answers": ["Francesco Guccini", "Fabrizio De André", "Francesco De Gregori", "Roberto Vecchioni"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Laura Pausini ha vinto un Grammy nel...",
+    "answers": ["2004", "2006", "2008", "2010"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "pop"
+  },
+  {
+    "question": "Quale opera di Rossini ha l'ouverture più famosa?",
+    "answers": ["L'Italiana in Algeri", "Il barbiere di Siviglia", "La Cenerentola", "Semiramide"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "opera"
+  },
+  {
+    "question": "Chi ha cantato 'Azzurro' per la prima volta?",
+    "answers": ["Adriano Celentano", "Paolo Conte", "Al Bano", "Gianni Morandi"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "pop"
+  },
+  {
+    "question": "Quale rapper ha pubblicato l'album 'DNA'?",
+    "answers": ["Marracash", "Salmo", "Ghali", "Capo Plaza"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rap"
+  },
+  {
+    "question": "Di quale regione era originario Fabrizio De André?",
+    "answers": ["Toscana", "Liguria", "Piemonte", "Lombardia"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Chi ha vinto Sanremo 2021 con 'Zitti e buoni'?",
+    "answers": ["Ermal Meta", "Colapesce Dimartino", "Måneskin", "Fedez e Michielin"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Quale opera di Verdi è basata su Shakespeare?",
+    "answers": ["Aida", "Nabucco", "Otello", "La Traviata"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "opera"
+  },
+  {
+    "question": "Chi è il cantante dei Pooh?",
+    "answers": ["Roby Facchinetti", "Dodi Battaglia", "Red Canzian", "Stefano D'Orazio"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "band"
+  },
+  {
+    "question": "Quale brano ha portato Eros Ramazzotti a Sanremo 1986?",
+    "answers": ["Se bastasse una canzone", "Adesso tu", "Terra promessa", "Musica è"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Chi ha composto 'Norma'?",
+    "answers": ["Vincenzo Bellini", "Gaetano Donizetti", "Giuseppe Verdi", "Gioachino Rossini"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "opera"
+  },
+  {
+    "question": "Qual è il vero nome di Sfera Ebbasta?",
+    "answers": ["Gionata Boschetti", "Fabio Ferrara", "Andrea Ferretti", "Marco Cataldi"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "rap"
+  },
+  {
+    "question": "Quante volte ha vinto Sanremo Domenico Modugno?",
+    "answers": ["Due", "Tre", "Quattro", "Una"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Chi ha cantato 'Centro di gravità permanente'?",
+    "answers": ["Lucio Dalla", "Franco Battiato", "Lucio Battisti", "Ivan Graziani"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Quale band ha inciso 'Noi non ci saremo'?",
+    "answers": ["Nomadi", "Pooh", "Equipe 84", "Dik Dik"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "band"
+  },
+  {
+    "question": "In quale città si tiene il Festival di Sanremo?",
+    "answers": ["Genova", "Napoli", "Sanremo", "Roma"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Chi ha composto la colonna sonora di 'C'era una volta in America'?",
+    "answers": ["Nino Rota", "Ennio Morricone", "Nicola Piovani", "Luis Bacalov"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "classica"
+  },
+  {
+    "question": "Quale rapper italiano è nato a Milano?",
+    "answers": ["Fabri Fibra", "Fedez", "Ghali", "Salmo"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rap"
+  },
+  {
+    "question": "Chi ha vinto Sanremo 2020 con 'Fai rumore'?",
+    "answers": ["Diodato", "Francesco Gabbani", "Pinguini Tattici Nucleari", "Elodie"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Quale opera di Puccini è ambientata a Roma?",
+    "answers": ["La Bohème", "Tosca", "Madama Butterfly", "Turandot"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "opera"
+  },
+  {
+    "question": "Chi ha cantato 'Sally' nell'album Khorakhané?",
+    "answers": ["Ligabue", "Vasco Rossi", "Fabrizio De André", "Zucchero"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "cantautori"
+  },
+  {
+    "question": "I Nomadi sono originari di quale regione?",
+    "answers": ["Emilia-Romagna", "Lombardia", "Veneto", "Toscana"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "band"
+  },
+  {
+    "question": "Quale cantante ha inciso 'Almeno tu nell'universo'?",
+    "answers": ["Mia Martini", "Ornella Vanoni", "Mina", "Gianna Nannini"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Come si chiama il produttore Charlie Charles?",
+    "answers": ["Andrea Ferrara", "Paolo Cozzi", "Andrea Ferretti", "Alessandro Ferreri"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "rap"
+  },
+  {
+    "question": "In che anno è morto Lucio Dalla?",
+    "answers": ["2010", "2012", "2014", "2011"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Quale opera contiene il coro 'Va, pensiero'?",
+    "answers": ["Aida", "Rigoletto", "Nabucco", "Il Trovatore"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "opera"
+  },
+  {
+    "question": "Chi ha cantato 'Sapore di sale'?",
+    "answers": ["Fred Buscaglione", "Gino Paoli", "Luigi Tenco", "Sergio Endrigo"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Gigliola Cinquetti vinse l'Eurovision con quale canzone?",
+    "answers": ["Dio, come ti amo", "Non ho l'età", "Si", "La pioggia"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "eurovision"
+  },
+  {
+    "question": "Quanti anni aveva Gigliola Cinquetti quando vinse l'Eurovision?",
+    "answers": ["16", "18", "20", "14"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "eurovision"
+  },
+  {
+    "question": "Chi è il frontman dei Subsonica?",
+    "answers": ["Davide Dileo", "Samuel", "Max Casacci", "Ninja"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rock"
+  },
+  {
+    "question": "Quale brano ha reso famoso Tiziano Ferro nel 2001?",
+    "answers": ["Perdono", "Xdono", "Sere nere", "Ti scatterò una foto"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "pop"
+  },
+  {
+    "question": "Chi ha scritto la musica di 'Pagliacci'?",
+    "answers": ["Pietro Mascagni", "Giacomo Puccini", "Ruggero Leoncavallo", "Amilcare Ponchielli"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "opera"
+  },
+  {
+    "question": "Quale rapper ha collaborato con Cremonini in 'Poetica'?",
+    "answers": ["Marracash", "Fabri Fibra", "Salmo", "Nessun rapper"],
+    "correct": 3,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "rap"
+  },
+  {
+    "question": "Come si chiama l'album di debutto di Vasco Rossi?",
+    "answers": ["Colpa d'Alfredo", "Ma cosa vuoi che sia una canzone", "Siamo solo noi", "Bollicine"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "rock"
+  },
+  {
+    "question": "Chi ha cantato 'Vita spericolata' per la prima volta?",
+    "answers": ["Ligabue", "Zucchero", "Vasco Rossi", "Gianna Nannini"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "rock"
+  },
+  {
+    "question": "Quale cantautore ha scritto 'La locomotiva'?",
+    "answers": ["Fabrizio De André", "Francesco De Gregori", "Francesco Guccini", "Roberto Vecchioni"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Chi ha rappresentato l'Italia all'Eurovision 2019?",
+    "answers": ["Mahmood", "Il Volo", "Francesco Gabbani", "Ermal Meta"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "eurovision"
+  },
+  {
+    "question": "Quale album di Battiato contiene 'La cura'?",
+    "answers": ["La voce del padrone", "Fisiognomica", "L'imboscata", "Gommalacca"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Di dove sono originari i Negramaro?",
+    "answers": ["Puglia", "Campania", "Calabria", "Sicilia"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "band"
+  },
+  {
+    "question": "Chi ha cantato 'Generale'?",
+    "answers": ["Lucio Dalla", "Fabrizio De André", "Francesco De Gregori", "Antonello Venditti"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "cantautori"
+  },
+  {
+    "question": "In che anno i Ricchi e Poveri debuttarono a Sanremo?",
+    "answers": ["1968", "1970", "1972", "1974"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Quale opera di Donizetti ha un celebre sestetto?",
+    "answers": ["L'elisir d'amore", "Lucia di Lammermoor", "Don Pasquale", "La Favorita"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "opera"
+  },
+  {
+    "question": "Ghali è nato in quale città italiana?",
+    "answers": ["Roma", "Torino", "Milano", "Bologna"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rap"
+  },
+  {
+    "question": "Quale brano dei Måneskin è stato il primo singolo?",
+    "answers": ["Chosen", "Morirò da re", "Torna a casa", "Beggin'"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "rock"
+  },
+  {
+    "question": "Chi ha cantato 'Il cielo in una stanza'?",
+    "answers": ["Luigi Tenco", "Mina", "Gino Paoli", "Ornella Vanoni"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Quale cantante ha vinto Sanremo nel 2019?",
+    "answers": ["Ultimo", "Mahmood", "Il Volo", "Irama"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Come si chiama il disco d'esordio di Laura Pausini?",
+    "answers": ["La solitudine", "Le cose che vivi", "Laura", "Tra te e il mare"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "pop"
+  },
+  {
+    "question": "Quale compositore barocco italiano scrisse oltre 500 concerti?",
+    "answers": ["Arcangelo Corelli", "Antonio Vivaldi", "Domenico Scarlatti", "Tomaso Albinoni"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "classica"
+  },
+  {
+    "question": "Chi ha scritto 'Don't Forget to Remember Me' al Festival?",
+    "answers": ["Zucchero", "Toto Cutugno", "Al Bano", "Eros Ramazzotti"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "eurovision"
+  },
+  {
+    "question": "Quale band italiana ha pubblicato 'Anidride solforosa'?",
+    "answers": ["Litfiba", "CCCP", "Marlene Kuntz", "Afterhours"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "rock"
+  },
+  {
+    "question": "Chi ha cantato 'Questo piccolo grande amore'?",
+    "answers": ["Gianni Morandi", "Claudio Baglioni", "Lucio Battisti", "Riccardo Cocciante"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "pop"
+  },
+  {
+    "question": "Marracash ha origini di quale paese?",
+    "answers": ["Tunisia", "Egitto", "Marocco", "Algeria"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "rap"
+  },
+  {
+    "question": "In che anno è stato fondato il Festival di Sanremo?",
+    "answers": ["1949", "1951", "1953", "1955"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Quale opera di Verdi è ambientata in Egitto?",
+    "answers": ["La Traviata", "Rigoletto", "Il Trovatore", "Aida"],
+    "correct": 3,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "opera"
+  },
+  {
+    "question": "Chi ha cantato 'Albachiara'?",
+    "answers": ["Luciano Ligabue", "Gianna Nannini", "Vasco Rossi", "Renato Zero"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "rock"
+  },
+  {
+    "question": "Quale cantautore napoletano ha scritto 'Napule è'?",
+    "answers": ["Pino Daniele", "Edoardo Bennato", "Enzo Avitabile", "Alan Sorrenti"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Quante volte l'Italia ha vinto l'Eurovision Song Contest?",
+    "answers": ["Due", "Tre", "Quattro", "Una"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "eurovision"
+  },
+  {
+    "question": "Chi è il cantante dei Modà?",
+    "answers": ["Enrico Ruggeri", "Kekko Silvestre", "Piero Pelù", "Max Pezzali"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "band"
+  },
+  {
+    "question": "Quale brano di Mina è del 1960 e provocò scandalo?",
+    "answers": ["Parole parole", "Tintarella di luna", "Il cielo in una stanza", "Nessuno"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "pop"
+  },
+  {
+    "question": "Chi ha scritto 'Cavalleria Rusticana'?",
+    "answers": ["Giacomo Puccini", "Giuseppe Verdi", "Pietro Mascagni", "Ruggero Leoncavallo"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "opera"
+  },
+  {
+    "question": "Quale rapper è leader del collettivo Machete?",
+    "answers": ["Ghali", "Marracash", "Salmo", "Fabri Fibra"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rap"
+  },
+  {
+    "question": "Come si chiamava il gruppo di Andrea Bocelli prima del successo?",
+    "answers": ["Non ha avuto gruppi", "Insieme", "I Baratti", "Nucleo"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "pop"
+  },
+  {
+    "question": "Quale cantante ha vinto Sanremo 2018 con 'Non mi avete fatto niente'?",
+    "answers": ["Lo Stato Sociale", "Annalisa", "Ermal Meta e Fabrizio Moro", "Ron"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Di quale strumento era virtuoso Niccolò Paganini?",
+    "answers": ["Pianoforte", "Violoncello", "Violino", "Flauto"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "classica"
+  },
+  {
+    "question": "Quale brano portò Mahmood all'Eurovision 2019?",
+    "answers": ["Barrio", "Soldi", "Rapide", "Gioventù bruciata"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "eurovision"
+  },
+  {
+    "question": "Chi ha fondato la Premiata Forneria Marconi?",
+    "answers": ["Mauro Pagani", "Franco Mussida", "Franz Di Cioccio", "Patrick Djivas"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "band"
+  },
+  {
+    "question": "Quale cantautore ha scritto 'L'anno che verrà'?",
+    "answers": ["Francesco De Gregori", "Lucio Dalla", "Antonello Venditti", "Claudio Baglioni"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "cantautori"
+  },
+  {
+    "question": "In che anno Eros Ramazzotti vinse Sanremo Giovani?",
+    "answers": ["1982", "1984", "1986", "1988"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Quale opera di Puccini è rimasta incompiuta?",
+    "answers": ["La Bohème", "Tosca", "Turandot", "Madama Butterfly"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "opera"
+  },
+  {
+    "question": "Chi ha cantato 'Vieni via con me'?",
+    "answers": ["Jovanotti", "Cesare Cremonini", "Paolo Conte", "Roberto Vecchioni"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Quale rapper ha pubblicato l'album 'Noi, loro, gli altri'?",
+    "answers": ["Guè", "Tedua", "Marracash", "Lazza"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rap"
+  },
+  {
+    "question": "In quale anno è nato il Rock in Roma festival?",
+    "answers": ["2002", "2005", "2008", "2011"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "rock"
+  },
+  {
+    "question": "Chi ha cantato 'Felicità' con Romina Power?",
+    "answers": ["Toto Cutugno", "Adriano Celentano", "Al Bano", "Gianni Morandi"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "pop"
+  },
+  {
+    "question": "Quante sinfonie ha composto Vivaldi?",
+    "answers": ["Nessuna sinfonia nota", "Circa 10", "Circa 50", "Oltre 100"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "classica"
+  },
+  {
+    "question": "Quale brano di Zucchero ha cantato con Pavarotti?",
+    "answers": ["Baila", "Miserere", "Il volo", "Senza una donna"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "pop"
+  },
+  {
+    "question": "Chi ha vinto Sanremo 2017 con 'Occidentali's Karma'?",
+    "answers": ["Fiorella Mannoia", "Ermal Meta", "Michele Bravi", "Francesco Gabbani"],
+    "correct": 3,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Quale compositore ha scritto 'Adagio in Sol minore'?",
+    "answers": ["Antonio Vivaldi", "Tomaso Albinoni", "Arcangelo Corelli", "Alessandro Marcello"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "classica"
+  },
+  {
+    "question": "Di quale città è originario Fabri Fibra?",
+    "answers": ["Roma", "Senigallia", "Milano", "Napoli"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rap"
+  },
+  {
+    "question": "Quale album di Vasco Rossi contiene 'Siamo solo noi'?",
+    "answers": ["Bollicine", "Siamo solo noi", "Colpa d'Alfredo", "Vita spericolata"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rock"
+  },
+  {
+    "question": "Chi è il tastierista storico dei Pooh?",
+    "answers": ["Red Canzian", "Dodi Battaglia", "Roby Facchinetti", "Stefano D'Orazio"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "band"
+  },
+  {
+    "question": "Quale cantautore ha scritto 'Rimmel'?",
+    "answers": ["Lucio Dalla", "Francesco De Gregori", "Antonello Venditti", "Claudio Baglioni"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "cantautori"
+  },
+  {
+    "question": "In che anno Al Bano e Romina parteciparono all'Eurovision?",
+    "answers": ["1983", "1985", "1987", "1989"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "eurovision"
+  },
+  {
+    "question": "Quale opera di Verdi debuttò alla Scala nel 1842?",
+    "answers": ["Rigoletto", "Nabucco", "La Traviata", "Macbeth"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "opera"
+  },
+  {
+    "question": "Come si chiama il vero nome di Capo Plaza?",
+    "answers": ["Luca D'Orso", "Andrea Ferrara", "Marco Cataldi", "Paolo Ferretti"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "rap"
+  },
+  {
+    "question": "Chi ha cantato 'Sara' nel 1972?",
+    "answers": ["Lucio Battisti", "Pooh", "Nomadi", "Lucio Dalla"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Quale Festival si tiene a Castrocaro?",
+    "answers": ["Festival dei giovani", "Voci nuove", "Nuove proposte", "Cantagiro"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Chi ha scritto 'L'elisir d'amore'?",
+    "answers": ["Vincenzo Bellini", "Gioachino Rossini", "Giuseppe Verdi", "Gaetano Donizetti"],
+    "correct": 3,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "opera"
+  },
+  {
+    "question": "Quale band è nota per il brano 'Dammi solo un minuto'?",
+    "answers": ["Pooh", "883", "Modà", "Negramaro"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "band"
+  },
+  {
+    "question": "In che anno morì Franco Battiato?",
+    "answers": ["2019", "2020", "2021", "2022"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Chi ha cantato 'La donna cannone'?",
+    "answers": ["Lucio Dalla", "Fabrizio De André", "Francesco De Gregori", "Ivano Fossati"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Quale rapper ha pubblicato il brano 'Cara Italia'?",
+    "answers": ["Sfera Ebbasta", "Ghali", "Tedua", "Rkomi"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "rap"
+  },
+  {
+    "question": "In che anno Domenico Modugno vinse il primo Sanremo?",
+    "answers": ["1956", "1958", "1960", "1962"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Quale tenore italiano è cieco dalla nascita?",
+    "answers": ["Luciano Pavarotti", "Andrea Bocelli", "Alessandro Safina", "Vittorio Grigolo"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "pop"
+  },
+  {
+    "question": "Chi è il frontman degli Afterhours?",
+    "answers": ["Manuel Agnelli", "Piero Pelù", "Cristiano Godano", "Federico Zampaglione"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rock"
+  },
+  {
+    "question": "Quale album degli 883 contiene 'Hanno ucciso l'Uomo Ragno'?",
+    "answers": ["Nord sud ovest est", "Hanno ucciso l'Uomo Ragno", "La donna il sogno", "Grazie mille"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "band"
+  },
+  {
+    "question": "Quale opera di Rossini è basata su Cenerentola?",
+    "answers": ["Il barbiere di Siviglia", "L'Italiana in Algeri", "La gazza ladra", "La Cenerentola"],
+    "correct": 3,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "opera"
+  },
+  {
+    "question": "Chi ha cantato 'Con te partirò'?",
+    "answers": ["Eros Ramazzotti", "Andrea Bocelli", "Luciano Pavarotti", "Toto Cutugno"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "pop"
+  },
+  {
+    "question": "Quale rapper ha il vero nome Fabiano Ballarin?",
+    "answers": ["Salmo", "Noyz Narcos", "Marracash", "Guè"],
+    "correct": 3,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "rap"
+  },
+  {
+    "question": "In che teatro debuttò la prima edizione di Sanremo?",
+    "answers": ["Teatro Ariston", "Salone del Casinò", "Teatro Carlo Felice", "Teatro della Pergola"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Chi ha composto il 'Requiem' eseguito alla Scala nel 1874?",
+    "answers": ["Giacomo Puccini", "Gioachino Rossini", "Giuseppe Verdi", "Giovanni Pergolesi"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "classica"
+  },
+  {
+    "question": "Quale cantante ha inciso 'Figli di nessuno'?",
+    "answers": ["Nomadi", "Vasco Rossi", "Ligabue", "Pooh"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "band"
+  },
+  {
+    "question": "Dove è nato Eros Ramazzotti?",
+    "answers": ["Milano", "Roma", "Cinecittà Est, Roma", "Napoli"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "pop"
+  },
+  {
+    "question": "Chi ha cantato 'Una lunga storia d'amore' a Sanremo?",
+    "answers": ["Al Bano", "Toto Cutugno", "Gino Paoli", "Claudio Villa"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "sanremo"
+  },
+  {
+    "question": "In che anno l'Italia ospitò l'Eurovision a Torino?",
+    "answers": ["2020", "2021", "2022", "2023"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "eurovision"
+  },
+  {
+    "question": "Quale album di Fabrizio De André è ispirato a Spoon River?",
+    "answers": ["Volume I", "La buona novella", "Non al denaro non all'amore", "Anime salve"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Chi ha cantato 'Notti magiche' per Italia '90?",
+    "answers": ["Gianna Nannini e Bennato", "Zucchero e Pavarotti", "Morandi e Ruggeri", "Dalla e De Gregori"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "pop"
+  },
+  {
+    "question": "Quale compositore italiano ha scritto 'La serva padrona'?",
+    "answers": ["Giovanni Pergolesi", "Antonio Vivaldi", "Domenico Cimarosa", "Baldassare Galuppi"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "opera"
+  },
+  {
+    "question": "Quale rapper ha pubblicato l'album 'Midnite' nel 2008?",
+    "answers": ["Marracash", "Club Dogo", "Fabri Fibra", "Salmo"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "rap"
+  },
+  {
+    "question": "Chi è il cantante storico dei Nomadi dopo Augusto Daolio?",
+    "answers": ["Beppe Carletti", "Danilo Sacco", "Omar Pedrini", "Piero Pelù"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "band"
+  },
+  {
+    "question": "Quale cantautore ha scritto 'Vedrai vedrai'?",
+    "answers": ["Umberto Bindi", "Luigi Tenco", "Bruno Lauzi", "Gino Paoli"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Chi ha vinto Sanremo 2016 con 'Un giorno mi dirai'?",
+    "answers": ["Arisa", "Lorenzo Fragola", "Stadio", "Dear Jack"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Quale opera di Puccini è ambientata a Parigi?",
+    "answers": ["Tosca", "Turandot", "La Bohème", "Gianni Schicchi"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "opera"
+  },
+  {
+    "question": "Lazza è originario di quale città?",
+    "answers": ["Roma", "Napoli", "Milano", "Torino"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rap"
+  },
+  {
+    "question": "Chi ha cantato 'Senza fine'?",
+    "answers": ["Gino Paoli", "Ornella Vanoni", "Mina", "Adriano Celentano"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "cantautori"
+  },
+  {
+    "question": "In che anno Bobby Solo vinse Sanremo?",
+    "answers": ["1963", "1965", "1967", "1969"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Quale brano ha portato Il Volo all'Eurovision 2015?",
+    "answers": ["O sole mio", "Grande amore", "Un amore così grande", "Più che puoi"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "eurovision"
+  },
+  {
+    "question": "Di quale genere sono i Lacuna Coil?",
+    "answers": ["Punk rock", "Gothic metal", "Indie pop", "Progressive rock"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rock"
+  },
+  {
+    "question": "Chi ha scritto 'Stabat Mater' nel 1736?",
+    "answers": ["Antonio Vivaldi", "Giovanni Pergolesi", "Alessandro Scarlatti", "Domenico Scarlatti"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "classica"
+  },
+  {
+    "question": "Quale cantante ha inciso l'album 'Buoni o cattivi'?",
+    "answers": ["Vasco Rossi", "Ligabue", "Zucchero", "Nek"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rock"
+  },
+  {
+    "question": "Chi ha cantato 'Io vagabondo'?",
+    "answers": ["Pooh", "Nomadi", "Dik Dik", "Equipe 84"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "band"
+  },
+  {
+    "question": "Quale album di Battisti contiene 'Emozioni'?",
+    "answers": ["Il mio canto libero", "Emozioni", "Amore e non amore", "Umanamente uomo"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Quante opere ha composto Giuseppe Verdi?",
+    "answers": ["16", "20", "26", "32"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "opera"
+  },
+  {
+    "question": "Quale rapper è noto per il brano 'Fenomeno'?",
+    "answers": ["Marracash", "Fabri Fibra", "Salmo", "Emis Killa"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rap"
+  },
+  {
+    "question": "Chi ha vinto Sanremo 2015?",
+    "answers": ["Nek", "Malika Ayane", "Il Volo", "Dear Jack"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Quale cantante è soprannominata 'La Nannini'?",
+    "answers": ["Elisa", "Gianna Nannini", "Giorgia", "Fiorella Mannoia"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "rock"
+  },
+  {
+    "question": "Chi ha composto 'Il matrimonio segreto'?",
+    "answers": ["Giovanni Paisiello", "Antonio Salieri", "Domenico Cimarosa", "Niccolò Piccinni"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "opera"
+  },
+  {
+    "question": "Quale brano di Jovanotti è diventato un classico estivo?",
+    "answers": ["L'ombelico del mondo", "A te", "Ragazzo fortunato", "Baciami ancora"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "pop"
+  },
+  {
+    "question": "In che anno Alice vinse l'Eurovision?",
+    "answers": ["1982", "1984", "1986", "1980"],
+    "correct": 3,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "eurovision"
+  },
+  {
+    "question": "Quale gruppo prog italiano è famoso per 'Darwin!'?",
+    "answers": ["PFM", "Le Orme", "Banco del Mutuo Soccorso", "Area"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "band"
+  },
+  {
+    "question": "Chi ha cantato 'Sere nere'?",
+    "answers": ["Eros Ramazzotti", "Tiziano Ferro", "Marco Mengoni", "Biagio Antonacci"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "pop"
+  },
+  {
+    "question": "Quale cantautore siciliano ha scritto 'Bandiera bianca'?",
+    "answers": ["Lucio Dalla", "Roberto Vecchioni", "Franco Battiato", "Carmen Consoli"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Dove è nato Giuseppe Verdi?",
+    "answers": ["Milano", "Parma", "Roncole di Busseto", "Bologna"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "opera"
+  },
+  {
+    "question": "Chi ha cantato 'Amore disperato' nel 1983?",
+    "answers": ["Mina", "Rettore", "Nada", "Anna Oxa"],
+    "correct": 3,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Tedua è originario di quale città?",
+    "answers": ["Milano", "Roma", "Genova", "Torino"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rap"
+  },
+  {
+    "question": "Quale brano di Ligabue è dedicato a suo figlio?",
+    "answers": ["Certe notti", "Piccola stella senza cielo", "Una vita da mediano", "Il giorno di dolore"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rock"
+  },
+  {
+    "question": "Chi ha vinto Sanremo 2014 con 'Controvento'?",
+    "answers": ["Raphael Gualazzi", "Arisa", "Rocco Hunt", "Noemi"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Quale compositore italiano ha scritto 'I Puritani'?",
+    "answers": ["Gaetano Donizetti", "Vincenzo Bellini", "Gioachino Rossini", "Giuseppe Verdi"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "opera"
+  },
+  {
+    "question": "Chi è il cantante dei Tiromancino?",
+    "answers": ["Niccolò Fabi", "Federico Zampaglione", "Max Gazzè", "Daniele Silvestri"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "band"
+  },
+  {
+    "question": "Quale album di De André si ispira ai Vangeli apocrifi?",
+    "answers": ["Volume I", "La buona novella", "Storia di un impiegato", "Crêuza de mä"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Con quale canzone Alice vinse l'Eurovision 1980?",
+    "answers": ["Il vento caldo dell'estate", "Per Elisa", "Messaggio", "Chan-son Egocentrique"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "eurovision"
+  },
+  {
+    "question": "Quale rapper ha il nome d'arte Noyz Narcos?",
+    "answers": ["Emanuele Frasca", "Luca Ferrara", "Fabiano Moser", "Amir Cataldi"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "rap"
+  },
+  {
+    "question": "In che anno è morto Fabrizio De André?",
+    "answers": ["1997", "1999", "2001", "2003"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Quale brano di Celentano è un rock'n'roll italiano degli anni '60?",
+    "answers": ["Il ragazzo della via Gluck", "24 mila baci", "Una festa sui prati", "Chi non lavora non fa l'amore"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "rock"
+  },
+  {
+    "question": "Chi ha composto 'La gazza ladra'?",
+    "answers": ["Giuseppe Verdi", "Gioachino Rossini", "Gaetano Donizetti", "Vincenzo Bellini"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "opera"
+  },
+  {
+    "question": "Quale brano ha reso famoso Marco Mengoni nel 2013?",
+    "answers": ["Guerriero", "L'essenziale", "Ti ho voluto bene veramente", "Io ti aspetto"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Chi ha cantato 'Pensiero d'amore' con Battiato?",
+    "answers": ["Alice", "Milva", "Giuni Russo", "Mia Martini"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Quale duo ha vinto Sanremo 2018?",
+    "answers": ["Lo Stato Sociale", "Colapesce Dimartino", "Ermal Meta e Fabrizio Moro", "Mahmood e Blanco"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Dove è nato Giacomo Puccini?",
+    "answers": ["Firenze", "Lucca", "Milano", "Roma"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "opera"
+  },
+  {
+    "question": "Quale rapper ha collaborato con Elisa in 'Nero Bali'?",
+    "answers": ["Ghali", "Marracash", "Elodie", "Gué"],
+    "correct": 3,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "rap"
+  },
+  {
+    "question": "Chi è il fondatore degli 883?",
+    "answers": ["Mauro Repetto", "Max Pezzali", "Cisco Bellotti", "Federico Zampaglione"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "band"
+  },
+  {
+    "question": "Quale canzone di Modugno è stata scritta con Migliacci?",
+    "answers": ["Meraviglioso", "Piove", "Vecchio frack", "Dio, come ti amo"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Chi ha rappresentato l'Italia all'Eurovision 2017?",
+    "answers": ["Marco Mengoni", "Raphael Gualazzi", "Francesco Gabbani", "Mahmood"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "eurovision"
+  },
+  {
+    "question": "Quale album di Dalla contiene '4 marzo 1943'?",
+    "answers": ["Storie di casa mia", "Dalla", "Lucio Dalla", "Com'è profondo il mare"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Piero Pelù è il frontman di quale band?",
+    "answers": ["CCCP", "Subsonica", "Litfiba", "Negrita"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "rock"
+  },
+  {
+    "question": "Quale opera di Puccini debuttò nel 1896?",
+    "answers": ["Tosca", "La Bohème", "Madama Butterfly", "Manon Lescaut"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "opera"
+  },
+  {
+    "question": "Chi ha cantato 'Senza una donna' in duetto con Paul Young?",
+    "answers": ["Eros Ramazzotti", "Zucchero", "Andrea Bocelli", "Biagio Antonacci"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "pop"
+  },
+  {
+    "question": "Quale rapper ha pubblicato 'Playlist' nel 2018?",
+    "answers": ["Salmo", "Marracash", "Emis Killa", "Dark Polo Gang"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rap"
+  },
+  {
+    "question": "In che anno vinse Sanremo Gianni Morandi con 'In ginocchio da te'?",
+    "answers": ["1962", "1964", "1966", "1968"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Quale compositore italiano è considerato padre del concerto?",
+    "answers": ["Tomaso Albinoni", "Arcangelo Corelli", "Antonio Vivaldi", "Alessandro Scarlatti"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "classica"
+  },
+  {
+    "question": "Chi ha cantato 'Io camminerò'?",
+    "answers": ["Eros Ramazzotti", "Fausto Leali", "Claudio Villa", "Gianni Morandi"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "pop"
+  },
+  {
+    "question": "Quale band ha inciso l'album 'Stato di necessità'?",
+    "answers": ["Negrita", "Marlene Kuntz", "Verdena", "Carmen Consoli"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "rock"
+  },
+  {
+    "question": "Chi ha scritto la canzone 'Meraviglioso' nella versione originale?",
+    "answers": ["Fabrizio De André", "Domenico Modugno", "Gino Paoli", "Sergio Endrigo"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Quale artista italiano ha vinto più volte Sanremo in assoluto?",
+    "answers": ["Claudio Villa", "Domenico Modugno", "Adriano Celentano", "Mina"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "sanremo"
+  },
+  {
+    "question": "In che anno Raphael Gualazzi andò all'Eurovision?",
+    "answers": ["2009", "2011", "2013", "2015"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "eurovision"
+  },
+  {
+    "question": "Quale opera ha scritto Verdi per l'inaugurazione del Canale di Suez?",
+    "answers": ["Nabucco", "Aida", "Otello", "La Traviata"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "opera"
+  },
+  {
+    "question": "Chi ha cantato 'Soldi' a Sanremo?",
+    "answers": ["Ultimo", "Irama", "Mahmood", "Achille Lauro"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Quale rapper ha pubblicato l'album 'Sirio' nel 2022?",
+    "answers": ["Marracash", "Tedua", "Lazza", "Rkomi"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rap"
+  },
+  {
+    "question": "Come si chiama la sorella cantante di Mia Martini?",
+    "answers": ["Ornella Vanoni", "Loredana Bertè", "Patty Pravo", "Anna Oxa"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "pop"
+  },
+  {
+    "question": "Chi ha scritto le 'Sonate per clavicembalo'?",
+    "answers": ["Antonio Vivaldi", "Arcangelo Corelli", "Domenico Scarlatti", "Giovanni Pergolesi"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "classica"
+  },
+  {
+    "question": "Quale cantante rock è soprannominato 'Il Blasco'?",
+    "answers": ["Ligabue", "Piero Pelù", "Vasco Rossi", "Gianna Nannini"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "rock"
+  },
+  {
+    "question": "Di dove sono originari i Pinguini Tattici Nucleari?",
+    "answers": ["Bergamo", "Milano", "Brescia", "Verona"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "band"
+  },
+  {
+    "question": "Quale cantautore ha scritto 'Notte prima degli esami'?",
+    "answers": ["Claudio Baglioni", "Antonello Venditti", "Riccardo Cocciante", "Renato Zero"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Chi ha vinto Sanremo 2013 con 'L'essenziale'?",
+    "answers": ["Elio e le Storie Tese", "Marco Mengoni", "Raphael Gualazzi", "Simone Cristicchi"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Quale opera di Bellini debuttò alla Scala nel 1831?",
+    "answers": ["I Puritani", "La sonnambula", "Norma", "Il pirata"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "opera"
+  },
+  {
+    "question": "Quale rapper è anche giudice di X Factor Italia?",
+    "answers": ["Ghali", "Fedez", "Salmo", "Gué"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "rap"
+  },
+  {
+    "question": "Chi ha fondato l'etichetta discografica Machete Empire Records?",
+    "answers": ["Marracash", "Guè", "Salmo", "Sfera Ebbasta"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rap"
+  },
+  {
+    "question": "Quale gruppo italiano prog incise 'Collage'?",
+    "answers": ["PFM", "Banco del Mutuo Soccorso", "Le Orme", "Area"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "band"
+  },
+  {
+    "question": "Chi ha cantato 'Io che non vivo senza te'?",
+    "answers": ["Pino Donaggio", "Gianni Morandi", "Bobby Solo", "Massimo Ranieri"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "pop"
+  },
+  {
+    "question": "Quale cantautore scrisse 'Ciao amore ciao' prima di morire?",
+    "answers": ["Fabrizio De André", "Luigi Tenco", "Gino Paoli", "Umberto Bindi"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "cantautori"
+  },
+  {
+    "question": "In che anno è stato inaugurato il Teatro Ariston di Sanremo?",
+    "answers": ["1953", "1963", "1977", "1985"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Chi ha cantato 'E penso a te'?",
+    "answers": ["Lucio Dalla", "Lucio Battisti", "Fabrizio De André", "Claudio Baglioni"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "cantautori"
+  },
+  {
+    "question": "Quale opera di Rossini fu l'ultima da lui composta?",
+    "answers": ["Il barbiere di Siviglia", "La Cenerentola", "Semiramide", "Guglielmo Tell"],
+    "correct": 3,
+    "category": "musica",
+    "difficulty": "hard",
+    "topic": "opera"
+  },
+  {
+    "question": "Quale rapper ha pubblicato 'Il ragazzo d'oro' nel 2014?",
+    "answers": ["Emis Killa", "Fedez", "Salmo", "Gué"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rap"
+  },
+  {
+    "question": "Chi è il chitarrista dei Marlene Kuntz?",
+    "answers": ["Manuel Agnelli", "Cristiano Godano", "Piero Pelù", "Omar Pedrini"],
+    "correct": 1,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "rock"
+  },
+  {
+    "question": "Dove si svolge il concerto del Primo Maggio?",
+    "answers": ["Milano", "Napoli", "Roma", "Firenze"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "rock"
+  },
+  {
+    "question": "Chi ha cantato 'La solitudine' a Sanremo 1993?",
+    "answers": ["Giorgia", "Elisa", "Laura Pausini", "Gianna Nannini"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "easy",
+    "topic": "sanremo"
+  },
+  {
+    "question": "Quale compositore scrisse 'Concerto d'Aranjuez'?",
+    "answers": ["Ennio Morricone", "Nino Rota", "Joaquín Rodrigo", "Nicola Piovani"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "classica"
+  },
+  {
+    "question": "Chi ha cantato 'Margherita' nel 1983?",
+    "answers": ["Riccardo Cocciante", "Pupo", "Umberto Tozzi", "Toto Cutugno"],
+    "correct": 0,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "pop"
+  },
+  {
+    "question": "Quale album di De André è interamente in genovese?",
+    "answers": ["Volume III", "Le nuvole", "Crêuza de mä", "Anime salve"],
+    "correct": 2,
+    "category": "musica",
+    "difficulty": "medium",
+    "topic": "cantautori"
+  }
+]
