@@ -72,9 +72,16 @@ const Modal = ({
                   {title}
                 </h2>
                 {showClose && (
-                  <button onClick={onClose} aria-label="Chiudi" style={closeBtnStyle}>
+                  <motion.button
+                    onClick={onClose}
+                    aria-label="Chiudi"
+                    whileHover={{ scale: 1.1, boxShadow: '0 4px 12px rgba(0,0,0,0.10)' }}
+                    whileTap={{ scale: 0.9 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+                    style={closeBtnStyle}
+                  >
                     ✕
-                  </button>
+                  </motion.button>
                 )}
               </div>
             )}

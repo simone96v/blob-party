@@ -166,11 +166,22 @@ const MappaLobbyScreen = () => {
           <span style={S.settingLabel}>Quanti round?</span>
           <div style={S.optionsRow}>
             {ROUND_OPTIONS.map((n) => (
-              <button
+              <motion.button
                 key={n}
                 type="button"
                 onClick={() => isHost && syncRounds(n)}
                 disabled={!isHost}
+                whileHover={isHost ? {
+                  y: -2,
+                  boxShadow: rounds === n
+                    ? '0 8px 20px rgba(5, 150, 105, 0.4)'
+                    : '0 4px 14px rgba(0,0,0,0.10)',
+                } : undefined}
+                whileTap={isHost ? {
+                  y: 0,
+                  scale: 0.95,
+                } : undefined}
+                transition={{ type: 'spring', stiffness: 400, damping: 22 }}
                 style={{
                   ...S.optionBtn,
                   background: rounds === n
@@ -182,13 +193,13 @@ const MappaLobbyScreen = () => {
                     : '2px solid var(--border)',
                   boxShadow: rounds === n
                     ? '0 4px 12px rgba(5, 150, 105, 0.3)'
-                    : 'none',
+                    : '0 2px 6px rgba(0,0,0,0.04)',
                   opacity: !isHost ? 0.6 : 1,
                   cursor: isHost ? 'pointer' : 'default',
                 }}
               >
                 {n}
-              </button>
+              </motion.button>
             ))}
           </div>
         </motion.div>

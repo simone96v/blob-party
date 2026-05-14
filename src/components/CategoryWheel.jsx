@@ -239,10 +239,20 @@ const CategoryWheel = ({
 
       {/* Spin button (spinner) / status text (others) */}
       {canSpin ? (
-        <button
+        <motion.button
           type="button"
           onClick={onRequestSpin}
           disabled={isBusy || disabled || segCount === 0}
+          whileHover={(isBusy || disabled) ? undefined : {
+            y: -2,
+            boxShadow: '0 12px 30px rgba(0, 0, 0, 0.4)',
+          }}
+          whileTap={(isBusy || disabled) ? undefined : {
+            y: 1,
+            scale: 0.97,
+            boxShadow: '0 4px 10px rgba(0, 0, 0, 0.25)',
+          }}
+          transition={{ type: 'spring', stiffness: 400, damping: 22 }}
           style={{
             background: isBusy
               ? 'var(--surface2)'
@@ -257,7 +267,7 @@ const CategoryWheel = ({
             cursor: (isBusy || disabled) ? 'default' : 'pointer',
             opacity: disabled ? 0.55 : 1,
             boxShadow: isBusy ? 'none' : '0 8px 20px rgba(0, 0, 0, 0.35)',
-            transition: 'all 0.2s',
+            transition: 'opacity 0.2s, background 0.15s, color 0.15s',
             minWidth: 200,
           }}
         >
@@ -266,7 +276,7 @@ const CategoryWheel = ({
             : celebrating
               ? '🎯 Caricamento...'
               : '🎡 SPIN!'}
-        </button>
+        </motion.button>
       ) : (
         <p style={{
           margin: 0,

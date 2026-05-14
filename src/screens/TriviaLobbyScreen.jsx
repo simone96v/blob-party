@@ -315,27 +315,37 @@ const TriviaLobbyScreen = () => {
   )
 }
 
-const Stepper = ({ value, onDecrement, onIncrement, disabled, min, max }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-    <button
-      type="button"
-      onClick={onDecrement}
-      disabled={disabled || value <= min}
-      style={{ ...S.stepBtn, opacity: (disabled || value <= min) ? 0.4 : 1 }}
-    >
-      −
-    </button>
-    <span style={S.stepValue}>{value}</span>
-    <button
-      type="button"
-      onClick={onIncrement}
-      disabled={disabled || value >= max}
-      style={{ ...S.stepBtn, opacity: (disabled || value >= max) ? 0.4 : 1 }}
-    >
-      +
-    </button>
-  </div>
-)
+const Stepper = ({ value, onDecrement, onIncrement, disabled, min, max }) => {
+  const decDisabled = disabled || value <= min
+  const incDisabled = disabled || value >= max
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <motion.button
+        type="button"
+        onClick={onDecrement}
+        disabled={decDisabled}
+        whileHover={decDisabled ? undefined : { scale: 1.1, boxShadow: '0 4px 12px rgba(0,0,0,0.10)' }}
+        whileTap={decDisabled ? undefined : { scale: 0.9 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+        style={{ ...S.stepBtn, opacity: decDisabled ? 0.4 : 1 }}
+      >
+        −
+      </motion.button>
+      <span style={S.stepValue}>{value}</span>
+      <motion.button
+        type="button"
+        onClick={onIncrement}
+        disabled={incDisabled}
+        whileHover={incDisabled ? undefined : { scale: 1.1, boxShadow: '0 4px 12px rgba(0,0,0,0.10)' }}
+        whileTap={incDisabled ? undefined : { scale: 0.9 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+        style={{ ...S.stepBtn, opacity: incDisabled ? 0.4 : 1 }}
+      >
+        +
+      </motion.button>
+    </div>
+  )
+}
 
 const S = {
   roundBadge: {
