@@ -17,6 +17,7 @@ import IconButton from '../components/ui/IconButton'
 import GradientTitle from '../components/ui/GradientTitle'
 import CategoryWheel from '../components/CategoryWheel'
 import ErrorBanner from '../components/ErrorBanner'
+import BlobLoader from '../components/BlobLoader'
 import { useSession } from '../stores/useSession'
 import { useSettings } from '../stores/useSettings'
 import { pushRoom, rpcStartGame } from '../lib/room'
@@ -225,6 +226,10 @@ const TriviaLobbyScreen = () => {
 
   const roundTitles = ['🎬 Round 1', '🎯 Round 2', '🏆 Round Finale']
   const roundTitle = roundTitles[roundIdx] ?? `Round ${roundIdx + 1}`
+
+  if (launching) {
+    return <BlobLoader text="Preparando le domande..." />
+  }
 
   return (
     <div className="screen screen-narrow">

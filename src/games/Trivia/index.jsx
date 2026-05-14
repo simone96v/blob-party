@@ -5,7 +5,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useTrivia } from './useTrivia'
 import CountdownOverlay from '../../components/CountdownOverlay'
-import Spinner from '../../components/ui/Spinner'
+import BlobLoader from '../../components/BlobLoader'
 import QuestionPhase from './phases/QuestionPhase'
 import RevealPhase from './phases/RevealPhase'
 import FinalPhase from './phases/FinalPhase'
@@ -52,11 +52,7 @@ const Trivia = () => {
 
   // Initial sync loading
   if (!trivia.currentQuestion && trivia.currentPhase !== 'final') {
-    return (
-      <div className="flex items-center justify-center" style={{ flex: 1 }}>
-        <Spinner size="lg" />
-      </div>
-    )
+    return <BlobLoader text="Sincronizzazione..." />
   }
 
   if (trivia.currentPhase === 'question') {
