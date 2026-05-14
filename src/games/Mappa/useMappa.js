@@ -132,7 +132,7 @@ export const useMappa = () => {
     return () => clearTimeout(t)
   }, [currentPhase, isHost, gameState?.pins, players, setPhase])
 
-  // Countdown → question (host only)
+  // Skip countdown — go straight to question phase
   const countdownFiredRef = useRef(false)
   useEffect(() => {
     if (currentPhase !== 'mappa_countdown') {
@@ -140,19 +140,9 @@ export const useMappa = () => {
       return
     }
     if (!isHost || countdownFiredRef.current) return
-
-    const startMs = questionStartedAt ? new Date(questionStartedAt).getTime() : Date.now()
-    const elapsed = (Date.now() - startMs) / 1000
-    const delay = Math.max(0, 4 - elapsed) * 1000
-
-    const timer = setTimeout(() => {
-      if (countdownFiredRef.current) return
-      countdownFiredRef.current = true
-      setPhaseWithTimer('mappa_question')
-    }, delay)
-
-    return () => clearTimeout(timer)
-  }, [currentPhase, isHost, questionStartedAt, setPhaseWithTimer])
+    countdownFiredRef.current = true
+    setPhaseWithTimer('mappa_question')
+  }, [currentPhase, isHost, setPhaseWithTimer])
 
   const hostAdvance = useCallback(() => {
     if (!isHost || advancing) return

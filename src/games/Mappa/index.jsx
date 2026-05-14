@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useMappa } from './useMappa'
 import { useSession } from '../../stores/useSession'
 import { pushRoom } from '../../lib/room'
-import CountdownOverlay from '../../components/CountdownOverlay'
 import Spinner from '../../components/ui/Spinner'
 import questions from './data/mappa.json'
 
@@ -92,7 +91,7 @@ const Mappa = () => {
   }
 
   if (mappa.currentPhase === 'mappa_countdown') {
-    return <CountdownOverlay questionStartedAt={mappa.questionStartedAt} />
+    return <Loading />
   }
 
   if (!mappa.currentQuestion && mappa.currentPhase !== 'mappa_final') {

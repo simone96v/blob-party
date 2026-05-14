@@ -21,6 +21,22 @@ if (typeof document !== 'undefined' && !document.getElementById('mappa-pin-anim'
       100% { opacity: 1; transform: scale(1) translateY(0); }
     }
     .mappa-pin-drop { animation: mappa-pin-drop 0.35s ease-out; transform-origin: bottom center; }
+    .leaflet-container.mappa-flat {
+      background: #ede8f4;
+    }
+    .mappa-flat .leaflet-tile-pane {
+      filter: saturate(0.65) brightness(1.04) hue-rotate(220deg);
+    }
+    .mappa-flat .leaflet-control-attribution {
+      background: rgba(0,0,0,0.35) !important;
+      color: rgba(255,255,255,0.7) !important;
+      font-size: 9px !important;
+      padding: 2px 6px !important;
+      border-radius: 4px 0 0 0 !important;
+    }
+    .mappa-flat .leaflet-control-attribution a {
+      color: rgba(255,255,255,0.8) !important;
+    }
   `
   document.head.appendChild(s)
 }
@@ -116,13 +132,15 @@ const MapView = ({
       maxZoom={9}
       maxBounds={ITALY_BOUNDS}
       maxBoundsViscosity={1.0}
+      className="mappa-flat"
       style={{ width: '100%', height: '100%', borderRadius: rounded ? 16 : 0, zIndex: 0 }}
       zoomControl={false}
       attributionControl={true}
     >
       <TileLayer
-        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>'
+        subdomains="abcd"
       />
 
       {revealMode && <MapReady pins={safePins} realAnswer={safeAnswer} />}
