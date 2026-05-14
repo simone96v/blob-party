@@ -12,14 +12,18 @@ const SentenzaReveal = ({
   isHost,
   advancing,
   onNext,
-}) => (
+}) => {
+  const hasWinner = !!winnerName
+
+  return (
   <div style={S.container}>
     <PromptCard
       text={prompt}
-      revealMode
+      revealMode={hasWinner}
       winnerAnswer={winnerAnswer}
     />
 
+    {hasWinner ? (
     <motion.div
       initial={{ opacity: 0, scale: 0 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -39,6 +43,19 @@ const SentenzaReveal = ({
         <p style={S.verdictName}>Vince {winnerName}!</p>
       </div>
     </motion.div>
+    ) : (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      style={{ ...S.verdictBox, border: '2px solid var(--border)' }}
+    >
+      <span style={{ fontSize: 32 }}>🤷</span>
+      <div>
+        <p style={S.verdictLabel}>⚖️ Verdetto</p>
+        <p style={S.verdictName}>Nessun vincitore</p>
+      </div>
+    </motion.div>
+    )}
 
     {otherProofs?.length > 0 && (
       <div style={S.others}>
@@ -72,7 +89,8 @@ const SentenzaReveal = ({
       )}
     </div>
   </div>
-)
+  )
+}
 
 const initialsOf = (name) => {
   const parts = String(name ?? '').trim().split(/\s+/).filter(Boolean)

@@ -1,6 +1,10 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import CountdownOverlay from '../../components/CountdownOverlay'
 import Spinner from '../../components/ui/Spinner'
-import { useSentenza } from './useSentenza'
+import { useSession } from '../../stores/useSession'
+import { pushRoom } from '../../lib/room'
+import { useSentenza, initSentenzaState } from './useSentenza'
 import JudgingSetup from './components/JudgingSetup'
 import SentenzaSelection from './components/SentenzaSelection'
 import SentenzaSelectionWaiting from './components/SentenzaSelectionWaiting'
@@ -17,6 +21,56 @@ const Loading = () => (
 
 const Sentenza = () => {
   const g = useSentenza()
+  const navigate = useNavigate()
+  const setAwaitingGameChange = useSession((s) => s.setAwaitingGameChange)
+  const [replaying, setReplaying] = useState(false)
+
+  const handleChangeGame = async () => {
+    setAwaitingGameChange(true)
+    navigate('/games', { replace: true })
+    const s = useSession.getState()
+    const resetPlayers = (s.players || []).map((p) => ({ ...p, score: 0 }))
+    const fullState = {
+      players: resetPlayers,
+      currentIdx: 0,
+      round: 0,
+      activeGame: null,
+      selectedCategory: s.gameState?.selectedCategory ?? null,
+      categoryVotes: s.gameState?.categoryVotes ?? {},
+      gameVotes: {},
+      selectedGame: null,
+    }
+    await pushRoom(s.roomCode, 'game_voting', fullState)
+    setAwaitingGameChange(false)
+  }
+
+  const handleReplay = async () => {
+    if (replaying) return
+    setReplaying(true)
+    const s = useSession.getState()
+    const resetPlayers = (s.players || []).map((p) => ({ ...p, score: 0 }))
+    const sentenzaState = initSentenzaState(resetPlayers, s.gameState?.totalRounds ?? 8)
+    const now = new Date().toISOString()
+
+    if (s.mode === 'online' && s.roomCode) {
+      const fullState = {
+        players: resetPlayers,
+        currentIdx: 0,
+        round: 0,
+        activeGame: 'sentenza',
+        ...sentenzaState,
+      }
+      await pushRoom(s.roomCode, 'sentenza_countdown', fullState, now)
+    } else {
+      useSession.setState({
+        players: resetPlayers,
+        gameState: sentenzaState,
+        currentPhase: 'sentenza_countdown',
+        questionStartedAt: now,
+      })
+    }
+    setReplaying(false)
+  }
 
   if (g.currentPhase === 'sentenza_countdown') {
     return <CountdownOverlay questionStartedAt={g.questionStartedAt} />
@@ -51,6 +105,7 @@ const Sentenza = () => {
             />
           ) : (
             <SentenzaSelection
+              key={g.currentRound}
               prompt={g.currentPrompt?.text}
               answers={g.myHand}
               timeLeft={g.timeLeft}
@@ -69,6 +124,7 @@ const Sentenza = () => {
         <div className="screen-body" style={{ overflowY: 'auto', scrollbarWidth: 'none' }}>
           {g.isJudge ? (
             <SentenzaJudging
+              key={g.currentRound}
               prompt={g.currentPrompt?.text}
               proofs={g.proofs}
               timeLeft={g.timeLeft}
@@ -116,9 +172,9 @@ const Sentenza = () => {
             players={g.players}
             localPlayerId={g.localPlayerId}
             isHost={g.isHost}
-            advancing={g.advancing}
-            onReplay={() => {}}
-            onChangeGame={() => {}}
+            advancing={replaying}
+            onReplay={handleReplay}
+            onChangeGame={handleChangeGame}
           />
         </div>
       </div>
