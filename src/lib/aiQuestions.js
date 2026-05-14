@@ -82,10 +82,10 @@ export const generateDeck = async (category, count = 10) => {
 // Strategia: batch endpoint (1 sola chiamata DeepSeek per tutte le categorie)
 // con timeout di 15s. Se il batch non risponde in tempo, fallback a chiamate
 // individuali parallele. Il progress si aggiorna man mano.
-// 5 domande per categoria = 50 totali → prompt snello, risposta in ~3-5s.
-// Se il setting viene alzato in TriviaLobby, generateDeck() copre la differenza.
-const PREFETCH_COUNT = 5
-const BATCH_TIMEOUT_MS = 20000
+// 3 domande per categoria = 30 totali → risposta rapida da DeepSeek (~2-4s).
+// Se il setting è più alto, generateDeck() integra al momento dello spin.
+const PREFETCH_COUNT = 3
+const BATCH_TIMEOUT_MS = 12000
 
 export const prefetchAllCategories = (onProgress) => {
   if (_prefetchRunning) return

@@ -96,8 +96,8 @@ JSON (un oggetto con le categorie come chiavi, ogni valore è un array di domand
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: userPrompt },
         ],
-        temperature: 0.95,
-        max_tokens: Math.max(4000, totalQuestions * 80),
+        temperature: 0.9,
+        max_tokens: Math.max(2000, totalQuestions * 60),
         response_format: { type: 'json_object' },
       }),
     })
