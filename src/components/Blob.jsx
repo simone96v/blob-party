@@ -65,7 +65,7 @@ const Blob = ({
       {...animProps}
       style={{
         position: 'fixed',
-        zIndex: 0,
+        zIndex: 1,
         pointerEvents: 'none',
         lineHeight: 0,
         ...style,

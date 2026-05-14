@@ -193,6 +193,8 @@ body {
   padding: 0 clamp(12px, 3vw, 20px);
   background: #fff;
   border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 2;
 }
 
 .screen-body {
@@ -212,6 +214,8 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  position: relative;
+  z-index: 2;
 }
 
 /* Lista scrollabile interna a .screen-body — l'unica zona dove lo */

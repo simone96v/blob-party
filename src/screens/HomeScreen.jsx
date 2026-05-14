@@ -182,7 +182,7 @@ const BottomBlob = ({ expr }) => (
     position: 'fixed',
     bottom: 'clamp(-60px, -9dvh, -35px)',
     right: 'clamp(-80px, -12vw, -50px)',
-    zIndex: 0,
+    zIndex: 1,
     pointerEvents: 'none',
     lineHeight: 0,
   }}>
@@ -203,7 +203,7 @@ const TopBlob = ({ expr }) => (
     position: 'fixed',
     top: 'clamp(-60px, -9dvh, -35px)',
     left: 'clamp(-80px, -12vw, -50px)',
-    zIndex: 0,
+    zIndex: 1,
     pointerEvents: 'none',
     lineHeight: 0,
   }}>
@@ -224,7 +224,7 @@ const TopRightBlob = ({ expr }) => (
     position: 'fixed',
     top: 'clamp(-70px, -10dvh, -40px)',
     right: 'clamp(-90px, -14vw, -55px)',
-    zIndex: 0,
+    zIndex: 1,
     pointerEvents: 'none',
     lineHeight: 0,
   }}>
@@ -245,7 +245,7 @@ const BottomLeftBlob = ({ expr }) => (
     position: 'fixed',
     bottom: 'clamp(-70px, -10dvh, -40px)',
     left: 'clamp(-90px, -14vw, -55px)',
-    zIndex: 0,
+    zIndex: 1,
     pointerEvents: 'none',
     lineHeight: 0,
   }}>
@@ -309,6 +309,8 @@ const HomeScreen = () => {
           paddingTop: 'clamp(24px, 5dvh, 48px)',
           paddingBottom: 'clamp(16px, 3dvh, 28px)',
           gap: 'clamp(20px, 3.5dvh, 36px)',
+          position: 'relative',
+          zIndex: 2,
         }}
       >
         {/* HERO — solo testo, niente blob */}

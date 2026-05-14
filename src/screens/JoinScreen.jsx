@@ -154,6 +154,8 @@ const JoinScreen = () => {
           gap: 'clamp(12px, 1.8dvh, 18px)',
           paddingTop: 'clamp(16px, 3dvh, 32px)',
           paddingBottom: 'clamp(16px, 3dvh, 28px)',
+          position: 'relative',
+          zIndex: 2,
         }}
       >
         <motion.div

@@ -214,7 +214,7 @@ const LobbyScreen = () => {
         actions={null}
       />
       <ErrorBanner />
-      <div className="screen-body" style={{ gap: 'clamp(12px, 1.8dvh, 18px)', overflowY: 'auto' }}>
+      <div className="screen-body" style={{ gap: 'clamp(12px, 1.8dvh, 18px)', overflowY: 'auto', position: 'relative', zIndex: 2 }}>
         {/* Hero */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
