@@ -78,41 +78,100 @@ export const generateDeck = async (category, count = 10) => {
   return deck
 }
 
-// ── Prefetch tutte le categorie in parallelo ────────────────────────
+// ── Prefetch tutte le categorie con UNA SOLA chiamata batch ─────────
 // Chiamato dalla LobbyScreen quando l'host entra.
-// onProgress(ready, total) è opzionale — aggiorna la UI.
-// Genera con count=15 (il massimo possibile) così qualunque setting va bene.
-const PREFETCH_COUNT = 15
+// Una sola richiesta a /api/generate-trivia-batch → 1 cold start, 1 LLM call.
+// Fallback: se il batch fallisce, genera categoria per categoria.
+const PREFETCH_COUNT = 10
 
 export const prefetchAllCategories = (onProgress) => {
-  if (_prefetchRunning) return // già in corso
+  if (_prefetchRunning) return
   _prefetchRunning = true
 
   const categories = TRIVIA_CATEGORIES
   const total = categories.length
-  let ready = 0
 
-  // Notifica subito lo stato iniziale
-  onProgress?.(ready, total)
+  // Categorie non ancora in cache
+  const missing = categories.filter(
+    (c) => !_cache.has(c.id) || _cache.get(c.id).length < PREFETCH_COUNT,
+  )
+  const alreadyCached = total - missing.length
+  onProgress?.(alreadyCached, total)
 
-  const promises = categories.map(async (cat) => {
-    // Se già in cache (es. da un giro precedente), conta come ready
-    if (_cache.has(cat.id) && _cache.get(cat.id).length >= PREFETCH_COUNT) {
-      ready++
-      onProgress?.(ready, total)
+  if (missing.length === 0) {
+    _prefetchRunning = false
+    onProgress?.(total, total)
+    console.log('[ai] prefetch skipped — all categories already cached')
+    return
+  }
+
+  // Tenta batch endpoint (1 sola chiamata)
+  _doBatchPrefetch(missing, PREFETCH_COUNT, alreadyCached, total, onProgress)
+    .then(() => {
+      _prefetchRunning = false
+      console.log('[ai] prefetch complete — all', total, 'categories cached')
+    })
+    .catch(() => {
+      _prefetchRunning = false
+    })
+}
+
+const _doBatchPrefetch = async (missing, count, baseReady, total, onProgress) => {
+  const catIds = missing.map((c) => c.id)
+  let ready = baseReady
+
+  try {
+    const resp = await fetch('/api/generate-trivia-batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ categories: catIds, countPerCategory: count }),
+    })
+
+    if (resp.ok) {
+      const data = await resp.json().catch(() => ({}))
+      const decks = data?.decks ?? {}
+
+      // Popola la cache con i deck ricevuti
+      for (const cat of missing) {
+        const qs = decks[cat.id]
+        if (Array.isArray(qs) && qs.length > 0) {
+          const normalized = qs.map((q) => normalize(q, cat.id))
+          _cache.set(cat.id, normalized)
+        }
+        ready++
+        onProgress?.(ready, total)
+      }
+
+      // Verifica se qualche categoria è rimasta vuota → fallback individuale
+      const stillMissing = missing.filter(
+        (c) => !_cache.has(c.id) || _cache.get(c.id).length < count,
+      )
+      if (stillMissing.length > 0) {
+        console.warn('[ai] batch missing', stillMissing.length, 'categories, falling back')
+        await _doIndividualFallback(stillMissing, count)
+      }
       return
     }
-    await generateDeck(cat.id, PREFETCH_COUNT)
+
+    console.warn('[ai] batch endpoint failed, status', resp.status)
+  } catch (err) {
+    console.warn('[ai] batch fetch failed:', err?.message ?? err)
+  }
+
+  // Fallback completo: genera individualmente
+  console.warn('[ai] falling back to individual generation')
+  ready = baseReady
+  await _doIndividualFallback(missing, count, (cat) => {
     ready++
     onProgress?.(ready, total)
   })
+}
 
-  Promise.all(promises).then(() => {
-    _prefetchRunning = false
-    console.log('[ai] prefetch complete — all', total, 'categories cached')
-  }).catch(() => {
-    _prefetchRunning = false
-  })
+const _doIndividualFallback = async (cats, count, onEach) => {
+  await Promise.all(cats.map(async (cat) => {
+    await generateDeck(cat.id, count)
+    onEach?.(cat)
+  }))
 }
 
 // ── Accesso cache ───────────────────────────────────────────────────
