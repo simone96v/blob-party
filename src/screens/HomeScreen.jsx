@@ -143,29 +143,16 @@ const blobDefs = (prefix) => (
   <defs>
     <linearGradient id={`${prefix}-grad`} x1="0%" y1="0%" x2="100%" y2="80%">
       <stop offset="0%" stopColor="#C4B5FD" />
-      <stop offset="30%" stopColor="#A78BFA" />
-      <stop offset="60%" stopColor="#7C3AED" />
-      <stop offset="100%" stopColor="#DB2777" />
+      <stop offset="40%" stopColor="#A78BFA" />
+      <stop offset="100%" stopColor="#7C3AED" />
     </linearGradient>
-    <radialGradient id={`${prefix}-hl1`} cx="30%" cy="25%" r="35%">
-      <stop offset="0%" stopColor="rgba(255,255,255,0.7)" />
-      <stop offset="100%" stopColor="rgba(255,255,255,0)" />
-    </radialGradient>
-    <radialGradient id={`${prefix}-hl2`} cx="65%" cy="35%" r="20%">
-      <stop offset="0%" stopColor="rgba(255,255,255,0.35)" />
-      <stop offset="100%" stopColor="rgba(255,255,255,0)" />
-    </radialGradient>
-    <radialGradient id={`${prefix}-shd`} cx="50%" cy="20%" r="50%">
-      <stop offset="0%" stopColor="rgba(91,33,182,0.25)" />
-      <stop offset="100%" stopColor="rgba(91,33,182,0)" />
-    </radialGradient>
-    <radialGradient id={`${prefix}-eye-l`} cx="40%" cy="35%" r="50%">
+    <radialGradient id={`${prefix}-eye-l`} cx="50%" cy="50%" r="50%">
       <stop offset="0%" stopColor="#fff" />
-      <stop offset="100%" stopColor="#E9E5F5" />
+      <stop offset="100%" stopColor="#F0ECF9" />
     </radialGradient>
-    <radialGradient id={`${prefix}-eye-r`} cx="40%" cy="35%" r="50%">
+    <radialGradient id={`${prefix}-eye-r`} cx="50%" cy="50%" r="50%">
       <stop offset="0%" stopColor="#fff" />
-      <stop offset="100%" stopColor="#E9E5F5" />
+      <stop offset="100%" stopColor="#F0ECF9" />
     </radialGradient>
   </defs>
 )
@@ -186,15 +173,12 @@ const BottomBlob = ({ expr }) => (
       preserveAspectRatio="xMidYMax meet"
       style={{
         width: '110%', maxWidth: 650, height: 'auto',
-        filter: 'drop-shadow(0 -8px 30px rgba(124, 58, 237, 0.3))',
+        filter: 'none',
       }}
       aria-hidden="true"
     >
       {blobDefs('bb')}
       <ellipse cx="200" cy="160" rx="210" ry="150" fill="url(#bb-grad)" />
-      <ellipse cx="200" cy="160" rx="210" ry="150" fill="url(#bb-shd)" />
-      <ellipse cx="145" cy="75" rx="70" ry="35" fill="url(#bb-hl1)" />
-      <ellipse cx="270" cy="85" rx="40" ry="22" fill="url(#bb-hl2)" />
       <BlobEyes expr={expr} lx={160} rx={240} ey={100} prefix="bb" />
     </svg>
   </div>
@@ -216,15 +200,12 @@ const TopBlob = ({ expr }) => (
       preserveAspectRatio="xMidYMin meet"
       style={{
         width: '110%', maxWidth: 650, height: 'auto',
-        filter: 'drop-shadow(0 8px 30px rgba(124, 58, 237, 0.3))',
+        filter: 'none',
       }}
       aria-hidden="true"
     >
       {blobDefs('tb')}
       <ellipse cx="200" cy="40" rx="210" ry="150" fill="url(#tb-grad)" />
-      <ellipse cx="200" cy="40" rx="210" ry="150" fill="url(#tb-shd)" />
-      <ellipse cx="255" cy="115" rx="70" ry="35" fill="url(#tb-hl1)" />
-      <ellipse cx="130" cy="105" rx="40" ry="22" fill="url(#tb-hl2)" />
       <BlobEyes expr={expr} lx={160} rx={240} ey={100} prefix="tb" />
     </svg>
   </div>
@@ -269,14 +250,13 @@ const HomeScreen = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
     >
-      <AppHeader />
       <ErrorBanner />
 
       <div
         className="screen-body"
         style={{
           justifyContent: 'center',
-          paddingTop: 'clamp(12px, 2dvh, 20px)',
+          paddingTop: 'clamp(24px, 5dvh, 48px)',
           paddingBottom: 'clamp(16px, 3dvh, 28px)',
           gap: 'clamp(20px, 3.5dvh, 36px)',
         }}
@@ -340,6 +320,7 @@ const HomeScreen = () => {
 
       </div>
 
+      <TopBlob expr={topExpr} />
       <BottomBlob expr={bottomExpr} />
     </motion.div>
   )

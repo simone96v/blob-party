@@ -43,9 +43,10 @@ const AppHeader = ({ actions = null, leading = null, accentColor }) => {
       >
         <span
           style={{
+            fontFamily: "'Baloo 2', cursive",
             fontSize: 'clamp(17px, 2.3dvh, 20px)',
-            fontWeight: 900,
-            letterSpacing: '-0.025em',
+            fontWeight: 700,
+            letterSpacing: '0',
             color: accent,
             lineHeight: 1,
           }}

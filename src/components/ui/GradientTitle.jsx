@@ -5,7 +5,7 @@ const SIZES = {
   sm: 'clamp(16px, 2.2dvh, 20px)',
   md: 'clamp(22px, 3.2dvh, 30px)',
   lg: 'clamp(26px, 4vw, 38px)',
-  xl: 'clamp(28px, 5vw, 48px)',
+  xl: 'clamp(36px, 7vw, 56px)',
 }
 
 const GradientTitle = ({ as = 'h1', size = 'md', children, style, ...rest }) => {
@@ -15,8 +15,9 @@ const GradientTitle = ({ as = 'h1', size = 'md', children, style, ...rest }) => 
       style={{
         margin: 0,
         fontSize: SIZES[size] ?? SIZES.md,
-        fontWeight: 900,
-        letterSpacing: '-0.025em',
+        fontFamily: "'Baloo 2', cursive",
+        fontWeight: 700,
+        letterSpacing: '-0.01em',
         background: 'linear-gradient(120deg, #7C3AED 30%, #EC4899 90%)',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
