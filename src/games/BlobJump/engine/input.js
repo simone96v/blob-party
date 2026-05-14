@@ -19,6 +19,8 @@ export class InputManager {
     this._touchDir = 0
     this._keyDir = 0
     this._tiltDir = 0
+    this._externalDir = 0
+    this._hasExternal = false
 
     // Keyboard smooth ramp state
     this._keysHeld = { left: false, right: false }
@@ -39,13 +41,26 @@ export class InputManager {
 
   /**
    * Returns the raw direction in [-1, +1] from the highest-priority active input.
-   * Priority: tilt > touch > keyboard.
+   * Priority: tilt > external (slider) > touch > keyboard.
    * The engine applies acceleration/friction on top of this.
    */
   getDirection() {
     if (this.useTilt) return this._tiltDir
+    if (this._hasExternal) return this._externalDir
     if (this._touchDir !== 0) return this._touchDir
     return this._keyDir
+  }
+
+  /** Called by external UI (e.g. React slider) to override touch direction. */
+  setExternalDirection(d) {
+    this._externalDir = Math.max(-1, Math.min(1, d))
+    this._hasExternal = true
+  }
+
+  /** Called when external control releases (thumb returns to center). */
+  clearExternalDirection() {
+    this._externalDir = 0
+    this._hasExternal = false
   }
 
   /**
@@ -98,6 +113,12 @@ export class InputManager {
     })
   }
 
+  /** Disable canvas touch controls (when external slider is used). */
+  disableCanvasTouch() {
+    this._canvasTouchDisabled = true
+    this._touchDir = 0
+  }
+
   // ── Touch ─────────────────────────────────────────────
 
   _setupTouch() {
@@ -119,11 +140,11 @@ export class InputManager {
 
     const onStart = (e) => {
       e.preventDefault()
-      this._touchDir = calcDir(e.touches[0].clientX)
+      if (!this._canvasTouchDisabled) this._touchDir = calcDir(e.touches[0].clientX)
     }
     const onMove = (e) => {
       e.preventDefault()
-      this._touchDir = calcDir(e.touches[0].clientX)
+      if (!this._canvasTouchDisabled) this._touchDir = calcDir(e.touches[0].clientX)
     }
     const onEnd = () => {
       this._touchDir = 0

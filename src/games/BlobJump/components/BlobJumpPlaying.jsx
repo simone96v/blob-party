@@ -6,8 +6,12 @@ import RoundBadge from '../../../components/ui/RoundBadge'
 import { GAME_COLORS } from '../../../theme/gameColors'
 import BlobJumpGame from './BlobJumpGame'
 import BlobJumpDeath from './BlobJumpDeath'
+import TouchSlider from './TouchSlider'
 
 const C = GAME_COLORS.blobjump
+
+// Detect touch-capable device (mobile/tablet)
+const IS_TOUCH = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0)
 
 const BlobJumpPlaying = ({
   seed,
@@ -28,6 +32,32 @@ const BlobJumpPlaying = ({
   const [score, setScore] = useState(0)
   const [dead, setDead] = useState(false)
   const scoreRef = useRef(0)
+  const gameRef = useRef(null)
+  const sliderConnected = useRef(false)
+
+  // Connect slider to engine input once engine is ready
+  useEffect(() => {
+    if (!IS_TOUCH || sliderConnected.current) return
+    const check = setInterval(() => {
+      const engine = gameRef.current?.getEngine()
+      if (engine?.input) {
+        engine.input.disableCanvasTouch()
+        sliderConnected.current = true
+        clearInterval(check)
+      }
+    }, 50)
+    return () => clearInterval(check)
+  }, [seed])
+
+  const handleSliderChange = useCallback((dir) => {
+    const engine = gameRef.current?.getEngine()
+    engine?.input?.setExternalDirection(dir)
+  }, [])
+
+  const handleSliderRelease = useCallback(() => {
+    const engine = gameRef.current?.getEngine()
+    engine?.input?.clearExternalDirection()
+  }, [])
 
   // Keep player.score in sync with live score for GameHUD chips
   const playersWithLive = (players || []).map((p) =>
@@ -90,6 +120,7 @@ const BlobJumpPlaying = ({
 
       <div style={styles.gameArea}>
         <BlobJumpGame
+          ref={gameRef}
           seed={seed}
           blobColor={blobColor}
           duration={roundDuration}
@@ -120,6 +151,18 @@ const BlobJumpPlaying = ({
           />
         )}
       </div>
+
+      {/* Mobile touch slider controller */}
+      {IS_TOUCH && (
+        <div style={styles.sliderWrap}>
+          <TouchSlider
+            onChange={handleSliderChange}
+            onRelease={handleSliderRelease}
+            accentColor={C.accent}
+            disabled={dead || isExpired}
+          />
+        </div>
+      )}
     </div>
   )
 }
@@ -163,6 +206,12 @@ const styles = {
     fontWeight: 700,
     color: 'rgba(255,255,255,0.7)',
     textShadow: '0 2px 6px rgba(0,0,0,0.3)',
+  },
+  sliderWrap: {
+    flexShrink: 0,
+    padding: 'clamp(8px, 1.5dvh, 14px) clamp(16px, 4vw, 28px)',
+    paddingBottom: 'max(env(safe-area-inset-bottom, 8px), clamp(8px, 1.5dvh, 14px))',
+    background: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.3) 100%)',
   },
 }
 

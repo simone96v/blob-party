@@ -1,10 +1,15 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
 import { GAME_WIDTH, GAME_HEIGHT } from '../engine/physics'
 import { GameEngine } from '../engine/GameEngine'
 
-const BlobJumpGame = ({ seed, blobColor, onScoreUpdate, onDeath, onTimeUp, duration = 60, forceStop = false }) => {
+const BlobJumpGame = forwardRef(({ seed, blobColor, onScoreUpdate, onDeath, onTimeUp, duration = 60, forceStop = false }, ref) => {
   const canvasRef = useRef(null)
   const engineRef = useRef(null)
+
+  // Expose engine to parent for external input control
+  useImperativeHandle(ref, () => ({
+    getEngine: () => engineRef.current,
+  }), [])
   const timerRef = useRef(null)
   const stoppedRef = useRef(false)
 
@@ -84,6 +89,7 @@ const BlobJumpGame = ({ seed, blobColor, onScoreUpdate, onDeath, onTimeUp, durat
       }}
     />
   )
-}
+})
 
+BlobJumpGame.displayName = 'BlobJumpGame'
 export default BlobJumpGame
