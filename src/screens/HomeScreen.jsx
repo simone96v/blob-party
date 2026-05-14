@@ -160,26 +160,20 @@ const blobDefs = (prefix) => (
 const BottomBlob = ({ expr }) => (
   <div style={{
     position: 'fixed',
-    bottom: 'clamp(-80px, -12dvh, -50px)',
-    left: 0, right: 0,
+    bottom: 'clamp(-60px, -9dvh, -35px)',
+    right: 'clamp(-80px, -12vw, -50px)',
     zIndex: 0,
     pointerEvents: 'none',
     lineHeight: 0,
-    display: 'flex',
-    justifyContent: 'center',
   }}>
     <svg
-      viewBox="0 0 400 200"
-      preserveAspectRatio="xMidYMax meet"
-      style={{
-        width: '110%', maxWidth: 650, height: 'auto',
-        filter: 'none',
-      }}
+      viewBox="0 0 300 300"
+      style={{ width: 'clamp(200px, 45vw, 320px)', height: 'auto' }}
       aria-hidden="true"
     >
       {blobDefs('bb')}
-      <ellipse cx="200" cy="160" rx="210" ry="150" fill="url(#bb-grad)" />
-      <BlobEyes expr={expr} lx={160} rx={240} ey={100} prefix="bb" />
+      <circle cx="150" cy="150" r="145" fill="url(#bb-grad)" />
+      <BlobEyes expr={expr} lx={115} rx={185} ey={140} prefix="bb" />
     </svg>
   </div>
 )
@@ -187,26 +181,20 @@ const BottomBlob = ({ expr }) => (
 const TopBlob = ({ expr }) => (
   <div style={{
     position: 'fixed',
-    top: 'clamp(-80px, -12dvh, -50px)',
-    left: 0, right: 0,
+    top: 'clamp(-60px, -9dvh, -35px)',
+    left: 'clamp(-80px, -12vw, -50px)',
     zIndex: 0,
     pointerEvents: 'none',
     lineHeight: 0,
-    display: 'flex',
-    justifyContent: 'center',
   }}>
     <svg
-      viewBox="0 0 400 200"
-      preserveAspectRatio="xMidYMin meet"
-      style={{
-        width: '110%', maxWidth: 650, height: 'auto',
-        filter: 'none',
-      }}
+      viewBox="0 0 300 300"
+      style={{ width: 'clamp(200px, 45vw, 320px)', height: 'auto' }}
       aria-hidden="true"
     >
       {blobDefs('tb')}
-      <ellipse cx="200" cy="40" rx="210" ry="150" fill="url(#tb-grad)" />
-      <BlobEyes expr={expr} lx={160} rx={240} ey={100} prefix="tb" />
+      <circle cx="150" cy="150" r="145" fill="url(#tb-grad)" />
+      <BlobEyes expr={expr} lx={115} rx={185} ey={140} prefix="tb" />
     </svg>
   </div>
 )
