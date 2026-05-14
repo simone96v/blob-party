@@ -33,9 +33,9 @@ const BlobJumpResults = ({
           style={{ textAlign: 'center' }}
         >
           <RoundBadge
-            current={currentRoundIdx}
+            n={currentRoundIdx + 1}
             total={totalRounds}
-            color={C.accent}
+            game="blobjump"
           />
           <GradientTitle as="h2" size="lg" gradient={C.gradient}>
             Risultati

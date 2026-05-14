@@ -101,10 +101,17 @@ const BlobJump = () => {
           seed={bj.currentSeed}
           blobColor={bj.blobColor}
           roundDuration={bj.roundDuration}
+          timeLeft={bj.timeLeft}
           isExpired={bj.isExpired}
           scoreSubmitted={bj.scoreSubmitted}
           onSubmitScore={bj.submitScore}
           onUpdateScore={bj.updateScorePeriodic}
+          players={bj.players}
+          localPlayerId={bj.localPlayerId}
+          isHost={bj.isHost}
+          currentRoundIdx={bj.currentRoundIdx}
+          totalRounds={bj.totalRounds}
+          onExit={handleChangeGame}
         />
       </Suspense>
     )

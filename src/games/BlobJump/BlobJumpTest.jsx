@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react'
 import BlobJumpGame from './components/BlobJumpGame'
-import BlobJumpHUD from './components/BlobJumpHUD'
 import BlobJumpDeath from './components/BlobJumpDeath'
 
 const TEST_SEED = 48291037
@@ -30,8 +29,6 @@ const BlobJumpTest = () => {
     setGameKey((k) => k + 1)
   }
 
-  const running = !dead && !timeUp
-
   return (
     <div style={styles.container}>
       <div style={styles.gameArea}>
@@ -44,7 +41,13 @@ const BlobJumpTest = () => {
           onDeath={handleDeath}
           onTimeUp={handleTimeUp}
         />
-        <BlobJumpHUD score={score} duration={DURATION} running={running} />
+
+        {/* Score overlay */}
+        <div style={styles.scoreOverlay}>
+          <span style={styles.scoreValue}>{score}</span>
+          <span style={styles.scoreUnit}>m</span>
+        </div>
+
         {dead && <BlobJumpDeath score={score} blobColor={TEST_COLOR} onRestart={restart} />}
         {timeUp && !dead && (
           <BlobJumpDeath score={score} blobColor={TEST_COLOR} onRestart={restart} />
@@ -72,6 +75,29 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
+  },
+  scoreOverlay: {
+    position: 'absolute',
+    top: 12,
+    left: 16,
+    display: 'flex',
+    alignItems: 'baseline',
+    gap: 2,
+    pointerEvents: 'none',
+    zIndex: 10,
+  },
+  scoreValue: {
+    fontSize: 28,
+    fontWeight: 900,
+    color: '#fff',
+    textShadow: '0 2px 8px rgba(0,0,0,0.4)',
+    letterSpacing: '-0.02em',
+  },
+  scoreUnit: {
+    fontSize: 16,
+    fontWeight: 700,
+    color: 'rgba(255,255,255,0.7)',
+    textShadow: '0 2px 6px rgba(0,0,0,0.3)',
   },
 }
 

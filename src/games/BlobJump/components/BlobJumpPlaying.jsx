@@ -1,20 +1,38 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
+import AppHeader from '../../../components/AppHeader'
+import GameHUD from '../../../components/GameHUD'
+import IconButton from '../../../components/ui/IconButton'
+import RoundBadge from '../../../components/ui/RoundBadge'
+import { GAME_COLORS } from '../../../theme/gameColors'
 import BlobJumpGame from './BlobJumpGame'
-import BlobJumpHUD from './BlobJumpHUD'
 import BlobJumpDeath from './BlobJumpDeath'
+
+const C = GAME_COLORS.blobjump
 
 const BlobJumpPlaying = ({
   seed,
   blobColor,
   roundDuration,
+  timeLeft,
   isExpired,
   scoreSubmitted,
   onSubmitScore,
   onUpdateScore,
+  players,
+  localPlayerId,
+  isHost,
+  currentRoundIdx,
+  totalRounds,
+  onExit,
 }) => {
   const [score, setScore] = useState(0)
   const [dead, setDead] = useState(false)
   const scoreRef = useRef(0)
+
+  // Keep player.score in sync with live score for GameHUD chips
+  const playersWithLive = (players || []).map((p) =>
+    p.id === localPlayerId ? { ...p, score } : p,
+  )
 
   const handleScore = useCallback((s) => {
     setScore(s)
@@ -42,8 +60,34 @@ const BlobJumpPlaying = ({
     }
   }, [isExpired, scoreSubmitted, dead, onSubmitScore])
 
+  const running = !dead && !isExpired
+
   return (
     <div style={styles.container}>
+      <AppHeader
+        accentColor={C.accent}
+        leading={isHost && <IconButton ariaLabel="Esci" onClick={onExit}>←</IconButton>}
+        actions={
+          <RoundBadge
+            n={currentRoundIdx + 1}
+            total={totalRounds}
+            game="blobjump"
+          />
+        }
+      />
+      <GameHUD
+        questionNumber={currentRoundIdx + 1}
+        totalQuestions={totalRounds}
+        timeLeft={timeLeft}
+        total={roundDuration}
+        players={playersWithLive}
+        localPlayerId={localPlayerId}
+        phase="question"
+        accentColor={C.accent}
+        showTimer={running}
+        scoreSuffix="m"
+      />
+
       <div style={styles.gameArea}>
         <BlobJumpGame
           seed={seed}
@@ -54,7 +98,13 @@ const BlobJumpPlaying = ({
           onDeath={handleDeath}
           onTimeUp={handleTimeUp}
         />
-        <BlobJumpHUD score={score} duration={roundDuration} running={!dead && !isExpired} />
+
+        {/* Score overlay on canvas */}
+        <div style={styles.scoreOverlay}>
+          <span style={styles.scoreValue}>{score}</span>
+          <span style={styles.scoreUnit}>m</span>
+        </div>
+
         {dead && (
           <BlobJumpDeath
             score={score}
@@ -76,22 +126,43 @@ const BlobJumpPlaying = ({
 
 const styles = {
   container: {
-    position: 'fixed',
-    inset: 0,
     display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: '#0f0a1e',
+    flexDirection: 'column',
+    flex: 1,
     overflow: 'hidden',
+    background: '#0f0a1e',
   },
   gameArea: {
     position: 'relative',
-    width: '100%',
-    height: '100%',
+    flex: 1,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
+    minHeight: 0,
+  },
+  scoreOverlay: {
+    position: 'absolute',
+    top: 10,
+    left: 14,
+    display: 'flex',
+    alignItems: 'baseline',
+    gap: 2,
+    pointerEvents: 'none',
+    zIndex: 10,
+  },
+  scoreValue: {
+    fontSize: 28,
+    fontWeight: 900,
+    color: '#fff',
+    textShadow: '0 2px 8px rgba(0,0,0,0.4)',
+    letterSpacing: '-0.02em',
+  },
+  scoreUnit: {
+    fontSize: 16,
+    fontWeight: 700,
+    color: 'rgba(255,255,255,0.7)',
+    textShadow: '0 2px 6px rgba(0,0,0,0.3)',
   },
 }
 
