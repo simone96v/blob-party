@@ -87,6 +87,11 @@ export class GameEngine {
     this.landingParticles = []
     this.bgParticles = this._generateBgParticles()
     this.stars = this._generateStars()
+    this.clouds = this._generateClouds()
+    this.mountains = this._generateMountains()
+    this.floatingIslands = this._generateFloatingIslands()
+    this.aurora = this._generateAurora()
+    this.moon = this._generateMoon()
 
     this.springCompress = {}
     this.screenShake = 0
@@ -125,6 +130,101 @@ export class GameEngine {
       })
     }
     return stars
+  }
+
+  _generateClouds() {
+    const rng = createRNG(this.seed + 111)
+    const clouds = []
+    for (let i = 0; i < 14; i++) {
+      const depth = 0.03 + rng() * 0.12 // parallax speed: slower = deeper
+      clouds.push({
+        x: rng() * GAME_WIDTH * 1.4 - GAME_WIDTH * 0.2,
+        baseY: rng() * 6000 - 1000,
+        width: 60 + rng() * 120,
+        height: 20 + rng() * 35,
+        depth,
+        puffs: Math.floor(3 + rng() * 4), // number of circles making up the cloud
+        puffOffsets: Array.from({ length: 7 }, () => ({
+          dx: (rng() - 0.5) * 0.8,
+          dy: (rng() - 0.5) * 0.5,
+          r: 0.4 + rng() * 0.6,
+        })),
+        drift: (rng() - 0.5) * 8, // slow horizontal drift
+      })
+    }
+    return clouds
+  }
+
+  _generateMountains() {
+    const rng = createRNG(this.seed + 222)
+    // Two mountain ridges at different parallax depths
+    const ridges = []
+    for (let layer = 0; layer < 2; layer++) {
+      const depth = layer === 0 ? 0.04 : 0.08
+      const peaks = []
+      const peakCount = 6 + Math.floor(rng() * 3)
+      for (let i = 0; i < peakCount; i++) {
+        peaks.push({
+          x: (i / (peakCount - 1)) * (GAME_WIDTH + 80) - 40,
+          height: 40 + rng() * (layer === 0 ? 80 : 50),
+          width: 60 + rng() * 80,
+        })
+      }
+      ridges.push({ depth, peaks, baseY: 300 + layer * 100 })
+    }
+    return ridges
+  }
+
+  _generateFloatingIslands() {
+    const rng = createRNG(this.seed + 333)
+    const islands = []
+    for (let i = 0; i < 8; i++) {
+      islands.push({
+        x: rng() * GAME_WIDTH,
+        baseY: rng() * 8000 - 2000,
+        width: 25 + rng() * 40,
+        height: 10 + rng() * 15,
+        depth: 0.06 + rng() * 0.08,
+        hasTree: rng() > 0.4,
+        treeHeight: 8 + rng() * 14,
+        drift: (rng() - 0.5) * 4,
+      })
+    }
+    return islands
+  }
+
+  _generateAurora() {
+    const rng = createRNG(this.seed + 444)
+    const bands = []
+    for (let i = 0; i < 5; i++) {
+      bands.push({
+        x: rng() * GAME_WIDTH,
+        baseY: rng() * 3000 - 1000,
+        width: 100 + rng() * 200,
+        amplitude: 15 + rng() * 30,
+        frequency: 0.003 + rng() * 0.005,
+        phase: rng() * Math.PI * 2,
+        speed: 0.3 + rng() * 0.6,
+        hue: 160 + rng() * 60, // green to cyan
+        depth: 0.02 + rng() * 0.04,
+      })
+    }
+    return bands
+  }
+
+  _generateMoon() {
+    const rng = createRNG(this.seed + 555)
+    return {
+      x: 50 + rng() * (GAME_WIDTH - 100),
+      baseY: rng() * 2000 - 500,
+      radius: 28 + rng() * 16,
+      depth: 0.02,
+      craters: Array.from({ length: 4 }, () => ({
+        dx: (rng() - 0.5) * 0.6,
+        dy: (rng() - 0.5) * 0.6,
+        r: 0.08 + rng() * 0.15,
+      })),
+    }
   }
 
   async start() {
@@ -432,8 +532,13 @@ export class GameEngine {
 
     const progress = Math.min(1, this.maxHeight / (this.totalHeight * 0.7))
     this._drawBackground(ctx, progress)
+    this._drawMountains(ctx, cam, progress)
+    this._drawClouds(ctx, cam, progress)
+    this._drawMoon(ctx, cam, progress)
+    this._drawFloatingIslands(ctx, cam, progress)
     this._drawBgParticles(ctx, cam, progress)
     this._drawStars(ctx, cam, progress)
+    this._drawAurora(ctx, cam, progress)
 
     // Draw platforms
     for (let i = 0; i < this.platforms.length; i++) {
@@ -496,6 +601,196 @@ export class GameEngine {
       ctx.fillStyle = `rgba(255,255,255,${starAlpha * 0.7 * twinkle})`
       ctx.beginPath()
       ctx.arc(s.x, y, s.size, 0, Math.PI * 2)
+      ctx.fill()
+    }
+  }
+
+  _drawClouds(ctx, cam, progress) {
+    // Clouds fade out as sky darkens
+    if (progress > 0.65) return
+    const fadeAlpha = progress < 0.4 ? 1 : 1 - (progress - 0.4) / 0.25
+
+    for (const c of this.clouds) {
+      const screenY = (c.baseY - cam * c.depth) % (GAME_HEIGHT + 200)
+      const y = screenY < -100 ? screenY + GAME_HEIGHT + 200 : screenY
+      const x = c.x + Math.sin(this.elapsed * 0.15 + c.drift) * c.drift * 3
+
+      const alpha = fadeAlpha * (0.12 + c.depth * 0.5)
+      ctx.fillStyle = `rgba(255,255,255,${alpha})`
+
+      // Draw cloud as overlapping ellipses
+      for (let i = 0; i < c.puffs; i++) {
+        const puff = c.puffOffsets[i]
+        const px = x + puff.dx * c.width
+        const py = y + puff.dy * c.height
+        const rx = c.width * 0.35 * puff.r
+        const ry = c.height * 0.5 * puff.r
+
+        ctx.beginPath()
+        ctx.ellipse(px, py, rx, ry, 0, 0, Math.PI * 2)
+        ctx.fill()
+      }
+    }
+  }
+
+  _drawMountains(ctx, cam, progress) {
+    // Mountains visible in early game, fade to silhouettes
+    if (progress > 0.55) return
+    const fadeAlpha = progress < 0.35 ? 1 : 1 - (progress - 0.35) / 0.2
+
+    for (const ridge of this.mountains) {
+      const baseScreenY = GAME_HEIGHT - 30 + (ridge.baseY - cam * ridge.depth)
+      // Wrap so mountains always feel present
+      const wrapY = ((baseScreenY % (GAME_HEIGHT + 200)) + GAME_HEIGHT + 200) % (GAME_HEIGHT + 200)
+      if (wrapY < -150 || wrapY > GAME_HEIGHT + 50) continue
+
+      const layerAlpha = fadeAlpha * (ridge.depth < 0.06 ? 0.06 : 0.10)
+      const color = progress < 0.25
+        ? `rgba(139,92,246,${layerAlpha})`     // purple tint
+        : `rgba(88,80,150,${layerAlpha * 1.5})` // darker purple
+
+      ctx.fillStyle = color
+      ctx.beginPath()
+      ctx.moveTo(-10, wrapY + 50)
+
+      for (const peak of ridge.peaks) {
+        const px = peak.x
+        const py = wrapY - peak.height
+        // Smooth mountain shape using quadratic curves
+        ctx.lineTo(px - peak.width * 0.5, wrapY)
+        ctx.quadraticCurveTo(px, py, px + peak.width * 0.5, wrapY)
+      }
+
+      ctx.lineTo(GAME_WIDTH + 10, wrapY + 50)
+      ctx.closePath()
+      ctx.fill()
+    }
+  }
+
+  _drawMoon(ctx, cam, progress) {
+    // Moon appears in the mid-to-late game as sky darkens
+    if (progress < 0.3) return
+    const m = this.moon
+    const fadeIn = Math.min(1, (progress - 0.3) / 0.2)
+
+    const screenY = (m.baseY - cam * m.depth) % (GAME_HEIGHT + 400)
+    const y = screenY < -200 ? screenY + GAME_HEIGHT + 400 : screenY
+    const x = m.x
+
+    // Outer glow
+    const glowR = m.radius * 2.8
+    const glow = ctx.createRadialGradient(x, y, m.radius * 0.5, x, y, glowR)
+    glow.addColorStop(0, `rgba(219,234,254,${fadeIn * 0.12})`)
+    glow.addColorStop(0.5, `rgba(165,180,252,${fadeIn * 0.06})`)
+    glow.addColorStop(1, 'rgba(165,180,252,0)')
+    ctx.fillStyle = glow
+    ctx.beginPath()
+    ctx.arc(x, y, glowR, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Moon body
+    const bodyGrad = ctx.createRadialGradient(x - m.radius * 0.25, y - m.radius * 0.25, 0, x, y, m.radius)
+    bodyGrad.addColorStop(0, `rgba(243,237,255,${fadeIn * 0.35})`)
+    bodyGrad.addColorStop(0.7, `rgba(219,234,254,${fadeIn * 0.25})`)
+    bodyGrad.addColorStop(1, `rgba(165,180,252,${fadeIn * 0.15})`)
+    ctx.fillStyle = bodyGrad
+    ctx.beginPath()
+    ctx.arc(x, y, m.radius, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Craters
+    for (const cr of m.craters) {
+      const cx = x + cr.dx * m.radius
+      const cy = y + cr.dy * m.radius
+      const crR = cr.r * m.radius
+      ctx.fillStyle = `rgba(139,92,246,${fadeIn * 0.1})`
+      ctx.beginPath()
+      ctx.arc(cx, cy, crR, 0, Math.PI * 2)
+      ctx.fill()
+    }
+  }
+
+  _drawFloatingIslands(ctx, cam, progress) {
+    // Small floating islands/rocks in the mid-game
+    const fadeAlpha = progress < 0.15 ? progress / 0.15
+      : progress > 0.7 ? Math.max(0, 1 - (progress - 0.7) / 0.2)
+      : 1
+
+    if (fadeAlpha <= 0) return
+
+    for (const isl of this.floatingIslands) {
+      const screenY = (isl.baseY - cam * isl.depth) % (GAME_HEIGHT + 300)
+      const y = screenY < -150 ? screenY + GAME_HEIGHT + 300 : screenY
+      if (y < -80 || y > GAME_HEIGHT + 80) continue
+
+      const x = isl.x + Math.sin(this.elapsed * 0.4 + isl.drift * 2) * 6
+      const bobY = y + Math.sin(this.elapsed * 0.8 + isl.baseY * 0.01) * 3
+      const alpha = fadeAlpha * 0.15
+
+      // Island body — rounded rock shape
+      const grad = ctx.createLinearGradient(x, bobY - isl.height, x, bobY + isl.height * 0.5)
+      grad.addColorStop(0, `rgba(139,92,246,${alpha})`)
+      grad.addColorStop(1, `rgba(88,80,150,${alpha * 1.5})`)
+      ctx.fillStyle = grad
+
+      ctx.beginPath()
+      ctx.ellipse(x, bobY, isl.width / 2, isl.height / 2, 0, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Flat top highlight
+      ctx.fillStyle = `rgba(165,180,252,${alpha * 0.8})`
+      ctx.beginPath()
+      ctx.ellipse(x, bobY - isl.height * 0.15, isl.width * 0.4, isl.height * 0.2, 0, Math.PI, Math.PI * 2)
+      ctx.fill()
+
+      // Tiny tree
+      if (isl.hasTree) {
+        const tx = x
+        const ty = bobY - isl.height * 0.4
+        // Trunk
+        ctx.fillStyle = `rgba(120,80,60,${alpha})`
+        ctx.fillRect(tx - 1.5, ty - isl.treeHeight, 3, isl.treeHeight)
+        // Foliage
+        ctx.fillStyle = `rgba(74,222,128,${alpha})`
+        ctx.beginPath()
+        ctx.arc(tx, ty - isl.treeHeight, isl.treeHeight * 0.55, 0, Math.PI * 2)
+        ctx.fill()
+      }
+    }
+  }
+
+  _drawAurora(ctx, cam, progress) {
+    // Aurora visible only at extreme heights
+    if (progress < 0.6) return
+    const fadeIn = Math.min(1, (progress - 0.6) / 0.2)
+
+    for (const band of this.aurora) {
+      const baseY = (band.baseY - cam * band.depth) % (GAME_HEIGHT + 200)
+      const y = baseY < -100 ? baseY + GAME_HEIGHT + 200 : baseY
+
+      ctx.beginPath()
+      ctx.moveTo(band.x - band.width / 2, y)
+
+      // Wavy aurora band
+      const steps = 20
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps
+        const px = band.x - band.width / 2 + t * band.width
+        const wave = Math.sin(t * Math.PI * 4 + this.elapsed * band.speed + band.phase) * band.amplitude
+        ctx.lineTo(px, y + wave)
+      }
+
+      // Close back along a slightly offset path
+      for (let i = steps; i >= 0; i--) {
+        const t = i / steps
+        const px = band.x - band.width / 2 + t * band.width
+        const wave = Math.sin(t * Math.PI * 4 + this.elapsed * band.speed + band.phase + 0.5) * band.amplitude * 0.6
+        ctx.lineTo(px, y + wave + 15)
+      }
+      ctx.closePath()
+
+      const alpha = fadeIn * 0.06
+      ctx.fillStyle = `hsla(${band.hue},70%,65%,${alpha})`
       ctx.fill()
     }
   }
