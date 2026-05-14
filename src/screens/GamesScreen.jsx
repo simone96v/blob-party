@@ -11,6 +11,7 @@ import { useSettings } from '../stores/useSettings'
 import { availableGamesFor } from '../data/games'
 import { startTriviaGame } from '../lib/triviaSetup'
 import { pushRoom, rpcInitGame } from '../lib/room'
+import { initSentenzaState } from '../games/Sentenza/useSentenza'
 
 const STARS = ['', '⭐', '⭐⭐', '⭐⭐⭐', '⭐⭐⭐⭐']
 
@@ -96,6 +97,26 @@ const GamesScreen = () => {
           categoryVotes: session.gameState?.categoryVotes ?? {},
         }
         const pushRes = await pushRoom(roomCode, 'mappa_lobby', fullState)
+        if (pushRes.error) {
+          showError('generic')
+          setLaunching(false)
+          return
+        }
+        return
+      }
+
+      if (winnerId === 'sentenza') {
+        const resetPlayers = (session.players || []).map((p) => ({ ...p, score: 0 }))
+        const sentenzaState = initSentenzaState(resetPlayers)
+        const fullState = {
+          players: resetPlayers,
+          currentIdx: 0,
+          round: 0,
+          activeGame: 'sentenza',
+          selectedGame: winnerId,
+          ...sentenzaState,
+        }
+        const pushRes = await pushRoom(roomCode, 'sentenza_countdown', fullState, new Date().toISOString())
         if (pushRes.error) {
           showError('generic')
           setLaunching(false)

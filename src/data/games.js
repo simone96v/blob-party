@@ -61,7 +61,7 @@ export const GAMES = [
     difficulty: 1,
     minPlayers: 3,
     maxPlayers: 8,
-    locked: true,
+    locked: false,
     bg: 'linear-gradient(145deg, #818CF8 0%, #6366F1 60%, #4F46E5 100%)',
     shadow: 'rgba(99, 102, 241, 0.40)',
     compatibility: { multi: true, single: false, excludedCategories: ['couple'] },
