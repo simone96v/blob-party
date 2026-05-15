@@ -15,7 +15,7 @@ export const PHYSICS = {
 
 export const PLATFORM = {
   HEIGHT: 14,
-  COLLISION_TOLERANCE: 16,    // slightly more generous for better feel
+  COLLISION_TOLERANCE: 22,    // generous tolerance to prevent tunneling at high speeds
   FRAGILE_BREAK_DELAY: 0.12, // seconds of shake before breaking
   MOVING_SPEED_MIN: 40,
   MOVING_SPEED_MAX: 130,

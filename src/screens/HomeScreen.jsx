@@ -287,10 +287,6 @@ const ThemeToggle = () => {
       transition={{ type: 'spring', stiffness: 400, damping: 22 }}
       aria-label={isDark ? 'Passa a modalita chiara' : 'Passa a modalita scura'}
       style={{
-        position: 'absolute',
-        top: 'clamp(12px, 2dvh, 20px)',
-        right: 'clamp(12px, 3vw, 20px)',
-        zIndex: 10,
         width: 42,
         height: 42,
         borderRadius: '50%',
@@ -338,7 +334,6 @@ const HomeScreen = () => {
       style={{ position: 'relative' }}
     >
       <ErrorBanner />
-      <ThemeToggle />
 
       <div
         className="screen-body"
@@ -405,6 +400,16 @@ const HomeScreen = () => {
             />
           ))}
         </div>
+
+        {/* Theme toggle — bottom center */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          style={{ display: 'flex', justifyContent: 'center' }}
+        >
+          <ThemeToggle />
+        </motion.div>
 
       </div>
 

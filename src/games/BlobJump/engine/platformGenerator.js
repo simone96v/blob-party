@@ -65,7 +65,11 @@ function pickType(rng, zone) {
   return 'normal'
 }
 
-export function generatePlatforms(rng, count = 500) {
+// Reference count for difficulty progression — difficulty maxes out at "extreme"
+// after this many platforms, then stays there forever.
+const DIFFICULTY_RAMP_COUNT = 500
+
+export function generatePlatforms(rng, count = 200) {
   const platforms = []
   let y = GAME_HEIGHT - 80
 
@@ -94,10 +98,32 @@ export function generatePlatforms(rng, count = 500) {
     originX: GAME_WIDTH / 2 - 40,
   })
 
+  _appendPlatforms(rng, platforms, count - 2, 2)
+  return platforms
+}
+
+/**
+ * Extend an existing platform array with more platforms.
+ * Called dynamically when the player approaches the top of generated platforms.
+ */
+export function extendPlatforms(rng, platforms, count = 200) {
+  const startIdx = platforms.length
+  _appendPlatforms(rng, platforms, count, startIdx)
+}
+
+function _appendPlatforms(rng, platforms, count, globalStartIdx) {
+  let y = platforms[platforms.length - 1].y
   let lastFragileStreak = 0
 
-  for (let i = 2; i < count; i++) {
-    const progress = i / count
+  // Check trailing fragile streak from existing platforms
+  for (let j = Math.max(0, platforms.length - 3); j < platforms.length; j++) {
+    if (platforms[j].type === 'fragile') lastFragileStreak++
+    else lastFragileStreak = 0
+  }
+
+  for (let i = 0; i < count; i++) {
+    const globalIdx = globalStartIdx + i
+    const progress = Math.min(1, globalIdx / DIFFICULTY_RAMP_COUNT)
     const zone = getZone(progress)
     const cfg = ZONE_CONFIG[zone]
 
@@ -111,7 +137,7 @@ export function generatePlatforms(rng, count = 500) {
     const width = lerp(cfg.maxWidth, cfg.minWidth, rng() * 0.6 + progress * 0.4)
 
     // X position — ensure horizontal reachability from previous platform
-    const prev = platforms[i - 1]
+    const prev = platforms[platforms.length - 1]
     const prevCenterX = prev.x + prev.width / 2
     const maxHReach = MAX_HORIZONTAL_REACH * 0.7 // conservative
     let x = rng() * (GAME_WIDTH - width)
@@ -142,8 +168,7 @@ export function generatePlatforms(rng, count = 500) {
 
     // After a spring, next platform should be reachable from spring height
     // (springs launch much higher, so the next gap can be bigger)
-    if (i > 0 && platforms[i - 1].type === 'spring') {
-      // Spring gives extra height — allow a wider gap
+    if (prev.type === 'spring') {
       const springMaxH = (PHYSICS.SPRING_VELOCITY * PHYSICS.SPRING_VELOCITY) / (2 * PHYSICS.GRAVITY) * 0.6
       const extraGap = rng() * springMaxH * 0.3
       y -= extraGap
@@ -165,6 +190,4 @@ export function generatePlatforms(rng, count = 500) {
       originX: x,
     })
   }
-
-  return platforms
 }

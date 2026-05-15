@@ -1,6 +1,6 @@
 import { GAME_WIDTH, GAME_HEIGHT, PHYSICS, PLATFORM, lerp, isLanding } from './physics'
 import { createRNG } from './rng'
-import { generatePlatforms } from './platformGenerator'
+import { generatePlatforms, extendPlatforms } from './platformGenerator'
 import { InputManager } from './input'
 import { BLOB_GRADIENTS } from '../../../utils/colors'
 
@@ -51,7 +51,7 @@ export class GameEngine {
     this.blobGrad = grad || [this.blobColor, this.blobColor, this.blobColor]
 
     this.rng = createRNG(seed)
-    this.platforms = generatePlatforms(this.rng, 500)
+    this.platforms = generatePlatforms(this.rng, 200)
 
     const startPlatform = this.platforms[0]
     this.blob = {
@@ -99,7 +99,11 @@ export class GameEngine {
     // Danger zone warning (near bottom of camera)
     this.dangerAlpha = 0
 
-    this.totalHeight = Math.abs(this.platforms[this.platforms.length - 1].y)
+    // Endless mode: visual progress is based on a fixed reference height (background
+    // transitions from day → night over the first ~5000m). Platforms generate infinitely.
+    this.totalHeight = 70000
+    // Track the lowest index still relevant (platforms below camera are skipped)
+    this.visibleStartIdx = 0
   }
 
   _generateBgParticles() {
@@ -279,8 +283,23 @@ export class GameEngine {
     if (blob.x > GAME_WIDTH + PHYSICS.BLOB_RADIUS) blob.x = -PHYSICS.BLOB_RADIUS
     if (blob.x < -PHYSICS.BLOB_RADIUS) blob.x = GAME_WIDTH + PHYSICS.BLOB_RADIUS
 
-    // Update moving platforms
-    for (const p of this.platforms) {
+    // ── Endless platform generation ──
+    // When the blob approaches the highest generated platform, create more
+    const lastPlatY = this.platforms[this.platforms.length - 1].y
+    if (blob.y < lastPlatY + GAME_HEIGHT * 4) {
+      extendPlatforms(this.rng, this.platforms, 200)
+    }
+
+    // Advance visibleStartIdx — skip platforms far below the camera
+    while (this.visibleStartIdx < this.platforms.length - 1) {
+      if (this.platforms[this.visibleStartIdx].y - this.cameraY <= GAME_HEIGHT + 200) break
+      this.visibleStartIdx++
+    }
+
+    // Update moving platforms (only visible range)
+    for (let i = this.visibleStartIdx; i < this.platforms.length; i++) {
+      const p = this.platforms[i]
+      if (p.y - this.cameraY < -100) break // above camera, rest are even higher
       if (p.type !== 'moving' || p.broken) continue
       p.x += p.movingDir * p.movingSpeed * dt
       if (p.x <= 0) { p.x = 0; p.movingDir = 1 }
@@ -307,12 +326,33 @@ export class GameEngine {
       if (this.springCompress[key] <= 0) delete this.springCompress[key]
     }
 
-    // Collision — only when falling
+    // Collision — only when falling, scan visible range only
     if (blob.vy > 0) {
-      for (let i = 0; i < this.platforms.length; i++) {
+      // Swept collision: check from previous y to current y to prevent tunneling
+      const prevBlobBottom = (blob.y - blob.vy * dt) + PHYSICS.BLOB_RADIUS
+      const curBlobBottom = blob.y + PHYSICS.BLOB_RADIUS
+      const sweepTop = Math.min(prevBlobBottom, curBlobBottom)
+      const sweepBottom = Math.max(prevBlobBottom, curBlobBottom)
+
+      for (let i = this.visibleStartIdx; i < this.platforms.length; i++) {
         const p = this.platforms[i]
-        if (!this._isVisible(p)) continue
-        if (isLanding(blob, p)) {
+        // Platforms are sorted by descending y (first = bottom, last = top).
+        // Skip platforms above the camera with a generous margin.
+        const screenY = p.y - this.cameraY
+        if (screenY < -100) break // all remaining platforms are higher
+        if (screenY > GAME_HEIGHT + 80) continue // below camera
+
+        if (p.broken) continue
+
+        // Swept landing check: did the blob bottom pass through the platform?
+        const blobLeft = blob.x - PHYSICS.BLOB_RADIUS * 0.75
+        const blobRight = blob.x + PHYSICS.BLOB_RADIUS * 0.75
+        const hOverlap = blobRight >= p.x && blobLeft <= p.x + p.width
+        const vOverlap = sweepBottom >= p.y && sweepTop <= p.y + PLATFORM.COLLISION_TOLERANCE
+
+        if (hOverlap && vOverlap) {
+          // Snap blob to platform surface
+          blob.y = p.y - PHYSICS.BLOB_RADIUS
           this._handleLanding(i, p)
           break
         }
@@ -540,12 +580,13 @@ export class GameEngine {
     this._drawStars(ctx, cam, progress)
     this._drawAurora(ctx, cam, progress)
 
-    // Draw platforms
-    for (let i = 0; i < this.platforms.length; i++) {
+    // Draw platforms (only visible range)
+    for (let i = this.visibleStartIdx; i < this.platforms.length; i++) {
       const p = this.platforms[i]
       if (p.broken) continue
       const screenY = p.y - cam
-      if (screenY < -30 || screenY > GAME_HEIGHT + 30) continue
+      if (screenY < -30) break // rest are above camera
+      if (screenY > GAME_HEIGHT + 30) continue
       this._drawPlatform(ctx, p, screenY, i)
     }
 
