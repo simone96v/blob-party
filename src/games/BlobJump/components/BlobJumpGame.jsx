@@ -29,19 +29,22 @@ const BlobJumpGame = forwardRef(({ seed, blobColor, onScoreUpdate, onDeath, onTi
     engine.start()
 
     // Client-side timer fallback (server timer is authoritative)
-    const startTime = Date.now()
-    const tick = () => {
-      if (engine.isDead || stoppedRef.current) return
-      const elapsed = (Date.now() - startTime) / 1000
-      if (elapsed >= duration + 2) { // +2s grace for server timer
-        engine.stop()
-        stoppedRef.current = true
-        onTimeUp?.(engine.score)
-        return
+    // duration <= 0 means endless mode — no timer
+    if (duration > 0) {
+      const startTime = Date.now()
+      const tick = () => {
+        if (engine.isDead || stoppedRef.current) return
+        const elapsed = (Date.now() - startTime) / 1000
+        if (elapsed >= duration + 2) { // +2s grace for server timer
+          engine.stop()
+          stoppedRef.current = true
+          onTimeUp?.(engine.score)
+          return
+        }
+        timerRef.current = requestAnimationFrame(tick)
       }
       timerRef.current = requestAnimationFrame(tick)
     }
-    timerRef.current = requestAnimationFrame(tick)
 
     return () => {
       engine.stop()

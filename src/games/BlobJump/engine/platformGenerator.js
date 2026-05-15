@@ -20,36 +20,36 @@ const JUMP_TIME = Math.abs(PHYSICS.JUMP_VELOCITY) / PHYSICS.GRAVITY * 2
 const MAX_HORIZONTAL_REACH = PHYSICS.MOVE_SPEED * JUMP_TIME
 
 function getZone(progress) {
-  if (progress < 0.20) return 'easy'
-  if (progress < 0.45) return 'medium'
-  if (progress < 0.70) return 'hard'
+  if (progress < 0.25) return 'easy'
+  if (progress < 0.50) return 'medium'
+  if (progress < 0.75) return 'hard'
   return 'extreme'
 }
 
 const ZONE_CONFIG = {
   easy: {
-    minGap: 50, maxGap: 80,
-    minWidth: 75, maxWidth: 100,
-    normalChance: 0.85, movingChance: 0.05, fragileChance: 0.0, springChance: 0.10,
-    movingSpeedMul: 0.5,
+    minGap: 40, maxGap: 70,
+    minWidth: 80, maxWidth: 110,
+    normalChance: 0.80, movingChance: 0.05, fragileChance: 0.0, springChance: 0.15,
+    movingSpeedMul: 0.4,
   },
   medium: {
-    minGap: 65, maxGap: 105,
-    minWidth: 58, maxWidth: 85,
-    normalChance: 0.55, movingChance: 0.20, fragileChance: 0.15, springChance: 0.10,
-    movingSpeedMul: 0.7,
+    minGap: 55, maxGap: 90,
+    minWidth: 62, maxWidth: 90,
+    normalChance: 0.55, movingChance: 0.18, fragileChance: 0.12, springChance: 0.15,
+    movingSpeedMul: 0.6,
   },
   hard: {
-    minGap: 80, maxGap: 130,
-    minWidth: 46, maxWidth: 70,
-    normalChance: 0.35, movingChance: 0.25, fragileChance: 0.25, springChance: 0.15,
-    movingSpeedMul: 1.0,
+    minGap: 70, maxGap: 115,
+    minWidth: 50, maxWidth: 75,
+    normalChance: 0.35, movingChance: 0.25, fragileChance: 0.20, springChance: 0.20,
+    movingSpeedMul: 0.85,
   },
   extreme: {
-    minGap: 95, maxGap: 155,
-    minWidth: 38, maxWidth: 55,
-    normalChance: 0.25, movingChance: 0.30, fragileChance: 0.25, springChance: 0.20,
-    movingSpeedMul: 1.3,
+    minGap: 80, maxGap: 135,
+    minWidth: 42, maxWidth: 60,
+    normalChance: 0.25, movingChance: 0.28, fragileChance: 0.22, springChance: 0.25,
+    movingSpeedMul: 1.1,
   },
 }
 
@@ -155,15 +155,36 @@ function _appendPlatforms(rng, platforms, count, globalStartIdx) {
     // Type selection with rules
     let type = pickType(rng, zone)
 
-    // Don't allow more than 2 fragile in a row — always give a safe landing
+    // Don't allow more than 1 fragile in easy, 2 elsewhere
+    const fragileLimit = zone === 'easy' ? 1 : 2
     if (type === 'fragile') {
       lastFragileStreak++
-      if (lastFragileStreak > 2) {
+      if (lastFragileStreak > fragileLimit) {
         type = rng() < 0.5 ? 'normal' : 'spring'
         lastFragileStreak = 0
       }
     } else {
       lastFragileStreak = 0
+    }
+
+    // Every 8 platforms in hard/extreme, force a wide safe "relief" platform
+    const localIdx = globalStartIdx + i
+    if ((zone === 'hard' || zone === 'extreme') && localIdx % 8 === 0) {
+      type = rng() < 0.3 ? 'spring' : 'normal'
+      // Override with a wider, easier-to-reach platform
+      const reliefWidth = lerp(cfg.maxWidth, cfg.maxWidth + 25, rng())
+      platforms.push({
+        x: Math.max(0, Math.min(GAME_WIDTH - reliefWidth, x)),
+        y,
+        width: reliefWidth,
+        type,
+        broken: false,
+        movingDir: 0,
+        movingSpeed: 0,
+        originX: x,
+      })
+      lastFragileStreak = 0
+      continue
     }
 
     // After a spring, next platform should be reachable from spring height

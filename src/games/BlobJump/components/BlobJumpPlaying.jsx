@@ -90,40 +90,45 @@ const BlobJumpPlaying = ({
     }
   }, [isExpired, scoreSubmitted, dead, onSubmitScore])
 
+  const endless = roundDuration <= 0
   const running = !dead && !isExpired
 
   return (
     <div style={styles.container}>
-      <AppHeader
-        accentColor={C.accent}
-        leading={isHost && <IconButton ariaLabel="Esci" onClick={onExit}>←</IconButton>}
-        actions={
-          <RoundBadge
-            n={currentRoundIdx + 1}
-            total={totalRounds}
-            game="blobjump"
+      {!endless && (
+        <>
+          <AppHeader
+            accentColor={C.accent}
+            leading={isHost && <IconButton ariaLabel="Esci" onClick={onExit}>←</IconButton>}
+            actions={
+              <RoundBadge
+                n={currentRoundIdx + 1}
+                total={totalRounds}
+                game="blobjump"
+              />
+            }
           />
-        }
-      />
-      <GameHUD
-        questionNumber={currentRoundIdx + 1}
-        totalQuestions={totalRounds}
-        timeLeft={timeLeft}
-        total={roundDuration}
-        players={playersWithLive}
-        localPlayerId={localPlayerId}
-        phase="question"
-        accentColor={C.accent}
-        showTimer={running}
-        scoreSuffix="m"
-      />
+          <GameHUD
+            questionNumber={currentRoundIdx + 1}
+            totalQuestions={totalRounds}
+            timeLeft={timeLeft}
+            total={roundDuration}
+            players={playersWithLive}
+            localPlayerId={localPlayerId}
+            phase="question"
+            accentColor={C.accent}
+            showTimer={running}
+            scoreSuffix="m"
+          />
+        </>
+      )}
 
       <div style={styles.gameArea}>
         <BlobJumpGame
           ref={gameRef}
           seed={seed}
           blobColor={blobColor}
-          duration={roundDuration}
+          duration={endless ? 0 : roundDuration}
           forceStop={isExpired}
           onScoreUpdate={handleScore}
           onDeath={handleDeath}
@@ -140,10 +145,9 @@ const BlobJumpPlaying = ({
           <BlobJumpDeath
             score={score}
             blobColor={blobColor}
-            waitingMessage={!isExpired ? 'Aspettando gli altri...' : null}
           />
         )}
-        {isExpired && !dead && scoreSubmitted && (
+        {!endless && isExpired && !dead && scoreSubmitted && (
           <BlobJumpDeath
             score={score}
             blobColor={blobColor}

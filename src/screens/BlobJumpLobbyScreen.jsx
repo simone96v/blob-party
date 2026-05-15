@@ -26,7 +26,7 @@ const BlobJumpLobbyScreen = () => {
 
   const isSolo = mode === 'local'
   const canControl = isHost || isSolo
-  const savedRounds = gameState?.totalRounds ?? 3
+  const savedRounds = isSolo ? 1 : (gameState?.totalRounds ?? 3)
   const [rounds, setRounds] = useState(savedRounds)
   const [launching, setLaunching] = useState(false)
 
@@ -65,7 +65,7 @@ const BlobJumpLobbyScreen = () => {
         currentSeed: seed,
         currentRoundIdx: 0,
         totalRounds: rounds,
-        roundDuration: 60,
+        roundDuration: isSolo ? 0 : 60, // 0 = endless (no timer) for solo
         roundScores: {},
         totalScores: {},
       }
@@ -83,7 +83,7 @@ const BlobJumpLobbyScreen = () => {
             currentSeed: seed,
             currentRoundIdx: 0,
             totalRounds: rounds,
-            roundDuration: 60,
+            roundDuration: isSolo ? 0 : 60,
             roundScores: {},
             totalScores: {},
           },
@@ -99,7 +99,7 @@ const BlobJumpLobbyScreen = () => {
             currentSeed: seed,
             currentRoundIdx: 0,
             totalRounds: rounds,
-            roundDuration: 60,
+            roundDuration: isSolo ? 0 : 60,
             roundScores: {},
             totalScores: {},
           },
@@ -158,43 +158,45 @@ const BlobJumpLobbyScreen = () => {
           <p style={S.subtitle}>Salta più in alto degli altri!</p>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          style={S.settingsCard}
-        >
-          <span style={S.settingLabel}>Quanti round?</span>
-          <div style={S.optionsRow}>
-            {ROUND_OPTIONS.map((n) => (
-              <motion.button
-                key={n}
-                type="button"
-                onClick={() => canControl && syncRounds(n)}
-                disabled={!canControl}
-                whileHover={canControl ? {
-                  y: -2,
-                  boxShadow: rounds === n
-                    ? '0 8px 20px rgba(0, 0, 0, 0.25)'
-                    : '0 4px 14px rgba(0,0,0,0.10)',
-                } : undefined}
-                whileTap={canControl ? { y: 0, scale: 0.95 } : undefined}
-                transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-                style={{
-                  ...S.optionBtn,
-                  background: rounds === n ? 'var(--accent)' : 'var(--surface)',
-                  color: rounds === n ? 'var(--bg)' : 'var(--text)',
-                  border: rounds === n ? '2px solid var(--accent)' : '2px solid var(--border)',
-                  boxShadow: rounds === n ? '0 4px 12px rgba(0, 0, 0, 0.2)' : '0 2px 6px rgba(0,0,0,0.04)',
-                  opacity: !canControl ? 0.6 : 1,
-                  cursor: canControl ? 'pointer' : 'default',
-                }}
-              >
-                {n}
-              </motion.button>
-            ))}
-          </div>
-        </motion.div>
+        {!isSolo && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            style={S.settingsCard}
+          >
+            <span style={S.settingLabel}>Quanti round?</span>
+            <div style={S.optionsRow}>
+              {ROUND_OPTIONS.map((n) => (
+                <motion.button
+                  key={n}
+                  type="button"
+                  onClick={() => canControl && syncRounds(n)}
+                  disabled={!canControl}
+                  whileHover={canControl ? {
+                    y: -2,
+                    boxShadow: rounds === n
+                      ? '0 8px 20px rgba(0, 0, 0, 0.25)'
+                      : '0 4px 14px rgba(0,0,0,0.10)',
+                  } : undefined}
+                  whileTap={canControl ? { y: 0, scale: 0.95 } : undefined}
+                  transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+                  style={{
+                    ...S.optionBtn,
+                    background: rounds === n ? 'var(--accent)' : 'var(--surface)',
+                    color: rounds === n ? 'var(--bg)' : 'var(--text)',
+                    border: rounds === n ? '2px solid var(--accent)' : '2px solid var(--border)',
+                    boxShadow: rounds === n ? '0 4px 12px rgba(0, 0, 0, 0.2)' : '0 2px 6px rgba(0,0,0,0.04)',
+                    opacity: !canControl ? 0.6 : 1,
+                    cursor: canControl ? 'pointer' : 'default',
+                  }}
+                >
+                  {n}
+                </motion.button>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 8 }}

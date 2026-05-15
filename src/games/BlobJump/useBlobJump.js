@@ -21,10 +21,13 @@ export const useBlobJump = () => {
   const isOnline = mode === 'online'
   const roundDuration = gameState?.roundDuration ?? ROUND_DURATION
 
-  const { timeLeft, isExpired } = useServerTimer(
-    currentPhase === 'blobjump_playing' ? questionStartedAt : null,
-    roundDuration,
+  // roundDuration <= 0 means endless (no timer) — used in solo mode
+  const timerActive = roundDuration > 0 && currentPhase === 'blobjump_playing'
+  const { timeLeft, isExpired: _isExpired } = useServerTimer(
+    timerActive ? questionStartedAt : null,
+    roundDuration || 9999,
   )
+  const isExpired = roundDuration > 0 ? _isExpired : false
 
   const currentSeed = gameState?.currentSeed ?? 0
   const currentRoundIdx = gameState?.currentRoundIdx ?? 0
