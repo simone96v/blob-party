@@ -194,33 +194,34 @@ const TriviaLobbyScreen = () => {
   // Animazione completata — carica domande dal pool statico (istantaneo).
   const handleSpinEnd = useCallback(async (category) => {
     if (!isHost || launching) return
-    setLaunching(true)
+
+    // 1. Setta launching=true localmente + push a tutti i client in un solo pushRoom
+    const s = useSession.getState()
+    const launchSession = {
+      ...(s.gameState?.triviaSession ?? {}),
+      categoriesPlayed: [...categoriesPlayed, category.id],
+      currentCategory: category.id,
+      spinTarget: null,
+      launching: true,
+    }
+    const launchGameState = { ...s.gameState, triviaSession: launchSession }
+    useSession.setState({ gameState: launchGameState })
+
     try {
-      const deck = await getDeck(category.id, questionsPerRound)
-
-      const s = useSession.getState()
-      const newSession = {
-        ...(s.gameState?.triviaSession ?? {}),
-        categoriesPlayed: [...categoriesPlayed, category.id],
-        currentCategory: category.id,
-        spinTarget: null,
-        launching: false,
-      }
-      const newGameState = { ...s.gameState, triviaSession: newSession }
-      useSession.setState({ gameState: newGameState })
-
+      // 2. getDeck è istantaneo (pool già in memoria) — fallo PRIMA del pushRoom
+      const deck = getDeck(category.id, questionsPerRound)
       const resetScores = roundIdx === 0
 
-      // Lancia pushRoom + rpcStartGame in parallelo — dimezza latenza
+      // 3. pushRoom (launching=true per i client) + rpcStartGame in parallelo
       const [, startResult] = await Promise.all([
         pushRoom(s.roomCode, s.currentPhase, {
           players: s.players,
           currentIdx: s.currentIdx,
           round: s.round,
           activeGame: s.activeGame,
-          ...newGameState,
+          ...launchGameState,
         }),
-        rpcStartGame(roomCode, deck, timerDuration, resetScores),
+        deck.then((d) => rpcStartGame(roomCode, d, timerDuration, resetScores)),
       ])
 
       if (startResult.error) {

@@ -167,8 +167,28 @@ export const useTrivia = () => {
       && (sessionInfo.roundIdx + 1) < (sessionInfo.totalRounds ?? 1)
 
     if (hasMoreRounds) {
-      // Mid-session: DB host_advance porta tutti in trivia_lobby.
-      const { error } = await rpcHostAdvance(roomCode, localPlayerId)
+      // Mid-session: transizione diretta a trivia_lobby via pushRoom.
+      // Più veloce di rpcHostAdvance (evita RPC + cold start).
+      const s = useSession.getState()
+      const prevSession = s.gameState?.triviaSession ?? {}
+      const nextRound = (prevSession.roundIdx ?? 0) + 1
+      const newState = {
+        players: s.players,
+        currentIdx: 0,
+        round: 0,
+        activeGame: 'trivia',
+        selectedGame: 'trivia',
+        selectedCategory: s.gameState?.selectedCategory ?? null,
+        categoryVotes: s.gameState?.categoryVotes ?? {},
+        triviaSession: {
+          ...prevSession,
+          roundIdx: nextRound,
+          spinTarget: null,
+          launching: false,
+          currentCategory: null,
+        },
+      }
+      const { error } = await pushRoom(roomCode, 'trivia_lobby', newState)
       if (error) {
         console.error('[useTrivia] hostReplay (next round) error:', error)
         showError('generic')
