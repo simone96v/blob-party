@@ -5,6 +5,51 @@ Tutti i cambiamenti notabili a BlobParty sono documentati qui.
 Il formato segue [Keep a Changelog](https://keepachangelog.com/it/1.1.0/), e questo
 progetto aderisce a [Semantic Versioning](https://semver.org/lang/it/).
 
+## [0.1.1] — 2026-05-16
+
+### Changed — UI di Emoji Quiz riallineata al design system dell'app
+
+Refactoring sostanziale della UI di Emoji Quiz per coerenza con gli altri giochi.
+
+- **Meccanica**: text-input fuzzy → **4 risposte multiple** (1 corretta + 3
+  distractor generati a runtime dagli altri titoli del puzzle bank).
+- **Layout**: scoped CSS-in-JS (palette neon viola) → `AppHeader` + `GameHUD`
+  + `EmojiQuizCard` + griglia 2×2 di `AnswerTile` (riusato da Trivia).
+  Identico in struttura a Trivia.
+- **Colori**: palette fissa → CSS variables (`--bg`, `--surface`, `--text`,
+  `--accent`, ...). Funziona in light e dark mode senza intervento.
+- **Player accent**: usa `usePlayerAccent()` per ricavare il colore dal player
+  locale, come tutti gli altri giochi.
+- **Top bar**: aggiunta `AppHeader` con back button (host) e `RoundBadge`.
+- **Audio rimosso**: eliminato il modulo `sound.js` e il toggle 🔊.
+- **Bot rimosso**: nessun avversario simulato in single-player; il solo è una
+  pratica come Trivia solo (un giocatore, 7 round, score finale).
+- **Indizio rimosso** per coerenza con Trivia.
+
+### Removed
+- `src/games/EmojiQuiz/sound.js`
+- `src/games/EmojiQuiz/styles.js`
+- `src/games/EmojiQuiz/matching.js` (non serve, le risposte sono ora multiple
+  choice — l'indice del tile cliccato è sufficiente).
+- `BlobAvatar.jsx`, `Confetti.jsx`, `EmojiQuizHome.jsx`,
+  `EmojiQuizPlaying.jsx`, `EmojiQuizRoundEnd.jsx`, `EmojiQuizGameEnd.jsx`
+  (sostituiti dalle phase Trivia-styled).
+
+### Added
+- `EmojiQuizCard.jsx` (emoji centrale + categoria + difficoltà).
+- `EmojiQuizQuestionPhase.jsx`, `EmojiQuizRevealPhase.jsx`,
+  `EmojiQuizFinalPhase.jsx` (mirroring `Trivia/phases/*`).
+
+### Internal
+- Lobby online ora supporta anche solo (`minPlayers: 1` in solo, 2 in online).
+- `SoloGamesScreen.LOBBY_ROUTES.emojiquiz` punta a `/emojiquiz-lobby` (prima
+  saltava la lobby).
+- Schema `gameState` riallineato: `eqRoundAnswers` rimpiazza `eqGuesses`
+  (ora `{ pid: { round, chosen: int, timeMs } }`), aggiunto `eqCorrectCount`
+  per la leaderboard.
+- Test Playwright aggiornati per la nuova UI (selettori basati su
+  `aria-label="Difficoltà N/3"` + role button).
+
 ## [0.1.0] — 2026-05-16
 
 ### Added — Nuovo minigame: Emoji Quiz 🎬

@@ -14,8 +14,7 @@ const LOBBY_ROUTES = {
   blobjump: '/blobjump-lobby',
   mappa: '/mappa-lobby',
   trivia: '/trivia-lobby',
-  // Emoji Quiz non ha lobby in solo: la sua Home interna funge da launch screen.
-  emojiquiz: '/game/emojiquiz',
+  emojiquiz: '/emojiquiz-lobby',
 }
 
 const SoloGamesScreen = () => {

@@ -32,6 +32,7 @@ const EmojiQuizLobbyScreen = () => {
 
   const isSolo = mode === 'local'
   const canControl = isHost || isSolo
+  const minPlayers = isSolo ? 1 : 2
   const [launching, setLaunching] = useState(false)
 
   const handleStart = useCallback(async () => {
@@ -42,18 +43,18 @@ const EmojiQuizLobbyScreen = () => {
       const now = new Date().toISOString()
       const s = useSession.getState()
       const fullState = {
-        players: (s.players || []).map((p) => ({ ...p, score: 0 })),
+        players: (s.players || []).map((p) => ({ ...p, score: 0, correct_count: 0 })),
         currentIdx: 0,
         round: 0,
         activeGame: 'emojiquiz',
         selectedGame: 'emojiquiz',
         eqDeck: deck,
         eqRoundIdx: 0,
-        eqGuesses: {},
-        eqHintUsed: {},
+        eqRoundAnswers: {},
         eqRoundResult: null,
         eqScores: {},
         eqStreaks: {},
+        eqCorrectCount: {},
         eqRoundLog: [],
       }
       if (s.mode === 'online' && s.roomCode) {
@@ -166,10 +167,10 @@ const EmojiQuizLobbyScreen = () => {
               variant="primary"
               width="full"
               onClick={handleStart}
-              disabled={launching || players.length < 2}
+              disabled={launching || players.length < minPlayers}
               style={accentBtnStyle(C.accent)}
             >
-              {launching ? '⏳ Caricamento...' : (players.length < 2 ? 'Servono almeno 2 giocatori' : '🎬 Inizia!')}
+              {launching ? '⏳ Caricamento...' : (players.length < minPlayers ? `Servono almeno ${minPlayers} giocatori` : '🎬 Inizia!')}
             </Button>
           ) : (
             <p style={S.waitText}>Aspettando l'host... 👑</p>

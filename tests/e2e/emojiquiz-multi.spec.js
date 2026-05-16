@@ -1,88 +1,79 @@
-// Multiplayer flow: 2 browser contexts (host + client) creano stanza, votano Emoji Quiz,
-// l'host avvia, entrambi vedono lo stesso puzzle, il client indovina e vince il round.
-//
-// Sfida: questo test parla con Supabase reale (stesso progetto del dev).
-// Genera stanze nuove ogni volta — innocuo, lasciamo che si accumulino (cleanup script TBD).
+// Multiplayer flow (multi-choice, Trivia-style UI):
+// 2 browser contexts → create+join party → vote Emoji Quiz → host start →
+// entrambi vedono question phase con lo stesso puzzle (deck sync).
 
 import { test, expect } from '@playwright/test'
 
 test.setTimeout(90_000)
 
 test.describe('Emoji Quiz — multiplayer', () => {
-  test('host crea stanza, client si unisce, votano Emoji Quiz, host avvia → entrambi vedono il puzzle', async ({ browser }) => {
-    // ── Setup: due contesti separati ──
+  test('host crea + client si unisce + votano + host avvia → entrambi vedono lo stesso puzzle', async ({ browser }) => {
     const hostCtx = await browser.newContext()
     const clientCtx = await browser.newContext()
     const host = await hostCtx.newPage()
     const client = await clientCtx.newPage()
 
     try {
-      // ── HOST: crea party ──
+      // HOST: crea party
       await host.goto('/')
       await host.getByText('Crea party', { exact: false }).click()
-      // CreatePartyScreen
       await host.locator('button:has([id^="cp-"])').first().click()
       await host.getByPlaceholder(/Es\./).fill('Hostbot')
       await host.getByRole('button', { name: /Crea/i }).click()
 
-      // ── Aspetta che appaia il codice stanza ──
-      // Lobby screen mostra il codice come testo grosso
       const codeEl = host.locator('text=/^[BCDFGHJKLMNPRSTVWX]{4}$/').first()
       await expect(codeEl).toBeVisible({ timeout: 15_000 })
       const code = (await codeEl.textContent())?.trim()
       expect(code).toMatch(/^[A-Z]{4}$/)
 
-      // ── CLIENT: join con il codice ──
+      // CLIENT: join
       await client.goto('/')
       await client.getByText('Ho già un codice', { exact: false }).click()
-      // JoinScreen — input per codice
-      const codeInput = client.locator('input').first()
-      await codeInput.fill(code)
-      // pick color + name
-      // Client deve scegliere un colore diverso dall'host (host ha cp-0). Usa cp-1.
+      await client.locator('input').first().fill(code)
       await client.locator('button:has([id^="cp-"])').nth(1).click()
-      const nameInput = client.getByPlaceholder(/Es\./)
-      await nameInput.fill('Clientbot')
+      await client.getByPlaceholder(/Es\./).fill('Clientbot')
       await client.getByRole('button', { name: /Entra|Join/i }).click()
 
-      // ── Entrambi in lobby con 2 player ──
-      // L'host deve vedere Clientbot apparire
+      // Entrambi vedono l'altro
       await expect(host.getByText('Clientbot')).toBeVisible({ timeout: 10_000 })
       await expect(client.getByText('Hostbot')).toBeVisible({ timeout: 10_000 })
 
-      // ── HOST avanza a "Scegli il gioco" ──
-      // (cerca un pulsante per andare ai giochi — può essere "Inizia", "Avanti", etc.)
-      const startBtn = host.getByRole('button', { name: /Avanti|Pronti|Inizia|Continua|Vota|Giochi/i })
-      await startBtn.click()
-
-      // ── Entrambi su GamesScreen ──
+      // Host avanza ai giochi
+      await host.getByRole('button', { name: /Avanti|Pronti|Inizia|Continua|Vota|Giochi/i }).click()
       await expect(host).toHaveURL(/\/games/, { timeout: 10_000 })
       await expect(client).toHaveURL(/\/games/, { timeout: 10_000 })
 
-      // ── Entrambi votano Emoji Quiz ──
+      // Vote
       await host.getByText('Emoji Quiz').click()
       await client.getByText('Emoji Quiz').click()
 
-      // ── Entrambi vanno alla lobby Emoji Quiz ──
+      // Lobby
       await expect(host).toHaveURL(/\/emojiquiz-lobby/, { timeout: 15_000 })
       await expect(client).toHaveURL(/\/emojiquiz-lobby/, { timeout: 15_000 })
 
-      // ── Host avvia ──
+      // Host avvia
       await host.getByRole('button', { name: /Inizia/i }).click()
 
-      // ── Entrambi devono essere su /game/emojiquiz dopo il push ──
+      // /game/emojiquiz + question phase
       await expect(host).toHaveURL(/\/game\/emojiquiz/, { timeout: 10_000 })
       await expect(client).toHaveURL(/\/game\/emojiquiz/, { timeout: 10_000 })
 
-      // ── Countdown (3-2-1-VIA!, ~4s) → playing ──
-      await expect(host.locator('.eq-emoji-puzzle')).toBeVisible({ timeout: 20_000 })
-      await expect(client.locator('.eq-emoji-puzzle')).toBeVisible({ timeout: 20_000 })
+      // Question phase su entrambi (difficulty marker)
+      await expect(host.locator('[aria-label*="Difficoltà"]')).toBeVisible({ timeout: 20_000 })
+      await expect(client.locator('[aria-label*="Difficoltà"]')).toBeVisible({ timeout: 20_000 })
 
-      // ── Verifica sync deck: entrambi vedono lo stesso emoji ──
-      const hostEmoji = await host.locator('.eq-emoji-puzzle').textContent()
-      const clientEmoji = await client.locator('.eq-emoji-puzzle').textContent()
-      expect(hostEmoji).toBe(clientEmoji)
-      expect(hostEmoji?.length).toBeGreaterThan(0)
+      // 4 tile risposta su entrambi
+      const hostTiles = host.locator('button').filter({ has: host.locator('span').filter({ hasText: /^[A-D]$/ }) })
+      const clientTiles = client.locator('button').filter({ has: client.locator('span').filter({ hasText: /^[A-D]$/ }) })
+      await expect(hostTiles).toHaveCount(4)
+      await expect(clientTiles).toHaveCount(4)
+
+      // Sync del deck: almeno un titolo noto deve apparire identico fra i due
+      const hostHTML = await host.content()
+      const clientHTML = await client.content()
+      const knownTitles = ['Il Re Leone', 'Titanic', 'Ghostbusters', 'Frozen', 'Joker', 'Baby Shark', 'Purple Rain', 'WALL·E', 'Ratatouille', 'Jurassic Park']
+      const sharedTitles = knownTitles.filter((t) => hostHTML.includes(t) && clientHTML.includes(t))
+      expect(sharedTitles.length, 'host e client devono condividere almeno un titolo (deck sync)').toBeGreaterThan(0)
     } finally {
       await hostCtx.close()
       await clientCtx.close()

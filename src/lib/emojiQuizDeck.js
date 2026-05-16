@@ -1,14 +1,20 @@
-// Loader del deck di Emoji Quiz.
-// Prima prova Supabase (tabella `emoji_puzzles`). Fallback al bundle locale se:
-//   - la tabella non esiste (migration non ancora applicata)
-//   - il client è offline
-//   - Supabase ritorna un errore
+// Loader del deck di Emoji Quiz (multi-choice).
 //
-// L'host è l'unico a chiamare questa funzione in online; il deck completo
-// (con `answers`) viene poi condiviso con tutti via gameState.eqDeck.
+// Pipeline:
+//   1. Carica TUTTI i puzzle (Supabase, fallback al bundle locale).
+//   2. Mescola e seleziona `count` puzzle per la sessione.
+//   3. Per ogni puzzle estratto, genera 4 opzioni di risposta:
+//        - 1 corretta (il `title` del puzzle)
+//        - 3 distractor: titoli random pescati dagli altri puzzle del pool
+//      Mescola le posizioni e registra l'indice della risposta corretta.
+//
+// Shape del deck restituito:
+//   [{ id, emoji, category, hint, title, answers: [4 strings], correct: int 0..3 }, ...]
+//
+// In modalità multiplayer questo deck viene pubblicato in `gameState.eqDeck` dall'host.
 
 import { supabase } from './supabase'
-import { PUZZLES, pickDeck as pickLocalDeck } from '../data/emojiQuizPuzzles'
+import { PUZZLES } from '../data/emojiQuizPuzzles'
 
 const shuffle = (arr) => {
   const a = [...arr]
@@ -19,32 +25,54 @@ const shuffle = (arr) => {
   return a
 }
 
-/**
- * Restituisce `count` puzzle random, da Supabase se disponibile, altrimenti
- * dal bundle locale. Shape uniforme: { id, emoji, title, category, difficulty, hint, answers[] }.
- */
-export const loadEmojiQuizDeck = async (count) => {
+// Pesca 3 distractor dai puzzle del pool diversi da `correct`, evitando duplicati.
+const pickDistractors = (correctTitle, pool) => {
+  const candidates = pool
+    .map((p) => p.title)
+    .filter((t) => t !== correctTitle)
+  return shuffle(candidates).slice(0, 3)
+}
+
+const buildOptions = (puzzle, pool) => {
+  const distractors = pickDistractors(puzzle.title, pool)
+  const options = shuffle([puzzle.title, ...distractors])
+  const correct = options.indexOf(puzzle.title)
+  return { answers: options, correct }
+}
+
+const loadPool = async () => {
   try {
     const { data, error } = await supabase
       .from('emoji_puzzles')
-      .select('id, emoji, title, category, difficulty, hint, answers')
-
+      .select('id, emoji, title, category, difficulty, hint')
     if (error) throw error
     if (!data || data.length === 0) throw new Error('empty_table')
-
-    return shuffle(data).slice(0, count).map((p) => ({
-      ...p,
-      // Supabase ritorna `answers` come jsonb; assicuriamoci sia un array.
-      answers: Array.isArray(p.answers) ? p.answers : [],
-    }))
+    return data
   } catch (e) {
-    // Fallback silenzioso al bundle locale.
-    // Non logghiamo in produzione perché è un fallback legittimo se la migration
-    // non è ancora applicata.
     if (import.meta.env.DEV) console.warn('[emojiQuizDeck] fallback to local PUZZLES:', e?.message)
-    return pickLocalDeck(count)
+    return PUZZLES
   }
 }
 
-// Re-export per comodità single-player (Fase 2 path).
-export { PUZZLES, pickLocalDeck }
+/**
+ * Restituisce un deck di `count` puzzle pronti per il gioco, ognuno con 4
+ * opzioni di risposta già preparate (1 corretta + 3 distractor).
+ */
+export const loadEmojiQuizDeck = async (count) => {
+  const pool = await loadPool()
+  const selected = shuffle(pool).slice(0, count)
+  return selected.map((p) => {
+    const { answers, correct } = buildOptions(p, pool)
+    return {
+      id: p.id,
+      emoji: p.emoji,
+      category: p.category,
+      hint: p.hint,
+      title: p.title,
+      answers,
+      correct,
+    }
+  })
+}
+
+export { PUZZLES }

@@ -1,26 +1,25 @@
-// Entry point Emoji Quiz.
-// Local: Home → Playing → RoundEnd → GameEnd (interno al hook).
-// Online: phase-driven via store (emojiquiz_countdown/playing/results/final).
+// Entry point Emoji Quiz — phase router uniforme local/online.
+// Layout coerente con Trivia (AppHeader + GameHUD + card + 2x2 risposte).
 
 import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSession } from '../../stores/useSession'
 import { pushRoom } from '../../lib/room'
+import { loadEmojiQuizDeck } from '../../lib/emojiQuizDeck'
 import CountdownOverlay from '../../components/CountdownOverlay'
-import { useEmojiQuiz, SCREENS } from './useEmojiQuiz'
-import { EMOJI_QUIZ_CSS } from './styles'
-import EmojiQuizHome from './components/EmojiQuizHome'
-import EmojiQuizPlaying from './components/EmojiQuizPlaying'
-import EmojiQuizRoundEnd from './components/EmojiQuizRoundEnd'
-import EmojiQuizGameEnd from './components/EmojiQuizGameEnd'
+import BlobLoader from '../../components/BlobLoader'
+import { useEmojiQuiz } from './useEmojiQuiz'
+import { TOTAL_ROUNDS } from './config'
+import EmojiQuizQuestionPhase from './components/EmojiQuizQuestionPhase'
+import EmojiQuizRevealPhase from './components/EmojiQuizRevealPhase'
+import EmojiQuizFinalPhase from './components/EmojiQuizFinalPhase'
 
 const EmojiQuiz = () => {
   const eq = useEmojiQuiz()
   const navigate = useNavigate()
   const setAwaitingGC = useSession((s) => s.setAwaitingGameChange)
-  const questionStartedAt = useSession((s) => s.questionStartedAt)
-  const localPlayerId = useSession((s) => s.localPlayerId)
 
+  // "Esci" / "Cambia gioco": riporta tutti su /games (online) o /solo/games (local).
   const handleChangeGame = useCallback(async () => {
     const s = useSession.getState()
     if (s.mode !== 'online') {
@@ -29,7 +28,7 @@ const EmojiQuiz = () => {
     }
     setAwaitingGC(true)
     navigate('/games', { replace: true })
-    const resetPlayers = (s.players || []).map((p) => ({ ...p, score: 0 }))
+    const resetPlayers = (s.players || []).map((p) => ({ ...p, score: 0, correct_count: 0 }))
     const fullState = {
       players: resetPlayers,
       currentIdx: 0,
@@ -44,16 +43,13 @@ const EmojiQuiz = () => {
     setAwaitingGC(false)
   }, [navigate, setAwaitingGC])
 
-  // Rivincita online — l'host resetta scores/log e riparte con un nuovo deck.
+  // Rigioca — l'host (o il solo player in local) carica un nuovo deck e ricomincia.
   const handleReplay = useCallback(async () => {
     const s = useSession.getState()
-    if (s.mode !== 'online' || !s.isHost) return
-    // Carica nuovo deck.
-    const { loadEmojiQuizDeck } = await import('../../lib/emojiQuizDeck')
-    const { TOTAL_ROUNDS } = await import('./config')
+    if (!s.isHost && s.mode === 'online') return
     const deck = await loadEmojiQuizDeck(TOTAL_ROUNDS)
     const now = new Date().toISOString()
-    const resetPlayers = (s.players || []).map((p) => ({ ...p, score: 0 }))
+    const resetPlayers = (s.players || []).map((p) => ({ ...p, score: 0, correct_count: 0 }))
     const fullState = {
       players: resetPlayers,
       currentIdx: 0,
@@ -61,25 +57,33 @@ const EmojiQuiz = () => {
       activeGame: 'emojiquiz',
       eqDeck: deck,
       eqRoundIdx: 0,
-      eqGuesses: {},
-      eqHintUsed: {},
+      eqRoundAnswers: {},
       eqRoundResult: null,
       eqScores: {},
       eqStreaks: {},
+      eqCorrectCount: {},
       eqRoundLog: [],
     }
-    if (s.roomCode) {
+    if (s.mode === 'online' && s.roomCode) {
       await pushRoom(s.roomCode, 'emojiquiz_countdown', fullState, now)
+    } else {
+      useSession.setState({
+        players: resetPlayers,
+        gameState: fullState,
+        currentPhase: 'emojiquiz_countdown',
+        questionStartedAt: now,
+        activeGame: 'emojiquiz',
+      })
     }
   }, [])
 
-  // Online countdown 3-2-1 (riusa CountdownOverlay del progetto).
-  if (eq.isOnline && eq.screen === 'countdown') {
+  // ── Countdown overlay (3-2-1-VIA!) ──
+  if (eq.screen === 'countdown') {
     return (
       <CountdownOverlay
-        questionStartedAt={questionStartedAt}
+        questionStartedAt={eq.questionStartedAt}
         players={eq.players}
-        localPlayerId={localPlayerId}
+        localPlayerId={eq.localPlayerId}
         gameName="Emoji Quiz"
         gameEmoji="🎬"
         onComplete={eq.handleCountdownComplete}
@@ -87,99 +91,71 @@ const EmojiQuiz = () => {
     )
   }
 
-  if (eq.isOnline && eq.screen === 'loading') {
+  // ── Loading (in attesa di sync iniziale, o transitional) ──
+  if (eq.screen === 'loading' || (!eq.puzzle && eq.screen !== 'final')) {
+    return <BlobLoader text="Sincronizzazione..." />
+  }
+
+  if (eq.screen === 'question') {
     return (
-      <div className="eq-root">
-        <style>{EMOJI_QUIZ_CSS}</style>
-        <div className="eq-bg-blob eq-b1" />
-        <div className="eq-app">
-          <div className="eq-screen" style={{ padding: '40px 0' }}>
-            <div className="eq-eyebrow">EMOJI QUIZ</div>
-            <p className="eq-lede">Sincronizzazione…</p>
-          </div>
-        </div>
-      </div>
+      <EmojiQuizQuestionPhase
+        puzzle={eq.puzzle}
+        roundIdx={eq.roundIdx}
+        totalRounds={eq.totalRounds}
+        timeLeft={eq.timeLeft}
+        timerDuration={eq.timerDuration}
+        players={eq.players}
+        localPlayerId={eq.localPlayerId}
+        localAnswer={eq.localAnswer}
+        submitted={eq.submitted}
+        isExpired={eq.isExpired}
+        isHost={eq.isHost}
+        eqScores={eq.eqScores}
+        onAnswer={eq.submitAnswer}
+        onExit={handleChangeGame}
+      />
     )
   }
 
-  return (
-    <div className="eq-root">
-      <style>{EMOJI_QUIZ_CSS}</style>
-      <div className="eq-bg-blob eq-b1" />
-      <div className="eq-bg-blob eq-b2" />
-      <div className="eq-bg-blob eq-b3" />
+  if (eq.screen === 'reveal') {
+    return (
+      <EmojiQuizRevealPhase
+        puzzle={eq.puzzle}
+        roundIdx={eq.roundIdx}
+        totalRounds={eq.totalRounds}
+        timerDuration={eq.timerDuration}
+        players={eq.players}
+        localPlayerId={eq.localPlayerId}
+        localAnswer={eq.localAnswer}
+        eqRoundAnswers={eq.eqRoundAnswers}
+        eqRoundResult={eq.eqRoundResult}
+        eqScores={eq.eqScores}
+        isHost={eq.isHost}
+        hasMoreRounds={eq.hasMoreRounds}
+        advancing={false}
+        onAdvance={eq.hostAdvance}
+        onExit={handleChangeGame}
+      />
+    )
+  }
 
-      <div className="eq-app">
-        <button className="eq-exit" onClick={handleChangeGame} aria-label="Esci">←</button>
-        <button
-          className="eq-mute"
-          onClick={eq.toggleSound}
-          aria-label="audio"
-          title={eq.soundOn ? 'Audio attivo' : 'Audio muto'}
-        >
-          {eq.soundOn ? '🔊' : '🔇'}
-        </button>
+  if (eq.screen === 'final') {
+    return (
+      <EmojiQuizFinalPhase
+        players={eq.players}
+        localPlayerId={eq.localPlayerId}
+        eqScores={eq.eqScores}
+        eqCorrectCount={eq.eqCorrectCount}
+        totalRounds={eq.totalRounds}
+        isHost={eq.isHost}
+        advancing={false}
+        onReplay={handleReplay}
+        onChangeGame={handleChangeGame}
+      />
+    )
+  }
 
-        {/* Local home — non visibile online (phase è guida lì). */}
-        {!eq.isOnline && eq.screen === SCREENS.HOME && <EmojiQuizHome onStart={eq.startGame} />}
-
-        {eq.screen === SCREENS.PLAYING && eq.puzzle && (
-          <EmojiQuizPlaying
-            puzzle={eq.puzzle}
-            roundIdx={eq.roundIdx}
-            pScore={eq.pScore}
-            oScore={eq.oScore}
-            pName={eq.pName}
-            oName={eq.oName}
-            pColor={eq.pColor}
-            oColor={eq.oColor}
-            playerCombo={eq.playerCombo}
-            oppCombo={eq.oppCombo}
-            oppThinking={!eq.isOnline || !eq.submitted}
-            timePct={eq.timePct}
-            timeLeft={eq.timeLeft}
-            guess={eq.guess}
-            setGuess={eq.setGuess}
-            submitGuess={eq.submitGuess}
-            hint={eq.hint}
-            useHint={eq.useHint}
-            redFlash={eq.redFlash}
-            inputRef={eq.inputRef}
-            inputWrapRef={eq.inputWrapRef}
-            disabled={!!eq.submitted}
-          />
-        )}
-
-        {eq.screen === SCREENS.ROUND_END && eq.roundResult && (
-          <EmojiQuizRoundEnd
-            result={eq.roundResult}
-            roundIdx={eq.roundIdx}
-            onNext={eq.advance}
-            oppName={eq.isOnline ? (eq.roundResult.winnerName ?? eq.oName) : 'Blobby'}
-            isOnline={eq.isOnline}
-          />
-        )}
-
-        {eq.screen === SCREENS.GAME_END && (
-          <EmojiQuizGameEnd
-            isOnline={eq.isOnline}
-            pScore={eq.pScore}
-            oScore={eq.oScore}
-            pName={eq.pName}
-            oName={eq.oName}
-            pColor={eq.pColor}
-            oColor={eq.oColor}
-            players={eq.players}
-            eqScores={eq.eqScores}
-            roundLog={eq.roundLog}
-            isHost={eq.isHost}
-            onReplay={eq.isOnline ? handleReplay : eq.startGame}
-            onChangeGame={handleChangeGame}
-          />
-        )}
-      </div>
-    </div>
-  )
+  return <BlobLoader text="Caricamento..." />
 }
 
 export default EmojiQuiz
