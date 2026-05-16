@@ -1,15 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import AppHeader from '../components/AppHeader'
-import IconButton from '../components/ui/IconButton'
-import Button from '../components/ui/Button'
-import GradientTitle from '../components/ui/GradientTitle'
-import MiniBlob, { useMiniExpr } from '../components/MiniBlob'
+import GameLobbyLayout from '../components/GameLobbyLayout'
 import { useSession } from '../stores/useSession'
 import { pushRoom } from '../lib/room'
 import { loadMappaDeck, preloadMappaPool, MAPPA_DIFFICULTIES } from '../lib/mappaDeck'
-import { accentBtnStyle } from '../theme/gameColors'
 import { usePlayerAccent } from '../hooks/usePlayerAccent'
 
 const ROUND_OPTIONS = [5, 10, 25, 50]
@@ -19,7 +14,6 @@ const MappaLobbyScreen = () => {
   const navigate = useNavigate()
   const isHost = useSession((s) => s.isHost)
   const mode = useSession((s) => s.mode)
-  const roomCode = useSession((s) => s.roomCode)
   const players = useSession((s) => s.players)
   const gameState = useSession((s) => s.gameState)
   const showError = useSession((s) => s.showError)
@@ -27,14 +21,12 @@ const MappaLobbyScreen = () => {
 
   const isSolo = mode === 'local'
   const canControl = isHost || isSolo
-  const expr = useMiniExpr()
   const savedRounds = gameState?.mappaRounds ?? 10
   const savedDifficulty = gameState?.mappaDifficulty ?? 'mix'
   const [rounds, setRounds] = useState(savedRounds)
   const [difficulty, setDifficulty] = useState(savedDifficulty)
   const [launching, setLaunching] = useState(false)
 
-  // Preload del pool al mount → start istantaneo.
   useEffect(() => { preloadMappaPool() }, [])
 
   const syncSetting = useCallback((patch) => {
@@ -86,38 +78,23 @@ const MappaLobbyScreen = () => {
           setLaunching(false)
           return
         }
-        useSession.setState({
-          players: fullState.players,
-          gameState: {
-            deck,
-            current_round: 0,
-            current_question: deck[0],
-            pins: {},
-            timer_duration: 30,
-            mappaRounds: rounds,
-          },
-          currentPhase: 'mappa_countdown',
-          questionStartedAt: now,
-          activeGame: 'mappa',
-        })
-        navigate('/game/mappa', { replace: true })
-      } else {
-        useSession.setState({
-          players: fullState.players,
-          gameState: {
-            deck,
-            current_round: 0,
-            current_question: deck[0],
-            pins: {},
-            timer_duration: 30,
-            mappaRounds: rounds,
-          },
-          currentPhase: 'mappa_countdown',
-          questionStartedAt: now,
-          activeGame: 'mappa',
-        })
-        navigate('/game/mappa', { replace: true })
       }
+
+      useSession.setState({
+        players: fullState.players,
+        gameState: {
+          deck,
+          current_round: 0,
+          current_question: deck[0],
+          pins: {},
+          timer_duration: 30,
+          mappaRounds: rounds,
+        },
+        currentPhase: 'mappa_countdown',
+        questionStartedAt: now,
+        activeGame: 'mappa',
+      })
+      navigate('/game/mappa', { replace: true })
     } catch {
       showError('generic')
       setLaunching(false)
@@ -149,233 +126,121 @@ const MappaLobbyScreen = () => {
   }, [navigate, setAwaitingGC])
 
   return (
-    <div style={S.container}>
-      <AppHeader
-        accentColor={C.accent}
-        leading={canControl && <IconButton ariaLabel="Indietro" onClick={handleBack}>←</IconButton>}
-      />
+    <GameLobbyLayout
+      gameEmoji="🗺️"
+      gameName="Indovina Dove"
+      gameDescription="Piazza il pin sulla mappa d'Italia! Più sei vicino, più punti fai."
+      players={players}
+      canControl={canControl}
+      launching={launching}
+      startLabel="🗺️ Inizia!"
+      onStart={handleStart}
+      onBack={handleBack}
+    >
+      {/* Domande */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        style={settingsCard}
+      >
+        <span style={settingLabel}>Quante domande?</span>
+        <div style={optionsRow}>
+          {ROUND_OPTIONS.map((n) => (
+            <motion.button
+              key={n}
+              type="button"
+              onClick={() => canControl && syncRounds(n)}
+              disabled={!canControl}
+              whileHover={canControl ? { y: -2 } : undefined}
+              whileTap={canControl ? { y: 0, scale: 0.95 } : undefined}
+              transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+              style={{
+                ...optionBtn,
+                background: rounds === n ? C.accent : 'var(--surface)',
+                color: rounds === n ? '#fff' : 'var(--text)',
+                border: rounds === n ? `2px solid ${C.accent}` : '2px solid var(--border)',
+                boxShadow: rounds === n ? `0 4px 12px ${C.shadow}` : '0 2px 6px rgba(0,0,0,0.04)',
+                opacity: !canControl ? 0.6 : 1,
+                cursor: canControl ? 'pointer' : 'default',
+              }}
+            >
+              {n}
+            </motion.button>
+          ))}
+        </div>
+      </motion.div>
 
-      <div style={S.body}>
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          style={{ textAlign: 'center' }}
-        >
-          <GradientTitle as="h2" size="lg" gradient={C.gradient}>
-            🗺️ Indovina Dove
-          </GradientTitle>
-          <p style={S.subtitle}>Piazza il pin sulla mappa d'Italia!</p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          style={S.settingsCard}
-        >
-          <span style={S.settingLabel}>Quante domande?</span>
-          <div style={S.optionsRow}>
-            {ROUND_OPTIONS.map((n) => (
+      {/* Difficoltà */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.12 }}
+        style={settingsCard}
+      >
+        <span style={settingLabel}>Difficoltà</span>
+        <div style={optionsRow}>
+          {MAPPA_DIFFICULTIES.map((d) => {
+            const active = d.id === difficulty
+            return (
               <motion.button
-                key={n}
+                key={d.id}
                 type="button"
-                onClick={() => canControl && syncRounds(n)}
+                onClick={() => canControl && syncDifficulty(d.id)}
                 disabled={!canControl}
-                whileHover={canControl ? {
-                  y: -2,
-                  boxShadow: rounds === n
-                    ? '0 8px 20px rgba(0, 0, 0, 0.25)'
-                    : '0 4px 14px rgba(0,0,0,0.10)',
-                } : undefined}
-                whileTap={canControl ? {
-                  y: 0,
-                  scale: 0.95,
-                } : undefined}
+                whileHover={canControl ? { y: -2 } : undefined}
+                whileTap={canControl ? { y: 0, scale: 0.95 } : undefined}
                 transition={{ type: 'spring', stiffness: 400, damping: 22 }}
                 style={{
-                  ...S.optionBtn,
-                  background: rounds === n ? 'var(--accent)' : 'var(--surface)',
-                  color: rounds === n ? 'var(--bg)' : 'var(--text)',
-                  border: rounds === n
-                    ? '2px solid var(--accent)'
-                    : '2px solid var(--border)',
-                  boxShadow: rounds === n
-                    ? '0 4px 12px rgba(0, 0, 0, 0.2)'
-                    : '0 2px 6px rgba(0,0,0,0.04)',
+                  ...optionBtn,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 4,
+                  fontSize: 'clamp(12px, 1.5dvh, 14px)',
+                  background: active ? d.color : 'var(--surface)',
+                  color: active ? '#fff' : 'var(--text)',
+                  border: active ? `2px solid ${d.color}` : '2px solid var(--border)',
+                  boxShadow: active ? '0 4px 12px rgba(0,0,0,0.2)' : '0 2px 6px rgba(0,0,0,0.04)',
                   opacity: !canControl ? 0.6 : 1,
                   cursor: canControl ? 'pointer' : 'default',
                 }}
               >
-                {n}
+                <span style={{ fontSize: 14 }}>{d.emoji}</span>
+                <span>{d.label}</span>
               </motion.button>
-            ))}
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.12 }}
-          style={S.settingsCard}
-        >
-          <span style={S.settingLabel}>Difficoltà</span>
-          <div style={S.optionsRow}>
-            {MAPPA_DIFFICULTIES.map((d) => {
-              const active = d.id === difficulty
-              return (
-                <motion.button
-                  key={d.id}
-                  type="button"
-                  onClick={() => canControl && syncDifficulty(d.id)}
-                  disabled={!canControl}
-                  whileHover={canControl ? { y: -2 } : undefined}
-                  whileTap={canControl ? { y: 0, scale: 0.95 } : undefined}
-                  transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-                  style={{
-                    ...S.optionBtn,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 4,
-                    fontSize: 'clamp(12px, 1.5dvh, 14px)',
-                    background: active ? d.color : 'var(--surface)',
-                    color: active ? '#fff' : 'var(--text)',
-                    border: active ? `2px solid ${d.color}` : '2px solid var(--border)',
-                    boxShadow: active ? '0 4px 12px rgba(0,0,0,0.2)' : '0 2px 6px rgba(0,0,0,0.04)',
-                    opacity: !canControl ? 0.6 : 1,
-                    cursor: canControl ? 'pointer' : 'default',
-                  }}
-                >
-                  <span style={{ fontSize: 14 }}>{d.emoji}</span>
-                  <span>{d.label}</span>
-                </motion.button>
-              )
-            })}
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          style={S.playersCard}
-        >
-          <span style={S.settingLabel}>Giocatori ({players.length})</span>
-          <div style={S.playersList}>
-            {players.map((p, i) => (
-              <div key={p.id} style={S.playerChip}>
-                <MiniBlob color={p.color} expr={expr} size={28} id={`ml-${i}`} />
-                <span style={S.playerName}>{p.name}</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-
-        <div style={S.footer}>
-          {canControl ? (
-            <Button
-              variant="primary"
-              width="full"
-              onClick={handleStart}
-              disabled={launching}
-              style={accentBtnStyle(C.accent)}
-            >
-              {launching ? '⏳ Caricamento...' : '🗺️ Inizia!'}
-            </Button>
-          ) : (
-            <p style={S.waitText}>Aspettando il boss... 👑</p>
-          )}
+            )
+          })}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </GameLobbyLayout>
   )
 }
 
-const S = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    flex: 1,
-    overflow: 'hidden',
-  },
-  body: {
-    display: 'flex',
-    flexDirection: 'column',
-    flex: 1,
-    padding: 'clamp(16px, 3dvh, 28px) clamp(16px, 4vw, 28px)',
-    gap: 'clamp(14px, 2.5dvh, 22px)',
-    overflow: 'auto',
-  },
-  subtitle: {
-    margin: '6px 0 0',
-    color: 'var(--muted)',
-    fontSize: 'clamp(13px, 1.6dvh, 15px)',
-    fontWeight: 600,
-  },
-  settingsCard: {
-    background: 'var(--surface)',
-    borderRadius: 'var(--radius-lg)',
-    padding: 'clamp(16px, 2.5dvh, 24px)',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 14,
-  },
-  settingLabel: {
-    fontSize: 'clamp(14px, 1.8dvh, 17px)',
-    fontWeight: 800,
-    color: 'var(--text)',
-  },
-  optionsRow: {
-    display: 'flex',
-    gap: 10,
-  },
-  optionBtn: {
-    flex: 1,
-    padding: 'clamp(12px, 2dvh, 18px) 0',
-    borderRadius: 'var(--radius-sm)',
-    fontSize: 'clamp(16px, 2dvh, 20px)',
-    fontWeight: 900,
-    transition: 'all 0.2s',
-  },
-  playersCard: {
-    background: 'var(--surface)',
-    borderRadius: 'var(--radius-lg)',
-    padding: 'clamp(16px, 2.5dvh, 24px)',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 12,
-  },
-  playersList: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  playerChip: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 6,
-    padding: '4px 10px 4px 4px',
-    background: 'var(--bg)',
-    borderRadius: 999,
-    border: '1px solid var(--border)',
-  },
-  playerName: {
-    fontSize: 'clamp(12px, 1.4dvh, 14px)',
-    fontWeight: 700,
-    color: 'var(--text)',
-  },
-  footer: {
-    marginTop: 'auto',
-    flexShrink: 0,
-  },
-  waitText: {
-    color: 'var(--muted)',
-    fontSize: 'clamp(13px, 1.6dvh, 16px)',
-    fontWeight: 600,
-    textAlign: 'center',
-    padding: 'clamp(10px, 1.5dvh, 16px) 0',
-    margin: 0,
-  },
+const settingsCard = {
+  background: 'var(--surface)',
+  borderRadius: 'var(--radius-lg)',
+  padding: 'clamp(16px, 2.5dvh, 24px)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 14,
+}
+const settingLabel = {
+  fontSize: 'clamp(14px, 1.8dvh, 17px)',
+  fontWeight: 800,
+  color: 'var(--text)',
+}
+const optionsRow = {
+  display: 'flex',
+  gap: 10,
+}
+const optionBtn = {
+  flex: 1,
+  padding: 'clamp(12px, 2dvh, 18px) 0',
+  borderRadius: 'var(--radius-sm)',
+  fontSize: 'clamp(16px, 2dvh, 20px)',
+  fontWeight: 900,
+  transition: 'all 0.2s',
 }
 
 export default MappaLobbyScreen

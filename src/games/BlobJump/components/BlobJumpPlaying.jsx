@@ -9,66 +9,6 @@ import { usePlayerAccent } from '../../../hooks/usePlayerAccent'
 import { useSession } from '../../../stores/useSession'
 import { pushRoom } from '../../../lib/room'
 
-// ── Overlay arrow button ─────────────────────────────────
-const ArrowBtn = ({ dir, gameRef, disabled, accent, accentLight }) => {
-  const [pressed, setPressed] = useState(false)
-
-  const start = useCallback((e) => {
-    e.preventDefault()
-    if (disabled) return
-    setPressed(true)
-    gameRef.current?.getEngine()?.input?.setExternalDirection(dir)
-  }, [dir, disabled, gameRef])
-
-  const end = useCallback((e) => {
-    e.preventDefault()
-    setPressed(false)
-    gameRef.current?.getEngine()?.input?.clearExternalDirection()
-  }, [gameRef])
-
-  return (
-    <button
-      onTouchStart={start}
-      onTouchEnd={end}
-      onTouchCancel={end}
-      onMouseDown={start}
-      onMouseUp={end}
-      onMouseLeave={end}
-      aria-label={dir < 0 ? 'Sinistra' : 'Destra'}
-      style={{
-        ...S.arrowBtn,
-        background: pressed
-          ? `linear-gradient(135deg, ${accent}, ${accentLight})`
-          : `linear-gradient(135deg, ${accent}cc, ${accentLight}cc)`,
-        boxShadow: pressed
-          ? `0 2px 8px ${accent}50`
-          : `0 4px 16px ${accent}30`,
-        opacity: disabled ? 0.25 : 1,
-      }}
-    >
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-        {dir < 0 ? (
-          <path
-            d="M20 8L12 16L20 24"
-            stroke="#fff"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        ) : (
-          <path
-            d="M12 8L20 16L12 24"
-            stroke="#fff"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        )}
-      </svg>
-    </button>
-  )
-}
-
 // ── Main component ────────────────────────────────────────
 const BlobJumpPlaying = ({
   seed,
@@ -90,18 +30,6 @@ const BlobJumpPlaying = ({
   const [dead, setDead] = useState(false)
   const scoreRef = useRef(0)
   const gameRef = useRef(null)
-
-  // Disable canvas-touch so overlay arrow buttons are the primary touch input
-  useEffect(() => {
-    const check = setInterval(() => {
-      const engine = gameRef.current?.getEngine()
-      if (engine?.input) {
-        engine.input.disableCanvasTouch()
-        clearInterval(check)
-      }
-    }, 50)
-    return () => clearInterval(check)
-  }, [seed])
 
   const handleScore = useCallback((s) => {
     setScore(s)
@@ -153,7 +81,6 @@ const BlobJumpPlaying = ({
     setAwaitingGC(false)
   }, [navigate, setAwaitingGC])
 
-  const ctrlDisabled = dead || !!isExpired
   const accentLight = useMemo(() => BLOB_GRADIENTS[blobColor]?.[0] || blobColor, [blobColor])
 
   return (
@@ -186,10 +113,10 @@ const BlobJumpPlaying = ({
           </div>
         </div>
 
-        {/* Overlay arrow controls */}
-        <div style={S.controls}>
-          <ArrowBtn dir={-1} gameRef={gameRef} disabled={ctrlDisabled} accent={C.accent} accentLight={accentLight} />
-          <ArrowBtn dir={1} gameRef={gameRef} disabled={ctrlDisabled} accent={C.accent} accentLight={accentLight} />
+        {/* Direction hints */}
+        <div style={S.hints}>
+          <span style={S.hintArrow}>←</span>
+          <span style={S.hintArrow}>→</span>
         </div>
 
         {/* Death overlay */}
@@ -267,32 +194,22 @@ const S = {
     fontWeight: 700,
     color: 'rgba(255,255,255,0.48)',
   },
-  controls: {
+  hints: {
     position: 'absolute',
-    bottom: 'clamp(12px, 2dvh, 20px)',
-    left: 'clamp(12px, 3vw, 20px)',
-    right: 'clamp(12px, 3vw, 20px)',
+    bottom: 'clamp(16px, 3dvh, 28px)',
+    left: 0,
+    right: 0,
     display: 'flex',
-    gap: 'clamp(8px, 2vw, 14px)',
-    zIndex: 10,
-    paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+    justifyContent: 'space-between',
+    padding: '0 clamp(20px, 5vw, 36px)',
     pointerEvents: 'none',
+    zIndex: 10,
   },
-  arrowBtn: {
-    flex: 1,
-    height: 'clamp(56px, 9dvh, 76px)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    border: 'none',
-    borderRadius: 'clamp(14px, 2.5vw, 20px)',
-    cursor: 'pointer',
-    touchAction: 'none',
+  hintArrow: {
+    fontSize: 'clamp(22px, 4dvh, 32px)',
+    fontWeight: 900,
+    color: 'rgba(0,0,0,0.15)',
     userSelect: 'none',
-    WebkitUserSelect: 'none',
-    WebkitTapHighlightColor: 'transparent',
-    transition: 'background 0.08s ease, box-shadow 0.08s ease',
-    pointerEvents: 'auto',
   },
 }
 

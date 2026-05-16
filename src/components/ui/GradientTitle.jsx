@@ -6,6 +6,7 @@ const SIZES = {
   md: 'clamp(22px, 3.2dvh, 30px)',
   lg: 'clamp(26px, 4vw, 38px)',
   xl: 'clamp(36px, 7vw, 56px)',
+  '2xl': 'clamp(64px, 14vw, 112px)',
 }
 
 const GradientTitle = ({ as = 'h1', size = 'md', gradient, children, style, ...rest }) => {

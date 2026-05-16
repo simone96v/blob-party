@@ -1,7 +1,7 @@
 // Entry point Emoji Quiz — phase router uniforme local/online.
 // Layout coerente con Trivia (AppHeader + GameHUD + card + 2x2 risposte).
 
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSession } from '../../stores/useSession'
 import { pushRoom } from '../../lib/room'
@@ -19,6 +19,14 @@ const EmojiQuiz = () => {
   const eq = useEmojiQuiz()
   const navigate = useNavigate()
   const setAwaitingGC = useSession((s) => s.setAwaitingGameChange)
+
+  // Local mode: hostNextRound sets phase to emojiquiz_lobby — navigate back to lobby
+  const currentPhase = useSession((s) => s.currentPhase)
+  useEffect(() => {
+    if (currentPhase === 'emojiquiz_lobby' && !eq.isOnline) {
+      navigate('/emojiquiz-lobby', { replace: true })
+    }
+  }, [currentPhase, eq.isOnline, navigate])
 
   // "Esci" / "Cambia gioco": riporta tutti su /games (online) o /solo/games (local).
   // Resetta anche eqSession così un eventuale rientro nel gioco riparte fresh.
@@ -178,7 +186,32 @@ const EmojiQuiz = () => {
       const me = eq.players.find((p) => p.id === eq.localPlayerId)
       const score = eq.eqScores?.[eq.localPlayerId] ?? me?.score ?? 0
       const correct = eq.eqCorrectCount?.[eq.localPlayerId] ?? 0
-      // Stima totale domande giocate: cumulativo dei round (questionsPerRound × roundsPlayed).
+      const moreRounds = eq.sessionHasMoreRounds
+
+      // Intermediate round end: show round score + "Prossimo round" button
+      if (moreRounds) {
+        const questionsPlayed = (eq.sessionRoundIdx + 1) * (eq.totalRounds || 0)
+        const handleNextRound = () => {
+          eq.hostNextRound()
+        }
+        return (
+          <SoloResultScreen
+            player={me}
+            gameEmoji="🎬"
+            gameName={`Round ${eq.sessionRoundIdx + 1}/${eq.sessionTotalRounds}`}
+            primaryValue={score}
+            primaryLabel="punti"
+            stats={questionsPlayed > 0 ? [
+              { label: 'Indovinate', value: `${correct}/${questionsPlayed}` },
+            ] : []}
+            replayLabel="Prossimo round →"
+            onReplay={handleNextRound}
+            onChangeGame={handleChangeGame}
+          />
+        )
+      }
+
+      // Final game end: show total result
       const totalQuestions = (eq.sessionRoundIdx + 1) * (eq.totalRounds || 0)
       return (
         <SoloResultScreen

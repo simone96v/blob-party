@@ -20,7 +20,8 @@ const useOptions = () => {
       description: 'Apri un nuovo party e invita i tuoi amici.',
       bg: `linear-gradient(${surfaceBg}, ${surfaceBg}) padding-box, linear-gradient(90deg, #8B5CF6, #3B82F6, #10B981, #F59E0B, #F43F5E, #EC4899) border-box`,
       shadow: 'rgba(0, 0, 0, 0.06)',
-      border: '3px solid transparent',
+      // 1.5px allineato a Solo/Join così tutti i bottoni hanno la stessa dimensione.
+      border: '1.5px solid transparent',
       textColor: 'var(--text)',
     },
     {
@@ -207,7 +208,7 @@ const HomeScreen = () => {
           transition={{ duration: 0.35 }}
           style={{ textAlign: 'center' }}
         >
-          <GradientTitle as="h1" size="xl">
+          <GradientTitle as="h1" size="2xl">
             Blob Party
           </GradientTitle>
           <p

@@ -32,6 +32,7 @@ const SoloResultScreen = ({
   primaryLabel = 'punti',
   stats = [],
   advancing = false,
+  replayLabel = '🔄 Rigioca',
   onReplay,
   onChangeGame,
 }) => {
@@ -123,7 +124,7 @@ const SoloResultScreen = ({
             disabled={advancing}
             style={accentBtnStyle(C.accent)}
           >
-            {advancing ? '...' : '🔄 Rigioca'}
+            {advancing ? '...' : replayLabel}
           </Button>
         </div>
       </div>

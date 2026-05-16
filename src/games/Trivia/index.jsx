@@ -134,6 +134,30 @@ const Trivia = () => {
       const correct = me?.correct_count ?? 0
       const session = trivia.gameState?.triviaSession
       const isSessionMode = !!session && (session.totalRounds ?? 1) > 1
+      const hasMoreRounds = isSessionMode && (session.roundIdx + 1) < session.totalRounds
+
+      if (hasMoreRounds) {
+        // Intermediate round end
+        const roundQs = session.questionsPerRound ?? 0
+        return (
+          <SoloResultScreen
+            player={me}
+            gameEmoji="🧠"
+            gameName={`Round ${session.roundIdx + 1}/${session.totalRounds}`}
+            primaryValue={score}
+            primaryLabel="punti"
+            stats={roundQs > 0 ? [
+              { label: 'Corrette', value: `${correct}/${roundQs * (session.roundIdx + 1)}` },
+            ] : []}
+            advancing={trivia.advancing}
+            replayLabel="Prossimo round →"
+            onReplay={trivia.hostReplay}
+            onChangeGame={handleChangeGame}
+          />
+        )
+      }
+
+      // Final game end
       const totalQs = isSessionMode
         ? (session.totalRounds * (session.questionsPerRound ?? 0))
         : (trivia.totalQuestions ?? 0)

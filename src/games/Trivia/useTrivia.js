@@ -136,11 +136,14 @@ export const useTrivia = () => {
               : p,
           )
           useSession.setState({ players: updPlayers })
+
+          // Solo mode: go straight to reveal (no need to wait for timer)
+          setPhase('reveal')
         }
       }
       setSubmitting(false)
     },
-    [localAnswer, submitting, currentPhase, isOnline, roomCode, localPlayerId, currentRound, gameState, timerDuration, timeLeft, setGameState],
+    [localAnswer, submitting, currentPhase, isOnline, roomCode, localPlayerId, currentRound, gameState, timerDuration, timeLeft, setGameState, setPhase],
   )
 
   // Auto-reveal on timeout (idempotent, any client can fire)

@@ -1,14 +1,13 @@
 // Input system — no physics constants needed; engine applies acceleration.
 
 /**
- * InputManager — handles keyboard, touch, and tilt controls.
+ * InputManager — handles keyboard and touch controls.
  *
- * All three methods produce a normalized direction in [-1, +1].
+ * Two input methods produce a normalized direction in [-1, +1].
  * The GameEngine reads `getDirection()` and applies acceleration/friction
  * for smooth, analog-feeling movement on every platform.
  *
- * Touch: proportional — finger distance from canvas center.
- * Tilt:  smoothed via low-pass filter, non-linear curve.
+ * Touch: tap left/right half of screen for full direction.
  * Keys:  smooth ramp up/down with virtual analog stick.
  */
 export class InputManager {
@@ -18,17 +17,11 @@ export class InputManager {
     // Normalized direction: -1 (full left) to +1 (full right)
     this._touchDir = 0
     this._keyDir = 0
-    this._tiltDir = 0
     this._externalDir = 0
     this._hasExternal = false
 
     // Keyboard smooth ramp state
     this._keysHeld = { left: false, right: false }
-
-    // Tilt state
-    this.useTilt = false
-    this._rawGamma = 0
-    this._smoothGamma = 0
 
     this._cleanup = []
   }
@@ -36,16 +29,14 @@ export class InputManager {
   async init() {
     this._setupKeyboard()
     this._setupTouch()
-    await this._setupTilt()
   }
 
   /**
    * Returns the raw direction in [-1, +1] from the highest-priority active input.
-   * Priority: tilt > external (slider) > touch > keyboard.
+   * Priority: external (overlay buttons) > touch (screen halves) > keyboard.
    * The engine applies acceleration/friction on top of this.
    */
   getDirection() {
-    if (this.useTilt) return this._tiltDir
     if (this._hasExternal) return this._externalDir
     if (this._touchDir !== 0) return this._touchDir
     return this._keyDir
@@ -72,26 +63,6 @@ export class InputManager {
     const keySpeed = 8 // ramp speed (higher = snappier)
     this._keyDir += (keyTarget - this._keyDir) * Math.min(1, keySpeed * dt)
     if (Math.abs(this._keyDir) < 0.01) this._keyDir = 0
-
-    // Smooth tilt (low-pass filter)
-    if (this.useTilt) {
-      const alpha = 1 - Math.pow(0.001, dt) // ~0.93 per frame at 60fps
-      this._smoothGamma += (this._rawGamma - this._smoothGamma) * alpha
-
-      const deadZone = 4
-      const maxAngle = 35
-      const gamma = this._smoothGamma
-      if (Math.abs(gamma) < deadZone) {
-        this._tiltDir = 0
-      } else {
-        // Remove dead zone, normalize to [0, 1], apply curve
-        const sign = gamma > 0 ? 1 : -1
-        const magnitude = (Math.abs(gamma) - deadZone) / (maxAngle - deadZone)
-        const clamped = Math.min(1, magnitude)
-        // Slight exponential curve for better precision at small tilts
-        this._tiltDir = sign * Math.pow(clamped, 1.3)
-      }
-    }
   }
 
   // ── Keyboard ──────────────────────────────────────────
@@ -113,38 +84,24 @@ export class InputManager {
     })
   }
 
-  /** Disable canvas touch controls (when external slider is used). */
-  disableCanvasTouch() {
-    this._canvasTouchDisabled = true
-    this._touchDir = 0
-  }
-
-  // ── Touch ─────────────────────────────────────────────
+  // ── Touch (tap left/right half of screen) ──────────────
 
   _setupTouch() {
     const el = this.canvas
 
     const calcDir = (x) => {
-      const rect = el.getBoundingClientRect()
-      const center = rect.left + rect.width / 2
-      const halfW = rect.width / 2
-      // Distance from center normalized to [-1, +1]
-      const offset = (x - center) / halfW
-      // Apply dead zone + clamp
-      const deadZone = 0.08
-      if (Math.abs(offset) < deadZone) return 0
-      const sign = offset > 0 ? 1 : -1
-      const mag = (Math.abs(offset) - deadZone) / (1 - deadZone)
-      return sign * Math.min(1, mag)
+      // Simple: left half = -1, right half = +1
+      const screenCenter = window.innerWidth / 2
+      return x < screenCenter ? -1 : 1
     }
 
     const onStart = (e) => {
       e.preventDefault()
-      if (!this._canvasTouchDisabled) this._touchDir = calcDir(e.touches[0].clientX)
+      this._touchDir = calcDir(e.touches[0].clientX)
     }
     const onMove = (e) => {
       e.preventDefault()
-      if (!this._canvasTouchDisabled) this._touchDir = calcDir(e.touches[0].clientX)
+      this._touchDir = calcDir(e.touches[0].clientX)
     }
     const onEnd = () => {
       this._touchDir = 0
@@ -160,44 +117,6 @@ export class InputManager {
       el.removeEventListener('touchend', onEnd)
       el.removeEventListener('touchcancel', onEnd)
     })
-  }
-
-  // ── Tilt (DeviceOrientation) ──────────────────────────
-
-  async _setupTilt() {
-    // Only attempt tilt on devices that likely have a gyroscope
-    if (typeof DeviceOrientationEvent === 'undefined') return
-    if (!('ontouchstart' in window)) return // desktop browsers — skip
-
-    const listen = () => {
-      this.useTilt = true
-      const onOrient = (e) => {
-        this._rawGamma = e.gamma || 0
-      }
-      window.addEventListener('deviceorientation', onOrient)
-      this._cleanup.push(() => window.removeEventListener('deviceorientation', onOrient))
-    }
-
-    // iOS 13+ requires explicit permission
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-      try {
-        const res = await DeviceOrientationEvent.requestPermission()
-        if (res === 'granted') listen()
-      } catch {
-        // Permission denied — touch fallback
-      }
-    } else {
-      // Android / older iOS — check if events actually fire
-      let received = false
-      const probe = (e) => {
-        if (e.gamma !== null && e.gamma !== undefined) received = true
-      }
-      window.addEventListener('deviceorientation', probe)
-      // Wait a short time to see if we get real data
-      await new Promise((r) => setTimeout(r, 300))
-      window.removeEventListener('deviceorientation', probe)
-      if (received) listen()
-    }
   }
 
   destroy() {
