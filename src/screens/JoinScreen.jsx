@@ -152,7 +152,26 @@ const JoinScreen = () => {
           />
         </motion.div>
 
-        {/* Color picker — shown when code is 4 chars */}
+        {/* Name input */}
+        {showForm && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 }}
+            style={cardStyle}
+          >
+            <div style={labelStyle}>✍️ Il tuo nome</div>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Es. Marco"
+              style={inputStyle}
+              maxLength={12}
+            />
+          </motion.div>
+        )}
+
+        {/* Color picker */}
         {showForm && (
           <ColorPicker
             takenColors={takenColors}
@@ -161,37 +180,22 @@ const JoinScreen = () => {
           />
         )}
 
-        {/* Name input + Entra button */}
+        {/* Entra button */}
         {showForm && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.14 }}
-            style={cardStyle}
+            transition={{ delay: 0.18 }}
+            style={{ flexShrink: 0 }}
           >
-            <div style={labelStyle}>✍️ Il tuo nome</div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Es. Marco"
-                style={inputStyle}
-                maxLength={12}
-              />
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={!canSubmit}
-                style={{
-                  flexShrink: 0,
-                  padding: '0 clamp(12px, 2vw, 16px)',
-                  boxShadow: 'none',
-                  height: 'clamp(40px, 5.5dvh, 52px)',
-                }}
-              >
-                {submitting ? '...' : 'Entra'}
-              </Button>
-            </div>
+            <Button
+              type="submit"
+              variant="primary"
+              width="full"
+              disabled={!canSubmit}
+            >
+              {submitting ? '...' : 'Entra 🎉'}
+            </Button>
           </motion.div>
         )}
       </form>
