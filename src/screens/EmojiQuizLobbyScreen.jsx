@@ -1,11 +1,9 @@
-// Lobby online di Emoji Quiz.
-// L'host carica il deck (con `answers`) dal DB Supabase e lo pubblica nello
-// stato della stanza. Il deck è condiviso con i client perché serve per la
-// validazione locale dei guess (ogni client controlla se ha indovinato).
-// Il "primo che indovina" viene poi arbitrato dall'host osservando i `timeMs`
-// pubblicati via castVote('eqGuesses').
+// Lobby Emoji Quiz: selettore categoria + selettore round + start.
+// L'host pubblica il deck in gameState.eqDeck. I client validano i guess
+// localmente sul deck (con answers) — gli answers non sono inviati extra,
+// fanno parte del payload Realtime una volta che il deck è caricato.
 
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import AppHeader from '../components/AppHeader'
@@ -15,10 +13,15 @@ import GradientTitle from '../components/ui/GradientTitle'
 import MiniBlob, { useMiniExpr } from '../components/MiniBlob'
 import { useSession } from '../stores/useSession'
 import { pushRoom } from '../lib/room'
-import { loadEmojiQuizDeck } from '../lib/emojiQuizDeck'
-import { TOTAL_ROUNDS } from '../games/EmojiQuiz/config'
+import {
+  loadEmojiQuizDeck,
+  preloadEmojiQuizPool,
+  EMOJI_QUIZ_CATEGORIES,
+} from '../lib/emojiQuizDeck'
 import { accentBtnStyle } from '../theme/gameColors'
 import { usePlayerAccent } from '../hooks/usePlayerAccent'
+
+const ROUND_OPTIONS = [5, 7, 10, 15]
 
 const EmojiQuizLobbyScreen = () => {
   const C = usePlayerAccent()
@@ -26,6 +29,7 @@ const EmojiQuizLobbyScreen = () => {
   const isHost = useSession((s) => s.isHost)
   const mode = useSession((s) => s.mode)
   const players = useSession((s) => s.players)
+  const gameState = useSession((s) => s.gameState)
   const showError = useSession((s) => s.showError)
   const setAwaitingGC = useSession((s) => s.setAwaitingGameChange)
   const expr = useMiniExpr()
@@ -35,11 +39,46 @@ const EmojiQuizLobbyScreen = () => {
   const minPlayers = isSolo ? 1 : 2
   const [launching, setLaunching] = useState(false)
 
+  // Settings con persistenza in gameState (sincronizzati con i client).
+  const savedCategory = gameState?.eqCategory ?? 'tutte'
+  const savedRounds = gameState?.eqRounds ?? 7
+  const [category, setCategory] = useState(savedCategory)
+  const [rounds, setRounds] = useState(savedRounds)
+
+  // Preload del pool quando entriamo in lobby → start instant.
+  useEffect(() => { preloadEmojiQuizPool() }, [])
+
+  // Sync settings in online (per i client che vedono le scelte dell'host).
+  const syncSettings = useCallback((next) => {
+    if (!canControl) return
+    const s = useSession.getState()
+    const newGameState = { ...s.gameState, ...next }
+    useSession.setState({ gameState: newGameState })
+    if (s.mode === 'online' && s.roomCode) {
+      pushRoom(s.roomCode, s.currentPhase, {
+        players: s.players,
+        currentIdx: s.currentIdx,
+        round: s.round,
+        activeGame: s.activeGame,
+        ...newGameState,
+      })
+    }
+  }, [canControl])
+
+  const onCategoryChange = (id) => {
+    setCategory(id)
+    syncSettings({ eqCategory: id })
+  }
+  const onRoundsChange = (r) => {
+    setRounds(r)
+    syncSettings({ eqRounds: r })
+  }
+
   const handleStart = useCallback(async () => {
     if (!canControl || launching) return
     setLaunching(true)
     try {
-      const deck = await loadEmojiQuizDeck(TOTAL_ROUNDS)
+      const deck = await loadEmojiQuizDeck(rounds, category)
       const now = new Date().toISOString()
       const s = useSession.getState()
       const fullState = {
@@ -48,9 +87,12 @@ const EmojiQuizLobbyScreen = () => {
         round: 0,
         activeGame: 'emojiquiz',
         selectedGame: 'emojiquiz',
+        eqCategory: category,
+        eqRounds: rounds,
         eqDeck: deck,
         eqRoundIdx: 0,
         eqRoundAnswers: {},
+        eqHintUsed: {},
         eqRoundResult: null,
         eqScores: {},
         eqStreaks: {},
@@ -65,8 +107,6 @@ const EmojiQuizLobbyScreen = () => {
           return
         }
       } else {
-        // Local fallthrough: in solo questa lobby non viene usata, ma per
-        // sicurezza la gestiamo. Solo va diretto a /game/emojiquiz.
         useSession.setState({
           players: fullState.players,
           gameState: fullState,
@@ -81,7 +121,7 @@ const EmojiQuizLobbyScreen = () => {
       showError('generic')
       setLaunching(false)
     }
-  }, [canControl, launching, showError, navigate])
+  }, [canControl, launching, rounds, category, showError, navigate])
 
   const handleBack = useCallback(() => {
     const s = useSession.getState()
@@ -121,36 +161,84 @@ const EmojiQuizLobbyScreen = () => {
           <GradientTitle as="h2" size="lg" gradient={C.gradient}>
             🎬 Emoji Quiz
           </GradientTitle>
-          <p style={S.subtitle}>Decifra il film o la canzone — chi indovina prima vince</p>
+          <p style={S.subtitle}>Decifra il titolo nascosto negli emoji</p>
         </motion.div>
 
+        {/* Categoria */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          style={S.settingsCard}
+        >
+          <span style={S.settingLabel}>📂 Categoria</span>
+          <div style={S.categoryGrid}>
+            {EMOJI_QUIZ_CATEGORIES.map((cat) => {
+              const active = cat.id === category
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => canControl && onCategoryChange(cat.id)}
+                  disabled={!canControl}
+                  style={{
+                    ...S.categoryChip,
+                    background: active ? cat.color : 'var(--bg)',
+                    color: active ? '#fff' : 'var(--text)',
+                    border: active ? `2px solid ${cat.color}` : '1.5px solid var(--border)',
+                    cursor: canControl ? 'pointer' : 'default',
+                    opacity: canControl ? 1 : 0.6,
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>{cat.emoji}</span>
+                  <span>{cat.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </motion.div>
+
+        {/* Rounds */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          style={S.infoCard}
+          style={S.settingsCard}
         >
-          <div style={S.infoRow}>
-            <span style={S.infoLabel}>⏱️ Tempo per round</span>
-            <span style={S.infoValue}>25s</span>
-          </div>
-          <div style={S.infoRow}>
-            <span style={S.infoLabel}>🎯 Numero round</span>
-            <span style={S.infoValue}>{TOTAL_ROUNDS}</span>
-          </div>
-          <div style={S.infoRow}>
-            <span style={S.infoLabel}>🏆 Vince</span>
-            <span style={S.infoValue}>Punteggio + alto</span>
+          <span style={S.settingLabel}>🎯 Numero round</span>
+          <div style={S.roundsRow}>
+            {ROUND_OPTIONS.map((r) => {
+              const active = r === rounds
+              return (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => canControl && onRoundsChange(r)}
+                  disabled={!canControl}
+                  style={{
+                    ...S.roundChip,
+                    background: active ? C.accent : 'var(--bg)',
+                    color: active ? '#fff' : 'var(--text)',
+                    border: active ? `2px solid ${C.accent}` : '1.5px solid var(--border)',
+                    cursor: canControl ? 'pointer' : 'default',
+                    opacity: canControl ? 1 : 0.6,
+                  }}
+                >
+                  {r}
+                </button>
+              )
+            })}
           </div>
         </motion.div>
 
+        {/* Players */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
           style={S.playersCard}
         >
-          <span style={S.settingLabel}>Giocatori ({players.length})</span>
+          <span style={S.settingLabel}>👥 Giocatori ({players.length})</span>
           <div style={S.playersList}>
             {players.map((p, i) => (
               <div key={p.id} style={S.playerChip}>
@@ -185,8 +273,8 @@ const S = {
   container: { display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' },
   body: {
     display: 'flex', flexDirection: 'column', flex: 1,
-    padding: 'clamp(16px, 3dvh, 28px) clamp(16px, 4vw, 28px)',
-    gap: 'clamp(14px, 2.5dvh, 22px)',
+    padding: 'clamp(14px, 2.5dvh, 24px) clamp(16px, 4vw, 28px)',
+    gap: 'clamp(12px, 2dvh, 18px)',
     overflow: 'auto',
   },
   subtitle: {
@@ -195,21 +283,49 @@ const S = {
     fontSize: 'clamp(13px, 1.6dvh, 15px)',
     fontWeight: 600,
   },
-  infoCard: {
+  settingsCard: {
     background: 'var(--surface)',
     borderRadius: 'var(--radius-lg)',
     padding: 'clamp(14px, 2dvh, 20px)',
     display: 'flex', flexDirection: 'column', gap: 10,
   },
-  infoRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  infoLabel: { fontSize: 'clamp(13px, 1.6dvh, 15px)', color: 'var(--muted)', fontWeight: 600 },
-  infoValue: { fontSize: 'clamp(14px, 1.7dvh, 16px)', color: 'var(--text)', fontWeight: 800 },
-  settingLabel: { fontSize: 'clamp(14px, 1.8dvh, 17px)', fontWeight: 800, color: 'var(--text)' },
+  settingLabel: {
+    fontSize: 'clamp(13px, 1.6dvh, 15px)',
+    fontWeight: 800, color: 'var(--text)',
+  },
+  categoryGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))',
+    gap: 8,
+  },
+  categoryChip: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    padding: '8px 10px',
+    borderRadius: 'var(--radius-sm)',
+    fontFamily: 'inherit',
+    fontSize: 'clamp(11px, 1.3dvh, 13px)',
+    fontWeight: 700,
+    transition: 'all 0.15s',
+    minHeight: 38,
+  },
+  roundsRow: { display: 'flex', gap: 8 },
+  roundChip: {
+    flex: 1,
+    padding: '10px 12px',
+    borderRadius: 'var(--radius-sm)',
+    fontFamily: 'inherit',
+    fontSize: 'clamp(14px, 1.7dvh, 16px)',
+    fontWeight: 800,
+    transition: 'all 0.15s',
+  },
   playersCard: {
     background: 'var(--surface)',
     borderRadius: 'var(--radius-lg)',
-    padding: 'clamp(16px, 2.5dvh, 24px)',
-    display: 'flex', flexDirection: 'column', gap: 12,
+    padding: 'clamp(14px, 2dvh, 20px)',
+    display: 'flex', flexDirection: 'column', gap: 10,
   },
   playersList: { display: 'flex', flexWrap: 'wrap', gap: 8 },
   playerChip: {
@@ -218,11 +334,15 @@ const S = {
     background: 'var(--bg)', borderRadius: 999,
     border: '1px solid var(--border)',
   },
-  playerName: { fontSize: 'clamp(12px, 1.4dvh, 14px)', fontWeight: 700, color: 'var(--text)' },
+  playerName: {
+    fontSize: 'clamp(12px, 1.4dvh, 14px)',
+    fontWeight: 700, color: 'var(--text)',
+  },
   footer: { marginTop: 'auto', flexShrink: 0 },
   waitText: {
-    color: 'var(--muted)', fontSize: 'clamp(13px, 1.6dvh, 16px)', fontWeight: 600,
-    textAlign: 'center', padding: 'clamp(10px, 1.5dvh, 16px) 0', margin: 0,
+    color: 'var(--muted)', fontSize: 'clamp(13px, 1.6dvh, 16px)',
+    fontWeight: 600, textAlign: 'center',
+    padding: 'clamp(10px, 1.5dvh, 16px) 0', margin: 0,
   },
 }
 

@@ -47,7 +47,9 @@ const EmojiQuiz = () => {
   const handleReplay = useCallback(async () => {
     const s = useSession.getState()
     if (!s.isHost && s.mode === 'online') return
-    const deck = await loadEmojiQuizDeck(TOTAL_ROUNDS)
+    const cat = s.gameState?.eqCategory ?? 'tutte'
+    const rounds = s.gameState?.eqRounds ?? TOTAL_ROUNDS
+    const deck = await loadEmojiQuizDeck(rounds, cat)
     const now = new Date().toISOString()
     const resetPlayers = (s.players || []).map((p) => ({ ...p, score: 0, correct_count: 0 }))
     const fullState = {

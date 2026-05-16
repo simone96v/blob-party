@@ -4,7 +4,7 @@ import { useMappa } from './useMappa'
 import { useSession } from '../../stores/useSession'
 import { pushRoom } from '../../lib/room'
 import Spinner from '../../components/ui/Spinner'
-import questions from './data/mappa.json'
+import { loadMappaDeck } from '../../lib/mappaDeck'
 
 const retryImport = (fn) => fn().catch(() => new Promise((r) => setTimeout(r, 1500)).then(fn))
 
@@ -51,13 +51,9 @@ const Mappa = () => {
     if (replaying) return
     setReplaying(true)
     const s = useSession.getState()
-    const pool = [...questions.questions]
-    for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      ;[pool[i], pool[j]] = [pool[j], pool[i]]
-    }
     const deckSize = s.gameState?.mappaRounds ?? s.gameState?.deck?.length ?? 10
-    const deck = pool.slice(0, Math.min(deckSize, pool.length))
+    const difficulty = s.gameState?.mappaDifficulty ?? 'mix'
+    const deck = await loadMappaDeck(deckSize, difficulty)
     const now = new Date().toISOString()
     const resetPlayers = (s.players || []).map((p) => ({ ...p, score: 0 }))
 
@@ -74,6 +70,7 @@ const Mappa = () => {
         pins: {},
         timer_duration: s.gameState?.timer_duration ?? 30,
         mappaRounds,
+        mappaDifficulty: difficulty,
       }
       await pushRoom(s.roomCode, 'mappa_countdown', fullState, now)
     } else {
@@ -86,6 +83,7 @@ const Mappa = () => {
           pins: {},
           timer_duration: s.gameState?.timer_duration ?? 30,
           mappaRounds,
+          mappaDifficulty: difficulty,
         },
         currentPhase: 'mappa_countdown',
         questionStartedAt: now,

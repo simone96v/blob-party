@@ -5,6 +5,48 @@ Tutti i cambiamenti notabili a BlobParty sono documentati qui.
 Il formato segue [Keep a Changelog](https://keepachangelog.com/it/1.1.0/), e questo
 progetto aderisce a [Semantic Versioning](https://semver.org/lang/it/).
 
+## [0.2.0] — 2026-05-16
+
+### Changed — Pool unificato + categorie + difficoltà per Emoji Quiz e Mappa
+
+Applicato il pattern di Trivia a tutti i giochi: **pool grande**, **lazy load
+istantaneo**, **categorie filtrabili in lobby**, **anti-repeat** localStorage.
+
+#### Emoji Quiz
+- **Pool 17 → 111 puzzle** (5 categorie × 3 difficoltà):
+  - 🎬 Film: 30 puzzle (Disney, classici, blockbuster, italiani)
+  - 🎵 Canzoni: 25 (italiane + internazionali, classiche + recenti)
+  - 📺 Serie TV: 20 (Netflix, Sky, italiane)
+  - 🎮 Videogiochi: 18 (Mario, Pokémon, Fortnite, ...)
+  - 🏷️ Marchi: 18 (Apple, Coca Cola, Nike, ...)
+- **Bundle JSON** (`src/data/questions/emojiquiz.json`) caricato lazy come
+  Trivia → ZERO query Supabase a runtime, ZERO cold start.
+- **Anti-repeat localStorage** (`gn:emojiquiz:seen:<categoria>`, cap 80)
+  per evitare ripetizioni fra partite consecutive.
+- **Lobby**: selettore categoria (6 chip incluso "Tutte") + selettore round
+  (5/7/10/15). Sincronizzati in online via gameState.
+- **Supabase `emoji_puzzles` table**: deprecato l'accesso a runtime
+  (rimane in DB per migration history). Il loader ora usa solo il bundle.
+- Rimosso `src/data/emojiQuizPuzzles.js` (fallback obsoleto).
+
+#### Mappa
+- **Lazy loader** (`src/lib/mappaDeck.js`) speculare a `emojiQuizDeck` e
+  `aiQuestions` — niente più import statico di mappa.json in index.jsx.
+- **Anti-repeat localStorage** (`gn:mappa:seen:<difficolta>`, cap 90).
+- **Selettore difficoltà** in lobby: Mix / 🟢 Facile (20) / 🟡 Medio (39) /
+  🔴 Difficile (66). Sincronizzato online.
+- Replay e start usano lo stesso `loadMappaDeck(rounds, difficulty)` →
+  no logic duplication.
+
+#### Trivia
+- Nessun cambiamento (era già su questo pattern).
+
+### Performance
+- Emoji Quiz e Mappa ora hanno chunk separati lazy:
+  - `emojiquiz-*.js`: 19.54 KB / 6.04 KB gzip (pool JSON)
+  - `mappa-*.js`: 24.31 KB / 8.70 KB gzip (pool JSON)
+- Caricati solo quando si entra nel rispettivo gioco — initial bundle invariato.
+
 ## [0.1.2] — 2026-05-16
 
 ### Changed — Meccanica Emoji Quiz: ritorno al text input + indizio

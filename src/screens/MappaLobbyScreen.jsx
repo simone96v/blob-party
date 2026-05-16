@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import AppHeader from '../components/AppHeader'
@@ -8,6 +8,7 @@ import GradientTitle from '../components/ui/GradientTitle'
 import MiniBlob, { useMiniExpr } from '../components/MiniBlob'
 import { useSession } from '../stores/useSession'
 import { pushRoom } from '../lib/room'
+import { loadMappaDeck, preloadMappaPool, MAPPA_DIFFICULTIES } from '../lib/mappaDeck'
 import { accentBtnStyle } from '../theme/gameColors'
 import { usePlayerAccent } from '../hooks/usePlayerAccent'
 
@@ -28,14 +29,18 @@ const MappaLobbyScreen = () => {
   const canControl = isHost || isSolo
   const expr = useMiniExpr()
   const savedRounds = gameState?.mappaRounds ?? 10
+  const savedDifficulty = gameState?.mappaDifficulty ?? 'mix'
   const [rounds, setRounds] = useState(savedRounds)
+  const [difficulty, setDifficulty] = useState(savedDifficulty)
   const [launching, setLaunching] = useState(false)
 
-  const syncRounds = useCallback((val) => {
-    setRounds(val)
+  // Preload del pool al mount → start istantaneo.
+  useEffect(() => { preloadMappaPool() }, [])
+
+  const syncSetting = useCallback((patch) => {
     if (!canControl) return
     const s = useSession.getState()
-    const newGameState = { ...s.gameState, mappaRounds: val }
+    const newGameState = { ...s.gameState, ...patch }
     useSession.setState({ gameState: newGameState })
     if (s.mode === 'online' && s.roomCode) {
       pushRoom(s.roomCode, s.currentPhase, {
@@ -48,19 +53,15 @@ const MappaLobbyScreen = () => {
     }
   }, [canControl])
 
+  const syncRounds = (val) => { setRounds(val); syncSetting({ mappaRounds: val }) }
+  const syncDifficulty = (val) => { setDifficulty(val); syncSetting({ mappaDifficulty: val }) }
+
   const handleStart = useCallback(async () => {
     if (!canControl || launching) return
     setLaunching(true)
 
     try {
-      const { default: mappaData } = await import('../games/Mappa/data/mappa.json')
-      const pool = [...mappaData.questions]
-      for (let i = pool.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1))
-        ;[pool[i], pool[j]] = [pool[j], pool[i]]
-      }
-      const count = Math.min(rounds, pool.length)
-      const deck = pool.slice(0, count)
+      const deck = await loadMappaDeck(rounds, difficulty)
       const now = new Date().toISOString()
       const s = useSession.getState()
       const fullState = {
@@ -75,6 +76,7 @@ const MappaLobbyScreen = () => {
         pins: {},
         timer_duration: 30,
         mappaRounds: rounds,
+        mappaDifficulty: difficulty,
       }
 
       if (s.mode === 'online' && s.roomCode) {
@@ -120,7 +122,7 @@ const MappaLobbyScreen = () => {
       showError('generic')
       setLaunching(false)
     }
-  }, [canControl, launching, rounds, showError, navigate])
+  }, [canControl, launching, rounds, difficulty, showError, navigate])
 
   const handleBack = useCallback(() => {
     const s = useSession.getState()
@@ -207,6 +209,48 @@ const MappaLobbyScreen = () => {
                 {n}
               </motion.button>
             ))}
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12 }}
+          style={S.settingsCard}
+        >
+          <span style={S.settingLabel}>Difficoltà</span>
+          <div style={S.optionsRow}>
+            {MAPPA_DIFFICULTIES.map((d) => {
+              const active = d.id === difficulty
+              return (
+                <motion.button
+                  key={d.id}
+                  type="button"
+                  onClick={() => canControl && syncDifficulty(d.id)}
+                  disabled={!canControl}
+                  whileHover={canControl ? { y: -2 } : undefined}
+                  whileTap={canControl ? { y: 0, scale: 0.95 } : undefined}
+                  transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+                  style={{
+                    ...S.optionBtn,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 4,
+                    fontSize: 'clamp(12px, 1.5dvh, 14px)',
+                    background: active ? d.color : 'var(--surface)',
+                    color: active ? '#fff' : 'var(--text)',
+                    border: active ? `2px solid ${d.color}` : '2px solid var(--border)',
+                    boxShadow: active ? '0 4px 12px rgba(0,0,0,0.2)' : '0 2px 6px rgba(0,0,0,0.04)',
+                    opacity: !canControl ? 0.6 : 1,
+                    cursor: canControl ? 'pointer' : 'default',
+                  }}
+                >
+                  <span style={{ fontSize: 14 }}>{d.emoji}</span>
+                  <span>{d.label}</span>
+                </motion.button>
+              )
+            })}
           </div>
         </motion.div>
 
