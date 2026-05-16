@@ -15,7 +15,6 @@ export class InputManager {
     this.canvas = canvas
 
     // Normalized direction: -1 (full left) to +1 (full right)
-    this._touchDir = 0
     this._keyDir = 0
     this._externalDir = 0
     this._hasExternal = false
@@ -28,7 +27,6 @@ export class InputManager {
 
   async init() {
     this._setupKeyboard()
-    this._setupTouch()
   }
 
   /**
@@ -38,7 +36,6 @@ export class InputManager {
    */
   getDirection() {
     if (this._hasExternal) return this._externalDir
-    if (this._touchDir !== 0) return this._touchDir
     return this._keyDir
   }
 
@@ -84,40 +81,6 @@ export class InputManager {
     })
   }
 
-  // ── Touch (tap left/right half of screen) ──────────────
-
-  _setupTouch() {
-    const el = this.canvas
-
-    const calcDir = (x) => {
-      // Simple: left half = -1, right half = +1
-      const screenCenter = window.innerWidth / 2
-      return x < screenCenter ? -1 : 1
-    }
-
-    const onStart = (e) => {
-      e.preventDefault()
-      this._touchDir = calcDir(e.touches[0].clientX)
-    }
-    const onMove = (e) => {
-      e.preventDefault()
-      this._touchDir = calcDir(e.touches[0].clientX)
-    }
-    const onEnd = () => {
-      this._touchDir = 0
-    }
-
-    el.addEventListener('touchstart', onStart, { passive: false })
-    el.addEventListener('touchmove', onMove, { passive: false })
-    el.addEventListener('touchend', onEnd)
-    el.addEventListener('touchcancel', onEnd)
-    this._cleanup.push(() => {
-      el.removeEventListener('touchstart', onStart)
-      el.removeEventListener('touchmove', onMove)
-      el.removeEventListener('touchend', onEnd)
-      el.removeEventListener('touchcancel', onEnd)
-    })
-  }
 
   destroy() {
     this._cleanup.forEach((fn) => fn())

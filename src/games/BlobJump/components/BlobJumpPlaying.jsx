@@ -82,6 +82,21 @@ const BlobJumpPlaying = ({
   }, [navigate, setAwaitingGC])
 
   const accentLight = useMemo(() => BLOB_GRADIENTS[blobColor]?.[0] || blobColor, [blobColor])
+  const ctrlDisabled = dead || !!isExpired
+
+  // Full-screen touch zones: tap left/right half to move
+  const handleTouchStart = useCallback((e) => {
+    if (ctrlDisabled) return
+    e.preventDefault()
+    const x = e.touches[0].clientX
+    const dir = x < window.innerWidth / 2 ? -1 : 1
+    gameRef.current?.getEngine()?.input?.setExternalDirection(dir)
+  }, [ctrlDisabled])
+
+  const handleTouchEnd = useCallback((e) => {
+    e.preventDefault()
+    gameRef.current?.getEngine()?.input?.clearExternalDirection()
+  }, [])
 
   return (
     <div style={S.container}>
@@ -113,8 +128,14 @@ const BlobJumpPlaying = ({
           </div>
         </div>
 
-        {/* Direction hints */}
-        <div style={S.hints}>
+        {/* Full-screen touch overlay for left/right control */}
+        <div
+          style={S.touchOverlay}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
+        >
           <span style={S.hintArrow}>←</span>
           <span style={S.hintArrow}>→</span>
         </div>
@@ -194,21 +215,24 @@ const S = {
     fontWeight: 700,
     color: 'rgba(255,255,255,0.48)',
   },
-  hints: {
+  touchOverlay: {
     position: 'absolute',
-    bottom: 'clamp(16px, 3dvh, 28px)',
-    left: 0,
-    right: 0,
+    inset: 0,
     display: 'flex',
     justifyContent: 'space-between',
-    padding: '0 clamp(20px, 5vw, 36px)',
-    pointerEvents: 'none',
-    zIndex: 10,
+    alignItems: 'flex-end',
+    padding: 'clamp(16px, 3dvh, 28px) clamp(20px, 5vw, 36px)',
+    zIndex: 5,
+    touchAction: 'none',
+    userSelect: 'none',
+    WebkitUserSelect: 'none',
+    WebkitTapHighlightColor: 'transparent',
   },
   hintArrow: {
     fontSize: 'clamp(22px, 4dvh, 32px)',
     fontWeight: 900,
     color: 'rgba(0,0,0,0.15)',
+    pointerEvents: 'none',
     userSelect: 'none',
   },
 }
