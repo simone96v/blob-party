@@ -91,9 +91,14 @@ const EmojiQuizFinalPhase = ({
   eqScores,
   eqCorrectCount,
   totalRounds,
+  // Sessione multi-round
+  sessionRoundIdx = 0,
+  sessionTotalRounds = 1,
+  sessionHasMoreRounds = false,
   isHost,
   advancing,
   onReplay,
+  onNextRound,
   onChangeGame,
 }) => {
   const C = usePlayerAccent()
@@ -114,7 +119,9 @@ const EmojiQuizFinalPhase = ({
           style={{ textAlign: 'center', flexShrink: 0 }}
         >
           <GradientTitle as="h2" size="lg" gradient={C.gradient}>
-            🎬 Classifica Finale
+            {sessionHasMoreRounds
+              ? `Round ${sessionRoundIdx + 1}/${sessionTotalRounds}`
+              : '🎬 Classifica Finale'}
           </GradientTitle>
           <p style={{
             margin: '4px 0 0',
@@ -122,7 +129,9 @@ const EmojiQuizFinalPhase = ({
             fontSize: 'clamp(11px, 1.4dvh, 13px)',
             fontWeight: 600,
           }}>
-            {totalRounds} round
+            {sessionHasMoreRounds
+              ? 'Punteggio cumulativo'
+              : (sessionTotalRounds > 1 ? `Score cumulativo dei ${sessionTotalRounds} round` : `${totalRounds} domande`)}
           </p>
         </motion.div>
 
@@ -200,8 +209,14 @@ const EmojiQuizFinalPhase = ({
               <Button variant="secondary" width="full" onClick={onChangeGame} disabled={advancing}>
                 Cambia gioco
               </Button>
-              <Button variant="primary" width="full" onClick={onReplay} disabled={advancing} style={accentBtnStyle(C.accent)}>
-                {advancing ? '...' : 'Rigioca'}
+              <Button
+                variant="primary"
+                width="full"
+                onClick={sessionHasMoreRounds ? onNextRound : onReplay}
+                disabled={advancing}
+                style={accentBtnStyle(C.accent)}
+              >
+                {advancing ? '...' : (sessionHasMoreRounds ? 'Prossimo round →' : 'Rigioca')}
               </Button>
             </div>
           ) : (

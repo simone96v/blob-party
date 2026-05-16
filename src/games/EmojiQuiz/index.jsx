@@ -43,41 +43,48 @@ const EmojiQuiz = () => {
     setAwaitingGC(false)
   }, [navigate, setAwaitingGC])
 
-  // Rigioca — l'host (o il solo player in local) carica un nuovo deck e ricomincia.
+  // Rigioca — resetta la sessione e torna in lobby per ri-spinnare la ruota.
   const handleReplay = useCallback(async () => {
     const s = useSession.getState()
     if (!s.isHost && s.mode === 'online') return
-    const cat = s.gameState?.eqCategory ?? 'tutte'
-    const rounds = s.gameState?.eqRounds ?? TOTAL_ROUNDS
-    const deck = await loadEmojiQuizDeck(rounds, cat)
-    const now = new Date().toISOString()
+    const prevSession = s.gameState?.eqSession ?? {}
     const resetPlayers = (s.players || []).map((p) => ({ ...p, score: 0, correct_count: 0 }))
     const fullState = {
       players: resetPlayers,
       currentIdx: 0,
       round: 0,
       activeGame: 'emojiquiz',
-      eqDeck: deck,
+      selectedGame: 'emojiquiz',
+      eqSession: {
+        roundIdx: 0,
+        totalRounds: prevSession.totalRounds ?? 1,
+        questionsPerRound: prevSession.questionsPerRound ?? TOTAL_ROUNDS,
+        categoriesPlayed: [],
+        currentCategory: null,
+        spinTarget: null,
+        launching: false,
+      },
+      eqDeck: [],
       eqRoundIdx: 0,
       eqRoundAnswers: {},
+      eqHintUsed: {},
       eqRoundResult: null,
+      eqRoundLog: [],
       eqScores: {},
       eqStreaks: {},
       eqCorrectCount: {},
-      eqRoundLog: [],
     }
     if (s.mode === 'online' && s.roomCode) {
-      await pushRoom(s.roomCode, 'emojiquiz_countdown', fullState, now)
+      await pushRoom(s.roomCode, 'emojiquiz_lobby', fullState)
     } else {
       useSession.setState({
         players: resetPlayers,
         gameState: fullState,
-        currentPhase: 'emojiquiz_countdown',
-        questionStartedAt: now,
-        activeGame: 'emojiquiz',
+        currentPhase: 'emojiquiz_lobby',
       })
+      navigate('/emojiquiz-lobby', { replace: true })
     }
-  }, [])
+  }, [navigate])
 
   // ── Countdown overlay (3-2-1-VIA!) ──
   if (eq.screen === 'countdown') {
@@ -154,9 +161,13 @@ const EmojiQuiz = () => {
         eqScores={eq.eqScores}
         eqCorrectCount={eq.eqCorrectCount}
         totalRounds={eq.totalRounds}
+        sessionRoundIdx={eq.sessionRoundIdx}
+        sessionTotalRounds={eq.sessionTotalRounds}
+        sessionHasMoreRounds={eq.sessionHasMoreRounds}
         isHost={eq.isHost}
         advancing={false}
         onReplay={handleReplay}
+        onNextRound={eq.hostNextRound}
         onChangeGame={handleChangeGame}
       />
     )

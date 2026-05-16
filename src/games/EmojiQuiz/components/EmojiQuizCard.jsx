@@ -1,7 +1,8 @@
-// Card della "domanda" di Emoji Quiz: sequenza di emoji + categoria + difficoltà.
+// Card della "domanda" di Emoji Quiz: sequenza di emoji + chip categoria + difficoltà.
 // Altezza minima fissa per non spostare la griglia risposte fra question/reveal.
 
 import { motion } from 'framer-motion'
+import { getCategoryById } from '../../../lib/emojiQuizDeck'
 
 const EmojiQuizCard = ({ puzzle }) => {
   if (!puzzle) return null
@@ -9,7 +10,12 @@ const EmojiQuizCard = ({ puzzle }) => {
   const diffColor =
     puzzle.difficulty === 3 ? 'var(--danger)' :
     puzzle.difficulty === 1 ? 'var(--success)' : 'var(--warning)'
-  const isFilm = puzzle.category === 'Film'
+
+  // Lookup metadata della categoria (label + emoji + color).
+  // Supporta sia gli ID nuovi ('film', 'canzoni', 'serie_tv', 'videogiochi', 'marchi')
+  // sia i valori legacy DB ('Film', 'Canzone') tramite normalizzazione.
+  const catId = normalizeCatId(puzzle.category)
+  const cat = getCategoryById(catId)
 
   return (
     <motion.div
@@ -22,11 +28,12 @@ const EmojiQuizCard = ({ puzzle }) => {
       <div style={topRowStyle}>
         <span style={{
           ...catChip,
-          background: isFilm ? 'rgba(124, 58, 237, 0.12)' : 'rgba(245, 158, 11, 0.12)',
-          color: isFilm ? '#7C3AED' : '#D97706',
-          border: `1px solid ${isFilm ? 'rgba(124,58,237,0.28)' : 'rgba(217,119,6,0.28)'}`,
+          background: `${cat.color}1f`,
+          color: cat.color,
+          border: `1px solid ${cat.color}40`,
         }}>
-          {isFilm ? '🎬 Film' : '🎵 Canzone'}
+          <span style={{ fontSize: 14 }}>{cat.emoji}</span>
+          {cat.label}
         </span>
         <div style={diffDotsStyle} aria-label={`Difficoltà ${stars}/3`}>
           {[0, 1, 2].map((i) => (
@@ -39,12 +46,25 @@ const EmojiQuizCard = ({ puzzle }) => {
         </div>
       </div>
 
-      {/* Emoji puzzle — centrato */}
+      {/* Emoji puzzle */}
       <div style={emojiContainerStyle}>
         <span style={emojiStyle}>{puzzle.emoji}</span>
       </div>
     </motion.div>
   )
+}
+
+// Mappa categorie legacy DB → nuovi ID del bundle. 'tutte' non è una categoria
+// per-puzzle (è solo un filtro) quindi fallback a 'film' è arbitrario ma innocuo.
+const normalizeCatId = (raw) => {
+  if (!raw) return 'film'
+  const s = String(raw).toLowerCase()
+  if (s === 'film') return 'film'
+  if (s === 'canzone' || s === 'canzoni') return 'canzoni'
+  if (s === 'serie tv' || s === 'serie_tv' || s === 'series') return 'serie_tv'
+  if (s === 'videogioco' || s === 'videogiochi' || s === 'videogames') return 'videogiochi'
+  if (s === 'marchio' || s === 'marchi' || s === 'brand') return 'marchi'
+  return s
 }
 
 const cardStyle = {

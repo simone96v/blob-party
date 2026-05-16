@@ -1,20 +1,19 @@
-// Multiplayer flow (text-input):
-// 2 browser contexts → create+join party → vote Emoji Quiz → host start →
-// entrambi vedono question phase con lo stesso puzzle (deck sync).
+// Multiplayer flow (wheel-driven):
+// 2 browser contexts → create+join party → vote → host spin → entrambi atterrano su question.
 
 import { test, expect } from '@playwright/test'
 
-test.setTimeout(90_000)
+test.setTimeout(120_000)
 
 test.describe('Emoji Quiz — multiplayer', () => {
-  test('host + client votano Emoji Quiz, host avvia, entrambi vedono lo stesso puzzle', async ({ browser }) => {
+  test('host + client votano, lo spinner gira la ruota, entrambi vedono lo stesso puzzle', async ({ browser }) => {
     const hostCtx = await browser.newContext()
     const clientCtx = await browser.newContext()
     const host = await hostCtx.newPage()
     const client = await clientCtx.newPage()
 
     try {
-      // HOST: crea party
+      // HOST crea party
       await host.goto('/')
       await host.getByText('Crea party', { exact: false }).click()
       await host.locator('button:has([id^="cp-"])').first().click()
@@ -24,9 +23,8 @@ test.describe('Emoji Quiz — multiplayer', () => {
       const codeEl = host.locator('text=/^[BCDFGHJKLMNPRSTVWX]{4}$/').first()
       await expect(codeEl).toBeVisible({ timeout: 15_000 })
       const code = (await codeEl.textContent())?.trim()
-      expect(code).toMatch(/^[A-Z]{4}$/)
 
-      // CLIENT: join
+      // CLIENT join
       await client.goto('/')
       await client.getByText('Ho già un codice', { exact: false }).click()
       await client.locator('input').first().fill(code)
@@ -42,36 +40,42 @@ test.describe('Emoji Quiz — multiplayer', () => {
       await expect(host).toHaveURL(/\/games/, { timeout: 10_000 })
       await expect(client).toHaveURL(/\/games/, { timeout: 10_000 })
 
-      // Vote
       await host.getByText('Emoji Quiz').click()
       await client.getByText('Emoji Quiz').click()
 
-      // Lobby
+      // Lobby con ruota
       await expect(host).toHaveURL(/\/emojiquiz-lobby/, { timeout: 15_000 })
       await expect(client).toHaveURL(/\/emojiquiz-lobby/, { timeout: 15_000 })
 
-      // Host avvia
-      await host.getByRole('button', { name: /Inizia/i }).click()
-      await expect(host).toHaveURL(/\/game\/emojiquiz/, { timeout: 10_000 })
-      await expect(client).toHaveURL(/\/game\/emojiquiz/, { timeout: 10_000 })
+      // Spinner deterministico — aspetto che il bottone SPIN appaia su una delle due.
+      const spinBtnHost = host.getByRole('button', { name: /SPIN/i })
+      const spinBtnClient = client.getByRole('button', { name: /SPIN/i })
+      // Race per individuare lo spinner. Almeno uno dei due deve avere il bottone.
+      await Promise.race([
+        spinBtnHost.waitFor({ state: 'visible', timeout: 15_000 }).catch(() => {}),
+        spinBtnClient.waitFor({ state: 'visible', timeout: 15_000 }).catch(() => {}),
+      ])
+      const hostHasSpin = await spinBtnHost.isVisible().catch(() => false)
+      const spinner = hostHasSpin ? host : client
+      await spinner.getByRole('button', { name: /SPIN/i }).click()
 
-      // Question phase su entrambi: emoji card + input
-      await expect(host.locator('[aria-label*="Difficoltà"]')).toBeVisible({ timeout: 20_000 })
-      await expect(client.locator('[aria-label*="Difficoltà"]')).toBeVisible({ timeout: 20_000 })
+      // Wheel anima ~4s + celebrazione ~2s → onSpinEnd → deck load → push countdown.
+      // Margini generosi.
+      await expect(host).toHaveURL(/\/game\/emojiquiz/, { timeout: 30_000 })
+      await expect(client).toHaveURL(/\/game\/emojiquiz/, { timeout: 30_000 })
+
+      // Question phase su entrambi
+      await expect(host.locator('[aria-label*="Difficoltà"]')).toBeVisible({ timeout: 30_000 })
+      await expect(client.locator('[aria-label*="Difficoltà"]')).toBeVisible({ timeout: 30_000 })
       await expect(host.getByPlaceholder(/Scrivi il titolo/i)).toBeVisible()
       await expect(client.getByPlaceholder(/Scrivi il titolo/i)).toBeVisible()
 
-      // Sync del deck: host e client mostrano lo stesso emoji
-      const hostEmoji = await host.locator('.eq-emoji-puzzle, [aria-label*="Difficoltà"]').first().evaluate(
-        (el) => el.parentElement?.textContent || '',
-      )
-      // Verifica sync via HTML content: stesso puzzle = stesso emoji su entrambe le pagine
-      const hostHTML = await host.content()
-      const clientHTML = await client.content()
-      // Cerca emoji noti del bank
-      const knownEmojis = ['🦁👑', '🚢🧊💔', '👻🔫', '🐠🔍', '🦖🏝️', '🤖🌱❤️', '👽📞🏠', '🃏🤡', '❄️👸⛄', '👶🦈', '💃🪩👑', '🌧️💜', '🚀']
-      const sharedEmoji = knownEmojis.find((e) => hostHTML.includes(e) && clientHTML.includes(e))
-      expect(sharedEmoji, 'host e client devono vedere lo stesso emoji').toBeDefined()
+      // Sync deck: il difficulty marker contiene l'emoji puzzle nello stesso card.
+      // Estraggo il textContent del card-area di entrambi e li comparo.
+      const hostCard = await host.locator('[aria-label*="Difficoltà"]').first().locator('xpath=ancestor::*[1]/..').textContent()
+      const clientCard = await client.locator('[aria-label*="Difficoltà"]').first().locator('xpath=ancestor::*[1]/..').textContent()
+      expect(hostCard).toBeTruthy()
+      expect(clientCard).toBe(hostCard)
     } finally {
       await hostCtx.close()
       await clientCtx.close()

@@ -1,31 +1,23 @@
-// Hook orchestratore di Emoji Quiz (free-text input + hint).
+// Hook orchestratore di Emoji Quiz (multi-round + ruota categorie, stile Trivia).
+//
+// Sessione (gameState.eqSession):
+//   { roundIdx, totalRounds, questionsPerRound, categoriesPlayed, currentCategory,
+//     spinTarget, launching }
+//
+// Deck per round (gameState.eqDeck): viene caricato dall'host dopo lo spin della ruota.
+// Punteggi cumulativi (gameState.eqScores / eqCorrectCount) → mai resettati fra round.
 //
 // Phase machine:
-//   emojiquiz_countdown → emojiquiz_question → emojiquiz_reveal → ... → emojiquiz_final
+//   emojiquiz_lobby → emojiquiz_countdown → emojiquiz_question → emojiquiz_reveal
+//   → ... → emojiquiz_final (intermedio se più round, altrimenti game-end)
 //
-// Differenze local/online:
-//   - online: il client valida il guess localmente con isCorrect() (ha il deck
-//     completo via gameState.eqDeck). Quando corretto, invia castVote('eqRoundAnswers',
-//     { round, timeMs, hintUsed }). L'host osserva e arbitra il winner per min timeMs.
-//   - local: stesso modello, ma scrive direttamente in gameState (no Realtime).
-//
-// gameState shape:
-//   eqDeck:          [{ id, emoji, category, hint, title, answers[] (varianti) }]
-//   eqRoundIdx:      int
-//   eqRoundAnswers:  { [pid]: { round, timeMs, hintUsed } }  // solo guess corretti
-//   eqHintUsed:      { [pid]: { round: true } }              // chi ha usato l'hint
-//   eqRoundResult:   { round, winnerId, winnerName, points: {pid}, title, emoji, category }
-//   eqScores:        { pid: totalScore }
-//   eqStreaks:       { pid: currentStreak }
-//   eqCorrectCount:  { pid: count }
-//   eqRoundLog:      ['win'|'lose'|'tie', ...]
+// Local mode: stesso flusso ma scrive direttamente in gameState (no Realtime).
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSession } from '../../stores/useSession'
 import { useServerTimer } from '../../hooks/useServerTimer'
 import { isCorrect } from './matching'
 import { basePoints, comboMult, round10, ROUND_MS } from './scoring'
-import { TOTAL_ROUNDS } from './config'
 
 const ROUND_DURATION_S = Math.round(ROUND_MS / 1000) // 25
 
@@ -44,8 +36,17 @@ export const useEmojiQuiz = () => {
 
   const isOnline = mode === 'online'
 
+  const session = gameState?.eqSession ?? null
+  const roundIdx = session?.roundIdx ?? 0
+  const totalRounds = session?.totalRounds ?? 1
+  const questionsPerRound = session?.questionsPerRound ?? 7
+  const currentCategory = session?.currentCategory ?? 'tutte'
+  const hasMoreRounds = roundIdx + 1 < totalRounds
+
   const eqDeck = useMemo(() => gameState?.eqDeck ?? [], [gameState?.eqDeck])
-  const roundIdx = gameState?.eqRoundIdx ?? 0
+  const questionIdx = gameState?.eqRoundIdx ?? 0
+  const totalQuestionsThisRound = eqDeck.length || questionsPerRound
+
   const eqRoundAnswers = useMemo(() => gameState?.eqRoundAnswers ?? {}, [gameState?.eqRoundAnswers])
   const eqHintUsed = useMemo(() => gameState?.eqHintUsed ?? {}, [gameState?.eqHintUsed])
   const eqRoundResult = gameState?.eqRoundResult ?? null
@@ -54,38 +55,32 @@ export const useEmojiQuiz = () => {
   const eqCorrectCount = useMemo(() => gameState?.eqCorrectCount ?? {}, [gameState?.eqCorrectCount])
   const eqRoundLog = useMemo(() => gameState?.eqRoundLog ?? [], [gameState?.eqRoundLog])
 
-  const puzzle = eqDeck[roundIdx]
-  const totalRounds = eqDeck.length || TOTAL_ROUNDS
+  const puzzle = eqDeck[questionIdx]
 
-  // ── Server timer (fase question) ──
+  // ── Server timer ──
   const timerActive = currentPhase === 'emojiquiz_question'
   const { timeLeft, isExpired } = useServerTimer(
     timerActive ? questionStartedAt : null,
     ROUND_DURATION_S,
   )
 
-  // ── Stato locale UI: input testuale + feedback wrong-guess ──
+  // ── Local UI state ──
   const [guess, setGuess] = useState('')
   const [wrongFlash, setWrongFlash] = useState(false)
   const inputRef = useRef(null)
   const inputWrapRef = useRef(null)
 
-  // Reset input quando cambia il round.
   useEffect(() => {
     setGuess('')
     setWrongFlash(false)
-  }, [roundIdx, currentPhase])
+  }, [questionIdx, currentPhase])
 
-  // Submitted = il LOCAL player ha già una risposta corretta registrata per questo round.
   const myAnswer = eqRoundAnswers[localPlayerId]
-  const submitted = !!(myAnswer && myAnswer.round === roundIdx)
-
-  // Hint usato per questo round dal local player?
+  const submitted = !!(myAnswer && myAnswer.round === questionIdx)
   const myHint = eqHintUsed[localPlayerId]
-  const hintUsed = !!(myHint && myHint.round === roundIdx)
+  const hintUsed = !!(myHint && myHint.round === questionIdx)
 
-  // ── Action: submit del guess ──
-  // Validazione locale; se corretto invia all'host. Se sbagliato → shake.
+  // ── Submit guess ──
   const submitAnswer = useCallback(() => {
     if (currentPhase !== 'emojiquiz_question') return
     if (submitted || !puzzle) return
@@ -93,7 +88,7 @@ export const useEmojiQuiz = () => {
     if (isCorrect(guess, puzzle)) {
       const startMs = questionStartedAt ? new Date(questionStartedAt).getTime() : Date.now()
       const timeMs = Math.max(0, Date.now() - startMs)
-      const payload = { round: roundIdx, timeMs, hintUsed }
+      const payload = { round: questionIdx, timeMs, hintUsed }
       if (isOnline) {
         castVote('eqRoundAnswers', payload)
       } else {
@@ -101,7 +96,6 @@ export const useEmojiQuiz = () => {
         setGameState({ eqRoundAnswers: next })
       }
     } else {
-      // Wrong guess: flash + shake, no penalty (può riprovare).
       setWrongFlash(true)
       setTimeout(() => setWrongFlash(false), 380)
       inputWrapRef.current?.animate?.(
@@ -116,24 +110,24 @@ export const useEmojiQuiz = () => {
       inputRef.current?.focus()
     }
   }, [
-    currentPhase, submitted, puzzle, guess, questionStartedAt, roundIdx,
+    currentPhase, submitted, puzzle, guess, questionStartedAt, questionIdx,
     hintUsed, isOnline, castVote, localPlayerId, gameState, setGameState,
   ])
 
-  // ── Action: usa l'hint (cappa i punti massimi a 350) ──
+  // ── Hint ──
   const useHint = useCallback(() => {
     if (currentPhase !== 'emojiquiz_question') return
     if (submitted || hintUsed) return
-    const payload = { round: roundIdx, used: true }
+    const payload = { round: questionIdx, used: true }
     if (isOnline) {
       castVote('eqHintUsed', payload)
     } else {
       const next = { ...(gameState?.eqHintUsed ?? {}), [localPlayerId]: payload }
       setGameState({ eqHintUsed: next })
     }
-  }, [currentPhase, submitted, hintUsed, roundIdx, isOnline, castVote, localPlayerId, gameState, setGameState])
+  }, [currentPhase, submitted, hintUsed, questionIdx, isOnline, castVote, localPlayerId, gameState, setGameState])
 
-  // ── Countdown → Question (via CountdownOverlay.onComplete) ──
+  // ── Countdown → Question ──
   const countdownFiredRef = useRef(false)
   useEffect(() => {
     if (currentPhase !== 'emojiquiz_countdown') countdownFiredRef.current = false
@@ -145,8 +139,7 @@ export const useEmojiQuiz = () => {
     setPhaseWithTimer('emojiquiz_question')
   }, [isHost, currentPhase, setPhaseWithTimer])
 
-  // ── Host: chiusura del round → reveal ──
-  // Trigger quando: tutti hanno risposto correttamente OR timer scaduto.
+  // ── Host: chiusura della singola domanda → reveal ──
   const revealFiredRef = useRef(false)
   useEffect(() => {
     if (currentPhase !== 'emojiquiz_question') {
@@ -155,29 +148,26 @@ export const useEmojiQuiz = () => {
     }
     if (!isHost || revealFiredRef.current || !puzzle) return
 
-    const validAnswers = Object.entries(eqRoundAnswers).filter(
-      ([, a]) => a && a.round === roundIdx,
+    const valid = Object.entries(eqRoundAnswers).filter(
+      ([, a]) => a && a.round === questionIdx,
     )
-    const allAnswered = players.length > 0 && validAnswers.length >= players.length
+    const allAnswered = players.length > 0 && valid.length >= players.length
     const timedOut = isExpired
-
     if (!allAnswered && !timedOut) return
     revealFiredRef.current = true
 
-    // Ordine per timeMs: il primo guess corretto vince.
-    const sorted = validAnswers
+    const sorted = valid
       .map(([pid, a]) => ({ pid, a }))
       .sort((x, y) => x.a.timeMs - y.a.timeMs)
     const winnerId = sorted[0]?.pid ?? null
 
-    // Punti per ogni player che ha indovinato (cappati se hint usato).
     const newStreaks = { ...eqStreaks }
     const newCorrectCount = { ...eqCorrectCount }
     const newScores = { ...eqScores }
     const points = {}
     players.forEach((p) => {
       const ans = eqRoundAnswers[p.id]
-      const got = ans && ans.round === roundIdx
+      const got = ans && ans.round === questionIdx
       if (got) {
         const streak = (eqStreaks[p.id] ?? 0) + 1
         const pts = round10(basePoints(ans.timeMs, !!ans.hintUsed) * comboMult(streak))
@@ -198,7 +188,7 @@ export const useEmojiQuiz = () => {
 
     setGameState({
       eqRoundResult: {
-        round: roundIdx,
+        round: questionIdx,
         winnerId,
         winnerName,
         points,
@@ -214,10 +204,10 @@ export const useEmojiQuiz = () => {
     setPhase('emojiquiz_reveal')
   }, [
     currentPhase, isHost, puzzle, eqRoundAnswers, eqStreaks, eqCorrectCount, eqScores, eqRoundLog,
-    players, roundIdx, isExpired, localPlayerId, setGameState, setPhase,
+    players, questionIdx, isExpired, localPlayerId, setGameState, setPhase,
   ])
 
-  // ── Host: advance manuale dal reveal ──
+  // ── Host: advance da reveal → prossima domanda / fine round ──
   const advancingRef = useRef(false)
   useEffect(() => {
     if (currentPhase === 'emojiquiz_question') advancingRef.current = false
@@ -234,6 +224,7 @@ export const useEmojiQuiz = () => {
     const nextIdx = curIdx + 1
 
     if (nextIdx >= deck.length) {
+      // Fine round corrente. Aggiorna players[].score per la classifica.
       const totals = s.gameState?.eqScores ?? {}
       const corrects = s.gameState?.eqCorrectCount ?? {}
       const updatedPlayers = (s.players || []).map((p) => ({
@@ -242,6 +233,7 @@ export const useEmojiQuiz = () => {
         correct_count: corrects[p.id] ?? 0,
       }))
       useSession.setState({ players: updatedPlayers })
+      // Vai a final (intermediario o game-end, lo decide FinalPhase via session)
       setPhase('emojiquiz_final')
     } else {
       setGameState({
@@ -253,7 +245,41 @@ export const useEmojiQuiz = () => {
     }
   }, [isHost, currentPhase, setGameState, setPhase, setPhaseWithTimer])
 
-  // ── Mapping currentPhase → screen name ──
+  // ── Host: avanza al prossimo round (dal final intermedio) → torna in lobby ──
+  const nextRoundFiredRef = useRef(false)
+  useEffect(() => {
+    if (currentPhase !== 'emojiquiz_final') nextRoundFiredRef.current = false
+  }, [currentPhase])
+
+  const hostNextRound = useCallback(() => {
+    if (!isHost || nextRoundFiredRef.current) return
+    if (currentPhase !== 'emojiquiz_final') return
+    if (!hasMoreRounds) return
+    nextRoundFiredRef.current = true
+
+    const s = useSession.getState()
+    const newSession = {
+      ...(s.gameState?.eqSession ?? {}),
+      roundIdx: roundIdx + 1,
+      currentCategory: null,
+      spinTarget: null,
+      launching: false,
+    }
+    setGameState({
+      eqSession: newSession,
+      // Reset deck + per-round state per il nuovo round (le sessions persistono).
+      eqDeck: [],
+      eqRoundIdx: 0,
+      eqRoundAnswers: {},
+      eqHintUsed: {},
+      eqRoundResult: null,
+      eqRoundLog: [],
+      eqStreaks: {}, // reset streak fra round (Trivia fa lo stesso)
+    })
+    setPhase('emojiquiz_lobby')
+  }, [isHost, currentPhase, hasMoreRounds, roundIdx, setGameState, setPhase])
+
+  // ── Screen ──
   const screen = (() => {
     switch (currentPhase) {
       case 'emojiquiz_countdown': return 'countdown'
@@ -264,25 +290,27 @@ export const useEmojiQuiz = () => {
     }
   })()
 
-  const hasMoreRounds = roundIdx + 1 < totalRounds
-
   return {
-    // mode info
     isOnline,
     isHost,
     localPlayerId,
     players,
-    // session
     screen,
     puzzle,
     questionStartedAt,
-    roundIdx,
-    totalRounds,
-    hasMoreRounds,
+    // round = numero della domanda dentro al round corrente
+    roundIdx: questionIdx,
+    totalRounds: totalQuestionsThisRound,
+    hasMoreRounds: questionIdx + 1 < totalQuestionsThisRound,
+    // session = numero del round (= spin della ruota) dentro alla partita
+    sessionRoundIdx: roundIdx,
+    sessionTotalRounds: totalRounds,
+    sessionHasMoreRounds: hasMoreRounds,
+    questionsPerRound,
+    currentCategory,
     timeLeft,
     timerDuration: ROUND_DURATION_S,
     isExpired,
-    // local player state
     guess,
     setGuess,
     wrongFlash,
@@ -290,16 +318,15 @@ export const useEmojiQuiz = () => {
     hintUsed,
     inputRef,
     inputWrapRef,
-    // shared state
     eqRoundAnswers,
     eqRoundResult,
     eqScores,
     eqCorrectCount,
     eqRoundLog,
-    // actions
     submitAnswer,
     useHint,
     hostAdvance,
+    hostNextRound,
     handleCountdownComplete,
   }
 }

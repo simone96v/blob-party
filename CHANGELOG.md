@@ -5,6 +5,39 @@ Tutti i cambiamenti notabili a BlobParty sono documentati qui.
 Il formato segue [Keep a Changelog](https://keepachangelog.com/it/1.1.0/), e questo
 progetto aderisce a [Semantic Versioning](https://semver.org/lang/it/).
 
+## [0.2.1] — 2026-05-16
+
+### Fixed
+- **Bug categoria badge** in EmojiQuizCard: mostrava "Canzone" come fallback per
+  qualsiasi categoria non-Film (es. videogiochi mostrava "🎵 Canzone"). Ora usa
+  lookup da `EMOJI_QUIZ_CATEGORIES` e mostra label + emoji + colore corretti per
+  ogni categoria (film, canzoni, serie_tv, videogiochi, marchi). Normalizzazione
+  di valori legacy DB ('Film' → 'film', 'Canzone' → 'canzoni').
+
+### Changed — Lobby Emoji Quiz: ruota stile Trivia + sessione multi-round
+Sostituiti i chip statici della categoria con `CategoryWheel` come Trivia:
+- **Ruota** con 5 categorie reali (esclusa "Tutte"): lo spinner del round la
+  fa girare, l'animazione è sincronizzata fra host e client via Realtime
+  (`gameState.eqSession.spinTarget`).
+- **Stepper Round** (1-3): numero di volte che la ruota viene girata.
+- **Stepper Domande** (5-15): puzzle giocati per ogni round.
+- **Spinner deterministico**: scelto per round con seed = roomCode + roundIdx,
+  ruota fra i player.
+- **Multi-round flow**: tra round la final phase mostra "Prossimo round →"
+  che riporta in lobby per la prossima ruota. All'ultimo round → "Rigioca".
+- **Anti-repeat per categoria**: categorie già giocate vengono escluse dalla
+  ruota nei round successivi.
+- **Punteggi cumulativi** attraverso i round (mai resettati fra round, solo
+  all'inizio della partita o su "Rigioca").
+
+### Internal
+- `useEmojiQuiz` ristrutturato: `gameState.eqSession` (roundIdx, totalRounds,
+  questionsPerRound, categoriesPlayed, currentCategory, spinTarget, launching)
+  + `hostNextRound()` per la transizione fra round.
+- `handleRequestSpin` nella lobby pusha direttamente (non via updateSession,
+  che è gated su canControl) per permettere a chiunque sia spinner — anche
+  non-host — di triggerare la ruota.
+
 ## [0.2.0] — 2026-05-16
 
 ### Changed — Pool unificato + categorie + difficoltà per Emoji Quiz e Mappa
