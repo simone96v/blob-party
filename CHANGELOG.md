@@ -5,6 +5,26 @@ Tutti i cambiamenti notabili a BlobParty sono documentati qui.
 Il formato segue [Keep a Changelog](https://keepachangelog.com/it/1.1.0/), e questo
 progetto aderisce a [Semantic Versioning](https://semver.org/lang/it/).
 
+## [0.2.7] — 2026-05-16
+
+### Fixed
+- **Mappa: blob lampeggia sulla mappa** quando piazzato. Le icone Leaflet
+  venivano ricreate a ogni render con un `uid` random nel SVG e con una nuova
+  istanza `L.divIcon` — react-leaflet sostituiva il marker e l'animazione CSS
+  `mappa-pin-drop` ri-partiva di continuo. Ora gli uid sono deterministici
+  (basati sui colori) e le icone sono **cachate** in una Map globale: stessa
+  combinazione color/auto/animated → stessa istanza icona → react-leaflet non
+  rimpiazza il marker → niente flash.
+- **Mappa multiplayer: l'auto-advance non scattava** quando tutti i player
+  avevano consegnato il pin. L'effect "all submitted" pianificava un timer
+  da 800ms con `setTimeout`+`return () => clearTimeout()`. Quando arrivavano
+  altri update Realtime (eco late del pin), l'effect re-runs e il cleanup
+  **cancellava il timer** prima che scattasse → si doveva aspettare il timer
+  da 30s. Ora il timer è trackato in una ref dedicata e NON viene cancellato
+  dal cleanup dell'effect — solo dal phase change o dall'unmount.
+- **BlobJump multiplayer: stesso bug** con il timer di auto-results (800ms
+  quando tutti i player sono morti). Stesso fix con ref dedicata.
+
 ## [0.2.6] — 2026-05-16
 
 ### Changed

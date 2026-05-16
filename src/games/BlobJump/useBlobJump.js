@@ -88,20 +88,27 @@ export const useBlobJump = () => {
     }
   }, [isOnline, castVote])
 
-  // Host: auto-results when timer expires
+  // Host: auto-results when timer expires.
+  // Timer in ref dedicate — non cancellati dal cleanup dell'effect quando
+  // arrivano altri update Realtime (eco late di roundFinished).
   const timerResultsRef = useRef(false)
+  const timerResultsTimeoutRef = useRef(null)
   useEffect(() => {
     if (currentPhase !== 'blobjump_playing') {
       timerResultsRef.current = false
+      if (timerResultsTimeoutRef.current) {
+        clearTimeout(timerResultsTimeoutRef.current)
+        timerResultsTimeoutRef.current = null
+      }
       return
     }
     if (!isHost || !isExpired || timerResultsRef.current) return
     timerResultsRef.current = true
-    const t = setTimeout(() => {
+    timerResultsTimeoutRef.current = setTimeout(() => {
+      timerResultsTimeoutRef.current = null
       const s = useSession.getState()
       const scores = s.gameState?.roundScores ?? {}
       const finished = s.gameState?.roundFinished ?? {}
-      // Players who didn't submit get 0; mark everyone as finished
       const finalScores = {}
       const finalFinished = { ...finished }
       s.players.forEach((p) => {
@@ -111,15 +118,19 @@ export const useBlobJump = () => {
       setGameState({ roundScores: finalScores, roundFinished: finalFinished })
       setPhase('blobjump_results')
     }, 1500)
-    return () => clearTimeout(t)
   }, [currentPhase, isHost, isExpired, setGameState, setPhase])
 
-  // Host: early results when all players have died (roundFinished, NOT roundScores
-  // which also gets periodic live updates).
+  // Host: early results quando tutti i player sono morti (roundFinished, NOT
+  // roundScores che riceve anche update periodici live).
   const allSubmittedRef = useRef(false)
+  const earlyResultsTimeoutRef = useRef(null)
   useEffect(() => {
     if (currentPhase !== 'blobjump_playing') {
       allSubmittedRef.current = false
+      if (earlyResultsTimeoutRef.current) {
+        clearTimeout(earlyResultsTimeoutRef.current)
+        earlyResultsTimeoutRef.current = null
+      }
       return
     }
     if (!isHost || allSubmittedRef.current) return
@@ -127,9 +138,17 @@ export const useBlobJump = () => {
     const allFinished = players.length > 0 && players.every((p) => finished[p.id])
     if (!allFinished) return
     allSubmittedRef.current = true
-    const t = setTimeout(() => setPhase('blobjump_results'), 800)
-    return () => clearTimeout(t)
+    earlyResultsTimeoutRef.current = setTimeout(() => {
+      earlyResultsTimeoutRef.current = null
+      setPhase('blobjump_results')
+    }, 800)
   }, [currentPhase, isHost, gameState?.roundFinished, players, setPhase])
+
+  // Unmount cleanup per i timer (non cancellati su re-run sopra).
+  useEffect(() => () => {
+    if (timerResultsTimeoutRef.current) clearTimeout(timerResultsTimeoutRef.current)
+    if (earlyResultsTimeoutRef.current) clearTimeout(earlyResultsTimeoutRef.current)
+  }, [])
 
   // Host advance: next round or final
   const hostAdvance = useCallback(() => {

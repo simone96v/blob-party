@@ -48,10 +48,17 @@ const ITALY_BOUNDS = [[35.4, 6.5], [47.1, 18.7]]
 const ITALY_CENTER = [41.9, 12.5]
 
 // ── Blob pin SVG generators ──
+//
+// IMPORTANTE: gli uid sono DETERMINISTICI (basati sui colori) — non Math.random().
+// Con random ogni render generava un SVG diverso, react-leaflet sostituiva il
+// marker e l'animazione CSS `mappa-pin-drop` veniva ri-eseguita di continuo
+// causando un lampeggio. Con uid stabile il markup è identico across renders.
+
+const stableUid = (s) => s.replace(/[^a-z0-9]/gi, '')
 
 const blobPinSvg = (color, size = 38, animated = false) => {
   const [c1, c2, c3] = BLOB_GRADIENTS[color] || ['#E5E7EB', '#D1D5DB', '#9CA3AF']
-  const uid = Math.random().toString(36).slice(2, 8)
+  const uid = stableUid(`pin${color}${size}`)
   const svg = `<svg width="${size}" height="${size}" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="bg-${uid}" x1="0%" y1="0%" x2="100%" y2="80%">
@@ -78,7 +85,7 @@ const blobPinSvg = (color, size = 38, animated = false) => {
 }
 
 const realBlobSvg = (size = 46) => {
-  const uid = Math.random().toString(36).slice(2, 8)
+  const uid = stableUid(`real${size}`)
   return `<svg width="${size}" height="${size}" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="bg-${uid}" x1="0%" y1="0%" x2="100%" y2="80%">
@@ -94,7 +101,7 @@ const realBlobSvg = (size = 46) => {
 }
 
 const autoBlobSvg = (size = 34) => {
-  const uid = Math.random().toString(36).slice(2, 8)
+  const uid = stableUid(`auto${size}`)
   return `<svg width="${size}" height="${size}" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="bg-${uid}" x1="0%" y1="0%" x2="100%" y2="80%">
@@ -109,26 +116,31 @@ const autoBlobSvg = (size = 34) => {
   </svg>`
 }
 
-const createBlobIcon = (color, animated = false) => L.divIcon({
-  className: '',
-  iconSize: [38, 38],
-  iconAnchor: [19, 19],
-  html: blobPinSvg(color, 38, animated),
-})
+// Cache delle L.divIcon — stesso color/auto/animated → stessa istanza icona.
+// react-leaflet non rimpiazza il marker se l'icona ha lo stesso reference,
+// quindi niente flash dell'animazione mappa-pin-drop a ogni render.
+const _iconCache = new Map()
+const getPinIcon = (pin) => {
+  const key = pin.auto
+    ? 'auto'
+    : `pin-${pin.color ?? '#8B5CF6'}-${pin.animated ? 1 : 0}`
+  let icon = _iconCache.get(key)
+  if (!icon) {
+    icon = pin.auto
+      ? L.divIcon({ className: '', iconSize: [34, 34], iconAnchor: [17, 17], html: autoBlobSvg(34) })
+      : L.divIcon({ className: '', iconSize: [38, 38], iconAnchor: [19, 19], html: blobPinSvg(pin.color ?? '#8B5CF6', 38, !!pin.animated) })
+    _iconCache.set(key, icon)
+  }
+  return icon
+}
 
-const createRealIcon = () => L.divIcon({
-  className: '',
-  iconSize: [46, 46],
-  iconAnchor: [23, 23],
-  html: realBlobSvg(46),
-})
-
-const createAutoIcon = () => L.divIcon({
-  className: '',
-  iconSize: [34, 34],
-  iconAnchor: [17, 17],
-  html: autoBlobSvg(34),
-})
+let _realIcon = null
+const getRealIcon = () => {
+  if (!_realIcon) {
+    _realIcon = L.divIcon({ className: '', iconSize: [46, 46], iconAnchor: [23, 23], html: realBlobSvg(46) })
+  }
+  return _realIcon
+}
 
 const MapReady = ({ pins, realAnswer }) => {
   const map = useMap()
@@ -201,14 +213,14 @@ const MapView = ({
         <Marker
           key={pin.id ?? `pin-${i}`}
           position={[pin.lat, pin.lng]}
-          icon={pin.auto ? createAutoIcon() : createBlobIcon(pin.color ?? '#8B5CF6', pin.animated)}
+          icon={getPinIcon(pin)}
         />
       ))}
 
       {revealMode && safeAnswer && (
         <Marker
           position={[safeAnswer.lat, safeAnswer.lng]}
-          icon={createRealIcon()}
+          icon={getRealIcon()}
         />
       )}
 

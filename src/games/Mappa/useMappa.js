@@ -103,24 +103,39 @@ export const useMappa = () => {
     }
   }, [isExpired, currentPhase, confirmed, localPin, submitPin])
 
-  // Host: auto-reveal when timer expires
+  // Host: auto-reveal quando il timer scade.
+  // I timer sono trackati in ref dedicate per NON essere cancellati dal cleanup
+  // dell'effect quando arrivano altri update Realtime (es. eco late del pin).
   const revealFiredRef = useRef(false)
+  const revealTimerRef = useRef(null)
   useEffect(() => {
     if (currentPhase !== 'mappa_question') {
       revealFiredRef.current = false
+      if (revealTimerRef.current) {
+        clearTimeout(revealTimerRef.current)
+        revealTimerRef.current = null
+      }
       return
     }
     if (!isHost || !isExpired || revealFiredRef.current) return
     revealFiredRef.current = true
-    const t = setTimeout(() => setPhase('mappa_reveal'), 1200)
-    return () => clearTimeout(t)
+    revealTimerRef.current = setTimeout(() => {
+      revealTimerRef.current = null
+      setPhase('mappa_reveal')
+    }, 1200)
   }, [currentPhase, isHost, isExpired, setPhase])
 
-  // Host: early reveal when all players submitted
+  // Host: reveal anticipato quando TUTTI hanno consegnato il pin.
+  // Stesso pattern: timer in ref, mai cancellato dai re-run del Realtime.
   const allSubmittedRef = useRef(false)
+  const earlyRevealTimerRef = useRef(null)
   useEffect(() => {
     if (currentPhase !== 'mappa_question') {
       allSubmittedRef.current = false
+      if (earlyRevealTimerRef.current) {
+        clearTimeout(earlyRevealTimerRef.current)
+        earlyRevealTimerRef.current = null
+      }
       return
     }
     if (!isHost || allSubmittedRef.current) return
@@ -128,9 +143,17 @@ export const useMappa = () => {
     const allSubmitted = players.length > 0 && players.every((p) => allPins[p.id])
     if (!allSubmitted) return
     allSubmittedRef.current = true
-    const t = setTimeout(() => setPhase('mappa_reveal'), 800)
-    return () => clearTimeout(t)
+    earlyRevealTimerRef.current = setTimeout(() => {
+      earlyRevealTimerRef.current = null
+      setPhase('mappa_reveal')
+    }, 800)
   }, [currentPhase, isHost, gameState?.pins, players, setPhase])
+
+  // Unmount cleanup per i timer del reveal (sopra non cancellano su re-run).
+  useEffect(() => () => {
+    if (revealTimerRef.current) clearTimeout(revealTimerRef.current)
+    if (earlyRevealTimerRef.current) clearTimeout(earlyRevealTimerRef.current)
+  }, [])
 
   // Skip countdown — go straight to question phase
   const countdownFiredRef = useRef(false)
