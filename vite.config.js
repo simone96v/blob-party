@@ -43,6 +43,8 @@ export default defineConfig({
       workbox: {
         skipWaiting: true,
         clientsClaim: true,
+        // Le card dei giochi possono superare 2 MB; alza il limite di precache.
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         // Cache-first per asset statici (JS, CSS, icone, font)
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         runtimeCaching: [
